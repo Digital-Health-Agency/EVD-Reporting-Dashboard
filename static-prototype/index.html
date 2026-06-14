@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kenya EVD Situation Dashboard</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div class="topbar__title">
+        <h1>Kenya Ebola Virus Disease (EVD) Response Dashboard</h1>
+        <p class="topbar__subtitle">Ministry of Health &mdash; National EOC Situation Overview</p>
+      </div>
+    </div>
+    <div class="topbar__meta">
+      <div class="meta-pill" id="lastUpdated">Last updated: --</div>
+      <div class="filters">
+        <label>
+          Period
+          <select id="periodFilter">
+            <option value="24h">Last 24 hours</option>
+            <option value="7d" selected>Last 7 days</option>
+            <option value="cumulative">Cumulative</option>
+          </select>
+        </label>
+        <label>
+          County
+          <select id="countyFilter">
+            <option value="all" selected>All counties</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+
+    <!-- Status banner -->
+    <section class="status-banner" id="statusBanner">
+      <div class="status-banner__item">
+        <span class="status-banner__label">Outbreak status</span>
+        <span class="status-banner__value status--active">Active response</span>
+      </div>
+      <div class="status-banner__item">
+        <span class="status-banner__label">Days since last confirmed case</span>
+        <span class="status-banner__value" id="daysSinceLastCase">--</span>
+      </div>
+      <div class="status-banner__item">
+        <span class="status-banner__label">Counties with confirmed cases</span>
+        <span class="status-banner__value" id="countiesAffected">--</span>
+      </div>
+      <div class="status-banner__item">
+        <span class="status-banner__label">Reporting period</span>
+        <span class="status-banner__value" id="reportingPeriod">--</span>
+      </div>
+    </section>
+
+    <!-- Headline KPI cards -->
+    <section class="kpi-grid" aria-label="Key indicators">
+      <article class="kpi-card kpi-card--primary">
+        <h3>Total Confirmed Cases</h3>
+        <p class="kpi-value" id="kpiConfirmed">--</p>
+        <p class="kpi-sub" id="kpiConfirmedSplit">M -- &nbsp;|&nbsp; F --</p>
+      </article>
+
+      <article class="kpi-card kpi-card--new">
+        <h3>New Confirmed (24h)</h3>
+        <p class="kpi-value" id="kpiNewConfirmed">--</p>
+        <p class="kpi-sub" id="kpiNewConfirmedSplit">M -- &nbsp;|&nbsp; F --</p>
+      </article>
+
+      <article class="kpi-card kpi-card--active">
+        <h3>Currently Admitted</h3>
+        <p class="kpi-value" id="kpiAdmitted">--</p>
+        <p class="kpi-sub" id="kpiAdmittedSplit">M -- &nbsp;|&nbsp; F --</p>
+      </article>
+
+      <article class="kpi-card kpi-card--deaths">
+        <h3>Total Deaths</h3>
+        <p class="kpi-value" id="kpiDeaths">--</p>
+        <p class="kpi-sub" id="kpiDeathsSplit">M -- &nbsp;|&nbsp; F --</p>
+      </article>
+
+      <article class="kpi-card kpi-card--new-deaths">
+        <h3>New Deaths (24h)</h3>
+        <p class="kpi-value" id="kpiNewDeaths">--</p>
+        <p class="kpi-sub" id="kpiNewDeathsSplit">M -- &nbsp;|&nbsp; F --</p>
+      </article>
+
+      <article class="kpi-card kpi-card--recoveries">
+        <h3>Total Recoveries</h3>
+        <p class="kpi-value" id="kpiRecoveries">--</p>
+        <p class="kpi-sub" id="kpiRecoveriesSplit">M -- &nbsp;|&nbsp; F --</p>
+      </article>
+
+      <article class="kpi-card kpi-card--cfr">
+        <h3>Case Fatality Rate</h3>
+        <p class="kpi-value" id="kpiCFR">--</p>
+        <p class="kpi-sub">Total deaths / total confirmed</p>
+      </article>
+
+      <article class="kpi-card kpi-card--suspected">
+        <h3>Suspected Cases</h3>
+        <p class="kpi-value" id="kpiSuspected">--</p>
+        <p class="kpi-sub" id="kpiSuspectedSplit">M -- &nbsp;|&nbsp; F --</p>
+      </article>
+    </section>
+
+    <!-- Trend + sex disaggregation -->
+    <section class="charts-row">
+      <div class="card chart-card chart-card--wide">
+        <div class="card__header">
+          <h2>Daily Trend &mdash; Suspected, Confirmed, Deaths &amp; Recoveries</h2>
+        </div>
+        <canvas id="trendChart" height="120"></canvas>
+      </div>
+
+      <div class="card chart-card">
+        <div class="card__header">
+          <h2>Confirmed Cases by Sex</h2>
+        </div>
+        <canvas id="sexChart" height="160"></canvas>
+      </div>
+    </section>
+
+    <!-- County breakdown -->
+    <section class="card">
+      <div class="card__header">
+        <h2>County Breakdown</h2>
+      </div>
+      <div class="county-layout">
+        <canvas id="countyChart" height="160"></canvas>
+        <div class="table-wrap">
+          <table class="data-table" id="countyTable">
+            <thead>
+              <tr>
+                <th>County</th>
+                <th>Suspected</th>
+                <th>Confirmed</th>
+                <th>Admitted</th>
+                <th>Deaths</th>
+                <th>Recoveries</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pillar sections -->
+    <section class="pillars-grid">
+
+      <article class="card pillar-card">
+        <div class="card__header">
+          <h2>Points of Entry (POE)</h2>
+          <span class="badge">Near real-time</span>
+        </div>
+        <ul class="stat-list">
+          <li><span>Travellers screened</span><strong id="poeScreened">--</strong></li>
+          <li><span>Suspected cases identified</span><strong id="poeSuspected">--</strong></li>
+          <li><span>Contacts listed (M / F)</span><strong id="poeContacts">--</strong></li>
+        </ul>
+        <h3 class="pillar-card__subhead">Top entry points by volume</h3>
+        <ul class="mini-list" id="poeEntryList"></ul>
+      </article>
+
+      <article class="card pillar-card">
+        <div class="card__header">
+          <h2>Contact Tracing</h2>
+          <span class="badge">Daily</span>
+        </div>
+        <ul class="stat-list">
+          <li><span>Contacts listed (HF)</span><strong id="hfContactsListed">--</strong></li>
+          <li><span>Contacts followed up</span><strong id="hfContactsFollowedUp">--</strong></li>
+          <li><span>Follow-up completion</span><strong id="hfFollowUpRate">--</strong></li>
+          <li><span>Contacts traced (community)</span><strong id="commContactsTraced">--</strong></li>
+        </ul>
+        <div class="progress">
+          <div class="progress__bar" id="followUpProgressBar"></div>
+        </div>
+        <p class="pillar-card__note">Share of listed contacts under active follow-up</p>
+      </article>
+
+      <article class="card pillar-card">
+        <div class="card__header">
+          <h2>Community Surveillance</h2>
+          <span class="badge">Daily</span>
+        </div>
+        <ul class="stat-list">
+          <li><span>Signals generated (CHPs)</span><strong id="commSignals">--</strong></li>
+          <li><span>Verified signals linked to facilities</span><strong id="commVerified">--</strong></li>
+          <li><span>Verification rate</span><strong id="commVerifiedRate">--</strong></li>
+          <li><span>Contacts traced (M / F)</span><strong id="commTracedSplit">--</strong></li>
+        </ul>
+      </article>
+
+      <article class="card pillar-card">
+        <div class="card__header">
+          <h2>Laboratory</h2>
+          <span class="badge">Daily</span>
+        </div>
+        <ul class="stat-list">
+          <li><span>Tests done</span><strong id="labTests">--</strong></li>
+          <li><span>Positive tests</span><strong id="labPositive">--</strong></li>
+          <li><span>Negative tests</span><strong id="labNegative">--</strong></li>
+          <li><span>Test positivity rate</span><strong id="labPositivity">--</strong></li>
+          <li><span>Average turnaround time</span><strong id="labTAT">--</strong></li>
+        </ul>
+      </article>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      Data sources: ADaM (Ebola CIF) / MOH 502, TC EMRs, Contacts Listing Form, eCHIS, M-Dharura, Lab systems, Civil Registries (D1).
+      All figures are illustrative sample data for layout purposes.
+    </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="assets/data/data.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
