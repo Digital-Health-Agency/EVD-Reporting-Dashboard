@@ -1,19 +1,82 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import "./registerCharts";
-import { Bar } from "react-chartjs-2";
+import {
+  ResponsiveContainer,
+  BarChart, Bar,
+  PieChart, Pie,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+} from "recharts";
 import { fmt, pct, splitText } from "@/lib/format";
 
-function Row({ label, value }) {
+const C = {
+  suspected: "#1f6feb",
+  confirmed: "#0e6e63",
+  deaths: "#c0392b",
+  recoveries: "#1f9254",
+  screened: "#7cc0ec",
+  male: "#0e6e63",
+  female: "#e3a008",
+  signals: "#97a2ab",
+  verified: "#1f9254",
+  positive: "#c0392b",
+  negative: "#1f9254",
+};
+
+const dayLabel = (iso) =>
+  new Date(iso).toLocaleDateString("en-KE", { month: "short", day: "numeric" });
+
+
+function Chart({ size = "chart-h", children }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   return (
-    <div>
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <div className={size}>
+      {mounted ? <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer> : null}
     </div>
   );
 }
+
+function Kpi({ variant, label, value, delta, badge, live }) {
+  return (
+    <div className={`kpi ${variant ? `kpi--${variant}` : ""}`}>
+      <div className="kpi__label">{label}</div>
+      <div className="kpi__value">{value}</div>
+      {delta ? (
+        <div className="kpi__delta">
+          {live ? <span className="kpi__pulse" aria-hidden="true" /> : null}
+          {delta}
+        </div>
+      ) : null}
+      {badge ? <span className="kpi__badge">{badge}</span> : null}
+    </div>
+  );
+}
+
+function SectionHead({ title, src }) {
+  return (
+    <div className="section__head">
+      <h2 className="section__title">{title}</h2>
+      {src ? <p className="section__src">{src}</p> : null}
+    </div>
+  );
+}
+
+function ChartCard({ title, children }) {
+  return (
+    <div className="card">
+      <h3 className="card__title">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+const tooltipStyle = { fontSize: 12, borderRadius: 8, border: "1px solid #e7ebef" };
+const axisProps = { tick: { fontSize: 11, fill: "#69757f" }, axisLine: false, tickLine: false };
+const legendStyle = { fontSize: 12 };
+const gridProps = { strokeDasharray: "3 3", vertical: false, stroke: "#eef1f4" };
+const barMargin = { top: 8, right: 8, left: -10, bottom: 0 };
 
 export default function Dashboard({ data }) {
   const [period, setPeriod] = useState("7d");
@@ -26,50 +89,48 @@ export default function Dashboard({ data }) {
 
   const dateLabel = useMemo(() => {
     const d = new Date(data.meta.lastUpdated);
-    return d.toLocaleDateString("en-KE", {
-      weekday: "long", day: "numeric", month: "long", year: "numeric",
-    });
+    return d.toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" });
   }, [data.meta.lastUpdated]);
 
-  const baseOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } };
-  const axisOpts = { ...baseOpts, scales: { y: { beginAtZero: true } } };
-
-  const trendData = useMemo(() => {
-    const keys = ["suspected", "confirmed", "deaths", "recoveries"];
-    let series = Object.fromEntries(keys.map((k) => [k, data.trend.map((r) => r[k])]));
-    let labels = data.trend.map((r) =>
-      new Date(r.date).toLocaleDateString("en-KE", { month: "short", day: "numeric" })
-    );
+  // Epidemic trend with period handling
+  const trendRows = useMemo(() => {
+    let rows = data.trend.map((r) => ({ label: dayLabel(r.date), ...r }));
     if (period === "cumulative") {
-      const cum = (arr) => { let r = 0; return arr.map((v) => (r += v)); };
-      keys.forEach((k) => (series[k] = cum(series[k])));
+      const acc = { suspected: 0, confirmed: 0, deaths: 0, recoveries: 0 };
+      rows = rows.map((r) => {
+        acc.suspected += r.suspected; acc.confirmed += r.confirmed;
+        acc.deaths += r.deaths; acc.recoveries += r.recoveries;
+        return { ...r, ...acc };
+      });
     } else if (period === "24h") {
-      labels = labels.slice(-1);
-      keys.forEach((k) => (series[k] = series[k].slice(-1)));
+      rows = rows.slice(-1);
     }
-    return {
-      labels,
-      datasets: [
-        { label: "Suspected", data: series.suspected, backgroundColor: "#1f6feb" },
-        { label: "Confirmed", data: series.confirmed, backgroundColor: "#0e6e63" },
-        { label: "Deaths", data: series.deaths, backgroundColor: "#c0392b" },
-        { label: "Recoveries", data: series.recoveries, backgroundColor: "#1f9254" },
-      ],
-    };
+    return rows;
   }, [data.trend, period]);
 
-  const countyChartData = {
-    labels: data.counties.map((c) => c.county),
-    datasets: [
-      { label: "Confirmed", data: data.counties.map((c) => c.confirmed), backgroundColor: "#0e6e63" },
-      { label: "Deaths", data: data.counties.map((c) => c.deaths), backgroundColor: "#c0392b" },
-      { label: "Recoveries", data: data.counties.map((c) => c.recoveries), backgroundColor: "#1f9254" },
-    ],
-  };
+  const periodLabel = period === "cumulative" ? "cumulative" : period === "24h" ? "last 24h" : "last 7 days";
+
+  const poeRows = poe.byEntryPoint.map((e) => ({ name: e.name, Screened: e.screened, Suspected: e.suspected }));
+  const commRows = comm.trend.map((r) => ({ label: dayLabel(r.date), Signals: r.signals, Verified: r.verified }));
+  const labRows = labs.trend.map((r) => ({ label: dayLabel(r.date), Positive: r.positive, Negative: r.negative }));
+  const countyRows = data.counties.map((c) => ({ name: c.county, Confirmed: c.confirmed, Deaths: c.deaths, Recoveries: c.recoveries }));
+
+  const poeSexPie = [
+    { name: "Male", value: poe.contactsListed.male, fill: C.male },
+    { name: "Female", value: poe.contactsListed.female, fill: C.female },
+  ];
+  const hfSexPie = [
+    { name: "Male", value: hf.suspectedCases.male, fill: C.male },
+    { name: "Female", value: hf.suspectedCases.female, fill: C.female },
+  ];
+  const labResultPie = [
+    { name: "Negative", value: labs.negativeTests, fill: C.negative },
+    { name: "Positive", value: labs.positiveTests, fill: C.positive },
+  ];
 
   return (
     <>
-      {/* App bar with both logos */}
+      {/* App bar */}
       <header className="appbar">
         <div className="appbar__inner">
           <div className="brand">
@@ -93,7 +154,7 @@ export default function Dashboard({ data }) {
           <div>
             <h1>Ebola Virus Disease — National Situation Report</h1>
             <p className="report-head__sub">
-              Situation overview across points of entry, health facilities, community and laboratory
+              Surveillance overview across points of entry, health facilities, community and laboratory
             </p>
           </div>
           <div className="report-head__controls">
@@ -108,63 +169,186 @@ export default function Dashboard({ data }) {
 
         {/* Headline KPIs */}
         <section className="kpis">
-          <div className="kpi">
-            <div className="kpi__label">Confirmed cases</div>
-            <div className="kpi__value">{fmt(s.confirmedCasesTotal.total)}</div>
-            <div className="kpi__delta"><b>+{s.newConfirmed24h.total}</b> in last 24h · {splitText(s.confirmedCasesTotal)}</div>
-          </div>
-          <div className="kpi kpi--amber">
-            <div className="kpi__label">Currently admitted</div>
-            <div className="kpi__value">{fmt(s.currentlyAdmitted.total)}</div>
-            <div className="kpi__delta">{splitText(s.currentlyAdmitted)}</div>
-          </div>
-          <div className="kpi kpi--red">
-            <div className="kpi__label">Deaths</div>
-            <div className="kpi__value">{fmt(s.totalDeaths.total)}</div>
-            <div className="kpi__delta">CFR <b>{pct(s.caseFatalityRate)}</b> · <b>+{s.newDeaths24h.total}</b> in 24h</div>
-          </div>
-          <div className="kpi kpi--green">
-            <div className="kpi__label">Recoveries</div>
-            <div className="kpi__value">{fmt(s.totalRecoveries.total)}</div>
-            <div className="kpi__delta"><b>+{s.newRecoveries24h.total}</b> in last 24h</div>
+          <Kpi variant="featured" badge="Priority indicator" live label="Confirmed cases" value={fmt(s.confirmedCasesTotal.total)} delta={`+${s.newConfirmed24h.total} in last 24h`} />
+          <Kpi label="Total screened" value={fmt(poe.screened)} delta="At points of entry" />
+          <Kpi variant="blue" label="Suspected cases" value={fmt(s.suspectedCases.total)} delta={splitText(s.suspectedCases)} />
+          <Kpi variant="amber" label="Currently admitted" value={fmt(s.currentlyAdmitted.total)} delta={splitText(s.currentlyAdmitted)} />
+          <Kpi variant="red" label="Deaths" value={fmt(s.totalDeaths.total)} delta={`CFR ${pct(s.caseFatalityRate)} · +${s.newDeaths24h.total} in 24h`} />
+          <Kpi variant="green" label="Recoveries" value={fmt(s.totalRecoveries.total)} delta={`+${s.newRecoveries24h.total} in last 24h`} />
+        </section>
+
+        {/* ---------- Points of Entry ---------- */}
+        <section className="section">
+          <SectionHead title="Points of Entry" src="Source: ADaM (Ebola CIF) · near real-time" />
+          <div className="charts-wide">
+            <ChartCard title="Screened vs suspected by point of entry">
+              <Chart>
+                <BarChart data={poeRows} margin={barMargin}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="name" {...axisProps} interval={0} angle={-15} textAnchor="end" height={50} />
+                  <YAxis {...axisProps} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={legendStyle} />
+                  <Bar dataKey="Screened" fill={C.screened} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Suspected" fill={C.female} radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </Chart>
+            </ChartCard>
+
+            <div className="stack">
+              <div className="kpis" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                <Kpi label="Screened" value={fmt(poe.screened)} />
+                <Kpi variant="blue" label="Suspected" value={fmt(poe.suspectedCases)} />
+              </div>
+              <ChartCard title="Contacts listed by sex">
+                <Chart size="chart-h--sm">
+                  <PieChart>
+                    <Pie data={poeSexPie} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend wrapperStyle={legendStyle} />
+                  </PieChart>
+                </Chart>
+              </ChartCard>
+            </div>
           </div>
         </section>
 
-        {/* Trend + snapshot */}
+        {/* ---------- Health Facilities ---------- */}
         <section className="section">
-          <div className="split">
-            <div className="card">
-              <div className="card__head">
-                <h2 className="card__title">Epidemic trend</h2>
-              </div>
-              <div className="chart-box"><Bar data={trendData} options={axisOpts} /></div>
-            </div>
-            <div className="card">
-              <h2 className="card__title">National snapshot</h2>
-              <div className="rows" style={{ marginTop: 8 }}>
-                <Row label="Suspected cases" value={fmt(s.suspectedCases.total)} />
-                <Row label="New confirmed (24h)" value={fmt(s.newConfirmed24h.total)} />
-                <Row label="Currently admitted" value={fmt(s.currentlyAdmitted.total)} />
-                <Row label="Travellers screened (POE)" value={fmt(poe.screened)} />
-                <Row label="Tests done" value={fmt(labs.testsDone)} />
-                <Row label="Positive tests" value={fmt(labs.positiveTests)} />
-                <Row label="Lab turnaround time (TAT)" value={`${labs.turnaroundTimeHrs} hrs`} />
-              </div>
+          <SectionHead title="Health Facilities" src="Source: TC EMRs, ADaM CIF, Labs, Civil Registries (D1) · daily" />
+          <div className="kpis" style={{ marginBottom: 16 }}>
+            <Kpi variant="blue" label="Suspected" value={fmt(hf.suspectedCases.total)} />
+            <Kpi label="New confirmed (24h)" value={fmt(hf.newConfirmed24h.total)} />
+            <Kpi label="Total confirmed" value={fmt(hf.totalConfirmed.total)} />
+            <Kpi variant="amber" label="Currently admitted" value={fmt(hf.currentlyAdmitted.total)} />
+            <Kpi variant="red" label="Deaths (24h / total)" value={`${hf.newDeaths24h.total} / ${hf.totalDeaths.total}`} />
+            <Kpi variant="green" label="Recoveries (24h / total)" value={`${hf.newRecoveries24h.total} / ${hf.totalRecoveries.total}`} />
+            <Kpi variant="red" label="Case fatality rate" value={pct(hf.caseFatalityRate)} />
+          </div>
+
+          <div className="charts-wide">
+            <ChartCard title={`Epidemic trend (${periodLabel})`}>
+              <Chart>
+                <BarChart data={trendRows} margin={barMargin}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="label" {...axisProps} />
+                  <YAxis {...axisProps} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={legendStyle} />
+                  <Bar dataKey="suspected" name="Suspected" fill={C.suspected} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="confirmed" name="Confirmed" fill={C.confirmed} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="deaths" name="Deaths" fill={C.deaths} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="recoveries" name="Recoveries" fill={C.recoveries} radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </Chart>
+            </ChartCard>
+
+            <div className="stack">
+              <ChartCard title="Suspected cases by sex">
+                <Chart size="chart-h--sm">
+                  <PieChart>
+                    <Pie data={hfSexPie} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend wrapperStyle={legendStyle} />
+                  </PieChart>
+                </Chart>
+              </ChartCard>
+              <ChartCard title="Contacts: listed vs followed up">
+                <div className="stat-tiles" style={{ padding: "10px 0" }}>
+                  <div>
+                    <div className="stat-tile__num stat-tile__num--blue">{fmt(hf.contactsListed.total)}</div>
+                    <div className="stat-tile__label">Listed</div>
+                  </div>
+                  <div>
+                    <div className="stat-tile__num stat-tile__num--green">{fmt(hf.contactsFollowedUp.total)}</div>
+                    <div className="stat-tile__label">Followed up</div>
+                  </div>
+                </div>
+              </ChartCard>
             </div>
           </div>
         </section>
 
-        {/* County breakdown */}
+        {/* ---------- Community Surveillance ---------- */}
         <section className="section">
-          <h3 className="section__title">County breakdown</h3>
-          <div className="split">
-            <div className="card">
-              <h2 className="card__title">Confirmed, deaths &amp; recoveries by county</h2>
-              <div className="chart-box" style={{ marginTop: 12 }}><Bar data={countyChartData} options={axisOpts} /></div>
+          <SectionHead title="Community Surveillance" src="Source: eCHIS, M-Dharura · daily" />
+          <div className="charts-wide">
+            <ChartCard title="Signals generated vs verified (last 7 days)">
+              <Chart>
+                <BarChart data={commRows} margin={barMargin}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="label" {...axisProps} />
+                  <YAxis {...axisProps} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={legendStyle} />
+                  <Bar dataKey="Signals" fill={C.signals} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Verified" fill={C.verified} radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </Chart>
+            </ChartCard>
+            <div className="kpis" style={{ gridTemplateColumns: "1fr", alignContent: "start" }}>
+              <Kpi label="Signals generated (CHPs)" value={fmt(comm.signalsGenerated)} />
+              <Kpi variant="green" label="Verified signals linked (CHAs)" value={fmt(comm.verifiedSignalsLinked.total)} />
+              <Kpi variant="blue" label="Contacts traced" value={fmt(comm.contactsTraced.total)} delta={splitText(comm.contactsTraced)} />
             </div>
-            <div className="card">
-              <h2 className="card__title">By county</h2>
-              <div className="table-wrap" style={{ marginTop: 8 }}>
+          </div>
+        </section>
+
+        {/* ---------- Laboratory ---------- */}
+        <section className="section">
+          <SectionHead title="Laboratory" src="Source: Lab systems · daily" />
+          <div className="kpis" style={{ marginBottom: 16 }}>
+            <Kpi label="Tests done" value={fmt(labs.testsDone)} />
+            <Kpi variant="red" label="Positive tests" value={fmt(labs.positiveTests)} />
+            <Kpi variant="green" label="Negative tests" value={fmt(labs.negativeTests)} />
+            <Kpi variant="amber" label="Turnaround time (TAT)" value={`${labs.turnaroundTimeHrs} hrs`} />
+          </div>
+          <div className="charts-wide">
+            <ChartCard title="Daily lab results (last 7 days)">
+              <Chart>
+                <BarChart data={labRows} margin={barMargin}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="label" {...axisProps} />
+                  <YAxis {...axisProps} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={legendStyle} />
+                  <Bar dataKey="Negative" fill={C.negative} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Positive" fill={C.positive} radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </Chart>
+            </ChartCard>
+            <ChartCard title="Test results breakdown">
+              <Chart>
+                <PieChart>
+                  <Pie data={labResultPie} dataKey="value" nameKey="name" innerRadius={60} outerRadius={95} paddingAngle={2} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={legendStyle} />
+                </PieChart>
+              </Chart>
+            </ChartCard>
+          </div>
+        </section>
+
+        {/* ---------- County breakdown ---------- */}
+        <section className="section">
+          <SectionHead title="County Breakdown" src="Confirmed, deaths and recoveries by county" />
+          <div className="charts-wide">
+            <ChartCard title="By county">
+              <Chart>
+                <BarChart data={countyRows} margin={barMargin}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="name" {...axisProps} interval={0} angle={-15} textAnchor="end" height={50} />
+                  <YAxis {...axisProps} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={legendStyle} />
+                  <Bar dataKey="Confirmed" fill={C.confirmed} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Deaths" fill={C.deaths} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Recoveries" fill={C.recoveries} radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </Chart>
+            </ChartCard>
+            <ChartCard title="County table">
+              <div className="table-wrap">
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -188,55 +372,13 @@ export default function Dashboard({ data }) {
                   </tbody>
                 </table>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Operational pillars */}
-        <section className="section">
-          <h3 className="section__title">Response pillars</h3>
-          <div className="pillars">
-            <div className="card">
-              <span className="pillar__tag">Points of entry</span>
-              <div className="rows" style={{ marginTop: 12 }}>
-                <Row label="Travellers screened" value={fmt(poe.screened)} />
-                <Row label="Suspected identified" value={fmt(poe.suspectedCases)} />
-                <Row label="Contacts listed" value={fmt(poe.contactsListed.total)} />
-              </div>
-            </div>
-
-            <div className="card">
-              <span className="pillar__tag">Contact tracing</span>
-              <div className="rows" style={{ marginTop: 12 }}>
-                <Row label="Contacts listed" value={`${fmt(hf.contactsListed.total)} · ${splitText(hf.contactsListed)}`} />
-                <Row label="Contacts followed up" value={`${fmt(hf.contactsFollowedUp.total)} · ${splitText(hf.contactsFollowedUp)}`} />
-              </div>
-            </div>
-
-            <div className="card">
-              <span className="pillar__tag">Community surveillance</span>
-              <div className="rows" style={{ marginTop: 12 }}>
-                <Row label="Signals generated (CHPs)" value={fmt(comm.signalsGenerated)} />
-                <Row label="Verified &amp; linked" value={fmt(comm.verifiedSignalsLinked.total)} />
-                <Row label="Contacts traced" value={fmt(comm.contactsTraced.total)} />
-              </div>
-            </div>
-
-            <div className="card">
-              <span className="pillar__tag">Laboratory</span>
-              <div className="rows" style={{ marginTop: 12 }}>
-                <Row label="Tests done" value={fmt(labs.testsDone)} />
-                <Row label="Positive tests" value={fmt(labs.positiveTests)} />
-                <Row label="Negative tests" value={fmt(labs.negativeTests)} />
-                <Row label="Turnaround time (TAT)" value={`${labs.turnaroundTimeHrs} hrs`} />
-              </div>
-            </div>
+            </ChartCard>
           </div>
         </section>
 
         <footer className="footer">
           Data sources: ADaM (Ebola CIF) / MOH 502, TC EMRs, Contacts Listing Form, eCHIS, M-Dharura,
-          Lab systems, Civil Registries (D1). Figures shown are illustrative sample data for layout purposes.
+          Lab systems, Civil Registries (D1). Awaiting connection to a live data source.
         </footer>
       </div>
     </>

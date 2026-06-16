@@ -4,7 +4,7 @@ A high-level national reporting dashboard for the **Ebola Virus Disease (EVD)** 
 
 Built for the **Ministry of Health, Kenya** and powered by the **Digital Health Agency (DHA)**.
 
-> The figures currently shown are illustrative sample data for layout and review purposes. Connect a live data source before any operational use (see [Data layer](#data-layer)).
+> The dashboard ships with **zeroed placeholder data** — no real or sample case figures are included. Connect a live data source before any operational use (see [Data layer](#data-layer)).
 
 ---
 
@@ -68,10 +68,9 @@ npm run lint    # lint
 │   ├── Dashboard.js       # main client component (KPIs, charts, tables)
 │   └── registerCharts.js  # Chart.js registration
 ├── lib/
-│   ├── data.js            # sample data + getDashboardData() loader
+│   ├── data.js            # zeroed data + getDashboardData() loader
 │   └── format.js          # number/percentage formatting helpers
-├── public/                # logos and static assets
-└── static-prototype/      # original static HTML prototype (reference only)
+└── public/                # logos and static assets
 ```
 
 ## Data layer
@@ -87,7 +86,7 @@ export async function getDashboardData() {
 
 To go live, replace the body of `getDashboardData()` with a call to your data
 source (REST API, DHIS2, or a scheduled export) that returns the same shape as
-the sample object. No component changes are required.
+the placeholder object. No component changes are required.
 
 ## License
 
