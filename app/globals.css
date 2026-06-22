@@ -165,6 +165,26 @@ html, body {
 .tab--refresh { margin-left: auto; color: var(--accent); border-radius: 8px; }
 .tab--refresh:disabled { color: var(--faint); cursor: default; }
 
+/* ---------- Hero (one big headline number) ---------- */
+.hero {
+  background: linear-gradient(180deg, #ffffff 0%, #fdeceb 100%);
+  border: 1px solid #f3c9c4; border-left: 6px solid var(--red);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 26px 28px; margin-top: 22px;
+}
+.hero__label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--red); font-weight: 800; }
+.hero__value { font-size: 3.6rem; font-weight: 800; line-height: 1.02; margin-top: 6px; letter-spacing: -1px; color: var(--ink); }
+.hero__sub { font-size: 0.86rem; color: var(--muted); margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Featured KPI — soft gradient + left accent so it stands out from plain KPIs */
+.kpi--featured {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f6f5 100%);
+  border-top: 1px solid var(--border); border-left: 5px solid var(--accent);
+}
+.kpi--featured.kpi--red { background: linear-gradient(180deg, #ffffff 0%, #fdeceb 100%); border-left-color: var(--red); }
+.kpi--featured.kpi--blue { background: linear-gradient(180deg, #ffffff 0%, #eef3fc 100%); border-left-color: var(--blue); }
+.kpi--featured.kpi--green { background: linear-gradient(180deg, #ffffff 0%, #ecf6f0 100%); border-left-color: var(--green); }
+
 /* ---------- Provenance markers ---------- */
 .pill-live {
   display: inline-flex; align-items: center; gap: 6px;

@@ -14,31 +14,29 @@ const C = {
   tests: "#1f6feb",
   positive: "#c0392b",
   negative: "#1f9254",
-  inconclusive: "#c98a04",
   screened: "#0e6e63",
   unknown: "#97a2ab",
-  confirmed: "#0e6e63",
-  suspected: "#1f6feb",
-  deaths: "#c0392b",
 };
 
 const pctNum = (n) => `${Number(n || 0).toFixed(1)}%`;
 const dayLabel = (iso) =>
   new Date(iso).toLocaleDateString("en-KE", { month: "short", day: "numeric" });
 
-function Chart({ size = "chart-h", children }) {
+function Chart({ size = "chart-h", height, children }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   return (
-    <div className={size}>
+    <div className={height ? undefined : size} style={height ? { width: "100%", height } : undefined}>
       {mounted ? <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer> : null}
     </div>
   );
 }
 
-function Kpi({ variant, label, value, delta, badge, live }) {
+function Kpi({ variant, featured, label, value, delta, badge, live }) {
+  const cls = ["kpi", featured && "kpi--featured", variant && `kpi--${variant}`]
+    .filter(Boolean).join(" ");
   return (
-    <div className={`kpi ${variant ? `kpi--${variant}` : ""}`}>
+    <div className={cls}>
       <div className="kpi__label">{label}</div>
       <div className="kpi__value">{value}</div>
       {delta ? (
@@ -121,21 +119,23 @@ export default function Dashboard({ data }) {
     return d.toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" });
   }, [data.meta.lastUpdated]);
 
+  // Results trend — positive, negative, tests only (no inconclusive).
   const labTrend = (labs.trend || []).map((r) => ({
     label: dayLabel(r.date), Tests: r.tests, Positive: r.positive, Negative: r.negative,
   }));
   const labPie = [
     { name: "Negative", value: labs.negative, fill: C.negative },
     { name: "Positive", value: labs.positive, fill: C.positive },
-    { name: "Inconclusive", value: labs.inconclusive, fill: C.inconclusive },
   ].filter((d) => d.value > 0);
 
   const poeRows = (poe.byPoe || []).map((p) => ({
     name: p.name, Screened: p.screened, fill: p.unknown ? C.unknown : C.screened,
   }));
+  const hasPoeBreakdown = (poe.byPoe || []).some((p) => !p.unknown);
 
   const labRange = labs.firstTest && labs.lastTest
     ? `${labs.firstTest} → ${labs.lastTest}` : null;
+  const asOfLab = labs.lastTest ? `as of ${labs.lastTest}` : null;
 
   return (
     <>
@@ -144,7 +144,7 @@ export default function Dashboard({ data }) {
         <div>
           <h1>{disease} — National Situation Report</h1>
           <p className="report-head__sub">
-            Laboratory, case surveillance and points-of-entry overview from the analytics warehouse
+            Positive cases, screening at points of entry and laboratory testing from the analytics warehouse
           </p>
         </div>
         <div className="report-head__controls">
@@ -152,56 +152,52 @@ export default function Dashboard({ data }) {
         </div>
       </div>
 
-      {/* ---------- Laboratory (LIVE) ---------- */}
-      <section className="section">
-        <SectionHead
-          title="Laboratory"
-          src={`Source: marts.lab_by_disease / lab_daily${labRange ? ` · ${labRange}` : ""}`}
-          prov={prov.labs}
-        />
-        {!labs.available ? (
-          <div className="card"><p style={{ margin: 0, color: "var(--muted)" }}>No laboratory data for {disease}.</p></div>
-        ) : (
-          <>
-            <div className="kpis" style={{ marginBottom: 16 }}>
-              <Kpi variant="featured" badge="Priority indicator" live label="Positive tests" value={fmt(labs.positive)} delta={`${disease} · positivity ${pctNum(labs.positivityPct)}`} />
-              <Kpi label="Tests done" value={fmt(labs.testsDone)} delta={`${disease} lab results`} />
-              <Kpi variant="green" label="Negative tests" value={fmt(labs.negative)} />
-              <Kpi variant="amber" label="Inconclusive" value={fmt(labs.inconclusive)} />
-              <Kpi variant="red" label="Positivity %" value={pctNum(labs.positivityPct)} delta="positive / resolved" />
-              <Kpi variant="blue" label="Total screened" value={fmt(labs.patientsTested)} delta="patients tested" />
-              <Kpi label="Avg turnaround" value={labs.avgTatDays == null ? "—" : `${labs.avgTatDays} days`} delta={labs.avgTatDays == null ? "awaiting data" : "specimen → result"} />
-            </div>
-            <div className="charts-wide">
-              <ChartCard title="Tests over time (by test date)">
-                <Chart>
-                  <LineChart data={labTrend} margin={barMargin}>
-                    <CartesianGrid {...gridProps} />
-                    <XAxis dataKey="label" {...axisProps} minTickGap={24} />
-                    <YAxis {...axisProps} allowDecimals={false} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Legend wrapperStyle={legendStyle} />
-                    <Line type="monotone" dataKey="Tests" stroke={C.tests} strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Positive" stroke={C.positive} strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Negative" stroke={C.negative} strokeWidth={2} dot={false} />
-                  </LineChart>
-                </Chart>
-              </ChartCard>
-              <ChartCard title="Test results breakdown">
-                <Chart>
-                  <PieChart>
-                    <Pie data={labPie} dataKey="value" nameKey="name" innerRadius={60} outerRadius={95} paddingAngle={2} />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Legend wrapperStyle={legendStyle} />
-                  </PieChart>
-                </Chart>
-              </ChartCard>
-            </div>
-          </>
-        )}
+      {/* 1) Positive Cases — one big headline number */}
+      <section className="hero">
+        <div className="hero__label">Positive cases — {disease}</div>
+        <div className="hero__value">{fmt(labs.positive)}</div>
+        <div className="hero__sub">
+          <span className="pill-live"><span className="pill-live__dot" />Live</span>
+          Lab-confirmed positives · positivity {pctNum(labs.positivityPct)} · {fmt(labs.testsDone)} tests done
+        </div>
       </section>
 
-      {/* ---------- Case Surveillance (LIVE) ---------- */}
+      {/* 2) Total screened + 3) Screened by Point of Entry */}
+      <section className="section">
+        <SectionHead title="Screening at Points of Entry" src="Source: marts.screenings_by_poe" prov={prov.poe} />
+        <div className="charts-wide">
+          {hasPoeBreakdown ? (
+            <ChartCard title="Screened by point of entry">
+              <Chart height={Math.max(300, poeRows.length * 34)}>
+                <BarChart data={poeRows} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 0 }}>
+                  <CartesianGrid {...gridProps} horizontal={false} />
+                  <XAxis type="number" {...axisProps} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" {...axisProps} width={170} interval={0} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => fmt(v)} />
+                  <Bar dataKey="Screened" radius={[0, 3, 3, 0]}>
+                    {poeRows.map((r, i) => <Cell key={i} fill={r.fill} />)}
+                  </Bar>
+                </BarChart>
+              </Chart>
+            </ChartCard>
+          ) : (
+            <div className="card">
+              <h3 className="card__title">Screened by point of entry</h3>
+              <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: "0.9rem" }}>
+                The per–point-of-entry breakdown (JKIA, Busia, Moi, …) appears here once
+                <strong> marts.screenings_by_poe</strong> is published in this environment. The
+                screening total on the right is live.
+              </p>
+            </div>
+          )}
+          <div className="kpis" style={{ gridTemplateColumns: "1fr", alignContent: "start" }}>
+            <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
+          </div>
+        </div>
+        {poe.note ? <p className="section__src" style={{ marginTop: 10 }}>⚠ {poe.note}</p> : null}
+      </section>
+
+      {/* 3) Suspected cases */}
       <section className="section">
         <SectionHead title="Case Surveillance" src="Source: marts.cases_by_disease (ADaM)" prov={prov.cases} />
         {!cases.available ? (
@@ -212,44 +208,61 @@ export default function Dashboard({ data }) {
           </div>
         ) : (
           <div className="kpis">
-            <Kpi variant="blue" label="Suspected cases" value={fmt(cases.suspected)} />
-            <Kpi variant="green" label="Confirmed" value={fmt(cases.confirmed)} />
-            <Kpi variant="red" label="Deaths" value={fmt(cases.deaths)} />
-            <Kpi label="Probable" value={fmt(cases.probable)} />
-            <Kpi label="Total cases" value={fmt(cases.totalCases)} />
-            <Kpi label="With specimen ID" value={fmt(cases.withSpecimenId)} delta="linked to a lab specimen" />
+            <Kpi featured variant="blue" live label="Suspected cases" value={fmt(cases.suspected)} delta={`${disease} suspected`} />
           </div>
         )}
       </section>
 
-      {/* ---------- Points of Entry (LIVE, interim source) ---------- */}
+      {/* 4) Laboratory testing */}
       <section className="section">
-        <SectionHead title="Points of Entry" src="Source: stg_adam.screenings · all-hazards traveller screening (interim)" prov={prov.poe} />
-        <div className="charts-wide">
-          <ChartCard title="Screenings by point of entry">
-            <Chart>
-              <BarChart data={poeRows} margin={barMargin}>
-                <CartesianGrid {...gridProps} />
-                <XAxis dataKey="name" {...axisProps} interval={0} angle={-15} textAnchor="end" height={60} />
-                <YAxis {...axisProps} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="Screened" radius={[3, 3, 0, 0]}>
-                  {poeRows.map((r, i) => <Cell key={i} fill={r.fill} />)}
-                </Bar>
-              </BarChart>
-            </Chart>
-          </ChartCard>
-          <div className="kpis" style={{ gridTemplateColumns: "1fr", alignContent: "start" }}>
-            <Kpi variant="green" label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
-            <Kpi variant="blue" label="Unique travelers" value={fmt(poe.uniqueTravelers)} />
-          </div>
+        <SectionHead
+          title="Laboratory Testing"
+          src={`Source: marts.lab_by_disease${labRange ? ` · ${labRange}` : ""}`}
+          prov={prov.labs}
+        />
+        <div className="kpis">
+          <Kpi featured variant="blue" live label="Tests done" value={fmt(labs.testsDone)} delta={`${disease} lab results`} />
+          <Kpi variant="blue" label="Patients tested" value={fmt(labs.patientsTested)} />
+          <Kpi variant="amber" label="Positivity %" value={pctNum(labs.positivityPct)} delta="positive / resolved" />
+          <Kpi label="Avg turnaround" value={labs.avgTatDays == null ? "—" : `${labs.avgTatDays} days`} delta="specimen → result" />
         </div>
-        {poe.note ? (
-          <p className="section__src" style={{ marginTop: 10 }}>⚠ {poe.note}</p>
-        ) : null}
       </section>
 
-      {/* ---------- Sections without a backing mart yet ---------- */}
+      {/* 6) Results — positive / negative only */}
+      <section className="section">
+        <SectionHead title="Laboratory Results" src="Source: marts.lab_by_disease / lab_daily" prov={prov.labs} />
+        <div className="kpis" style={{ marginBottom: 16 }}>
+          <Kpi variant="red" label="Positive" value={fmt(labs.positive)} />
+          <Kpi variant="green" label="Negative" value={fmt(labs.negative)} />
+        </div>
+        <div className="charts-wide">
+          <ChartCard title={`Daily trend — positive & negative${asOfLab ? ` (${asOfLab})` : ""}`}>
+            <Chart>
+              <LineChart data={labTrend} margin={barMargin}>
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="label" {...axisProps} minTickGap={20} />
+                <YAxis {...axisProps} allowDecimals={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend wrapperStyle={legendStyle} />
+                <Line type="monotone" dataKey="Tests" stroke={C.tests} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="Positive" stroke={C.positive} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="Negative" stroke={C.negative} strokeWidth={2} dot={false} />
+              </LineChart>
+            </Chart>
+          </ChartCard>
+          <ChartCard title="Results breakdown (positive vs negative)">
+            <Chart>
+              <PieChart>
+                <Pie data={labPie} dataKey="value" nameKey="name" innerRadius={60} outerRadius={95} paddingAngle={2} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend wrapperStyle={legendStyle} />
+              </PieChart>
+            </Chart>
+          </ChartCard>
+        </div>
+      </section>
+
+      {/* Sections without a backing mart yet */}
       <PreviewSection
         title="Clinical Management & Contacts"
         prov={prov.clinical}
@@ -260,18 +273,13 @@ export default function Dashboard({ data }) {
         prov={prov.community}
         blurb="Community signals (eCHIS, M-Dharura) generated vs verified will appear here once that mart is available."
       />
-      <PreviewSection
-        title="Geographic Spread"
-        prov={prov.geographic}
-        blurb="County / sub-county breakdown of cases will appear here once a geographic mart is published."
-      />
 
       <footer className="footer">
         Live metrics are read from the ClickHouse Gold marts (lab_by_disease, lab_daily,
         cases_by_disease) via the dashboard’s API layer, plus interim traveller-screening totals
-        from stg_adam.screenings. Sections marked “preview” are awaiting their data source and are
-        never populated with placeholder figures. Ebola/Marburg currently show 0% positivity — that
-        is correct (no active outbreak), not a data error.
+        from stg_adam.screenings (point-of-entry breakdown appears once the source records it).
+        Sections marked “preview” are awaiting their data source and are never populated with
+        placeholder figures. Ebola/Marburg show 0 positives — that is correct (no active outbreak).
       </footer>
     </>
   );
