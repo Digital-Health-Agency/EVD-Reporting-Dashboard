@@ -3,3 +3,8 @@ node_modules/
 .DS_Store
 *.log
 next-env.d.ts
+
+# Local secrets / environment (never commit credentials)
+.env
+.env.local
+.env*.local

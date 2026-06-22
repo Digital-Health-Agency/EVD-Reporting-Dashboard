@@ -142,3 +142,53 @@ html, body {
 .data-table td.num, .data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .footer { padding: 38px 0 48px; font-size: 0.78rem; color: var(--faint); line-height: 1.6; }
+
+/* ---------- Disease tabs ---------- */
+.tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 18px; border-bottom: 1px solid var(--border); padding-bottom: 0;
+}
+.tab {
+  appearance: none; cursor: pointer; background: transparent;
+  border: 1px solid transparent; border-bottom: none;
+  padding: 10px 18px; font-size: 0.9rem; font-weight: 700; color: var(--muted);
+  border-radius: 10px 10px 0 0; position: relative; top: 1px;
+  display: inline-flex; align-items: center; gap: 9px;
+}
+.tab:hover { color: var(--text); }
+.tab--active {
+  background: var(--surface); border-color: var(--border); color: var(--text);
+  box-shadow: 0 -2px 0 0 var(--tab-accent, var(--accent)) inset;
+}
+.tab__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--tab-accent, var(--accent)); flex: none; }
+.tab__count { font-size: 0.72rem; font-weight: 700; color: var(--faint); }
+.tab--refresh { margin-left: auto; color: var(--accent); border-radius: 8px; }
+.tab--refresh:disabled { color: var(--faint); cursor: default; }
+
+/* ---------- Provenance markers ---------- */
+.pill-live {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--green); background: rgba(31, 146, 84, 0.1);
+  border: 1px solid rgba(31, 146, 84, 0.25); padding: 3px 9px; border-radius: 999px;
+}
+.pill-live__dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex: none;
+  box-shadow: 0 0 0 0 rgba(31, 146, 84, 0.5); animation: kpi-pulse 2s infinite;
+}
+.pill-pending {
+  display: inline-flex; align-items: center;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--faint); background: #f1f3f5;
+  border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px;
+}
+.section__head--row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.is-pending { opacity: 0.72; }
+
+/* loading / error states */
+.state {
+  padding: 60px 0; text-align: center; color: var(--muted); font-size: 0.92rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill-live__dot { animation: none; }
+}

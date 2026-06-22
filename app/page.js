@@ -1,8 +1,7 @@
-import { getDashboardData } from "@/lib/data";
-import Dashboard from "@/components/Dashboard";
+import DashboardShell from "@/components/DashboardShell";
 
-// Server component: fetches data, hands it to the interactive client dashboard.
-export default async function Page() {
-  const data = await getDashboardData();
-  return <Dashboard data={data} />;
+// The shell owns disease tabs + data fetching. It calls the API routes
+// (the data-layer seam) — components never touch the warehouse directly.
+export default function Page() {
+  return <DashboardShell />;
 }
