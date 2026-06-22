@@ -165,7 +165,10 @@ export default function Dashboard({ data }) {
       {/* 2) Total screened + 3) Screened by Point of Entry */}
       <section className="section">
         <SectionHead title="Screening at Points of Entry" src="Source: marts.screenings_by_poe" prov={prov.poe} />
-        <div className="charts-wide">
+        <div className="charts-wide" style={{ gridTemplateColumns: "1fr 1.6fr", alignItems: "stretch" }}>
+          <div className="kpis" style={{ gridTemplateColumns: "1fr", alignContent: "start" }}>
+            <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
+          </div>
           {hasPoeBreakdown ? (
             <ChartCard title="Screened by point of entry">
               <Chart height={Math.max(300, poeRows.length * 34)}>
@@ -186,13 +189,10 @@ export default function Dashboard({ data }) {
               <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: "0.9rem" }}>
                 The per–point-of-entry breakdown (JKIA, Busia, Moi, …) appears here once
                 <strong> marts.screenings_by_poe</strong> is published in this environment. The
-                screening total on the right is live.
+                screening total on the left is live.
               </p>
             </div>
           )}
-          <div className="kpis" style={{ gridTemplateColumns: "1fr", alignContent: "start" }}>
-            <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
-          </div>
         </div>
         {poe.note ? <p className="section__src" style={{ marginTop: 10 }}>⚠ {poe.note}</p> : null}
       </section>
