@@ -162,14 +162,20 @@ export default function Dashboard({ data }) {
         </div>
       </section>
 
-      {/* 2) Total screened + 3) Screened by Point of Entry */}
+      {/* 2) Total screened + Suspected cases (top row) + Screened by Point of Entry (bottom) */}
       <section className="section">
         <SectionHead title="Screening at Points of Entry" src="Source: marts.screenings_by_poe" prov={prov.poe} />
-        <div className="charts-wide" style={{ gridTemplateColumns: "1fr 1.6fr", alignItems: "stretch" }}>
-          <div className="kpis" style={{ gridTemplateColumns: "1fr", alignContent: "start" }}>
-            <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
-          </div>
-          {hasPoeBreakdown ? (
+        
+        {/* Top row: Total screened (left) + Suspected cases (right) */}
+        <div className="kpis" style={{ gridTemplateColumns: "1fr 1fr", marginBottom: 24 }}>
+          <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
+          {cases.available && (
+            <Kpi featured variant="blue" live label="Suspected cases" value={fmt(cases.suspected)} delta={`${disease} suspected`} />
+          )}
+        </div>
+        
+        {/* Bottom: Screened by point of entry chart */}
+        {hasPoeBreakdown ? (
             <ChartCard title="Screened by point of entry">
               <Chart height={Math.max(300, poeRows.length * 34)}>
                 <BarChart data={poeRows} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 0 }}>
@@ -193,25 +199,9 @@ export default function Dashboard({ data }) {
               </p>
             </div>
           )}
-        </div>
         {poe.note ? <p className="section__src" style={{ marginTop: 10 }}>⚠ {poe.note}</p> : null}
       </section>
 
-      {/* 3) Suspected cases */}
-      <section className="section">
-        <SectionHead title="Case Surveillance" src="Source: marts.cases_by_disease (ADaM)" prov={prov.cases} />
-        {!cases.available ? (
-          <div className="card">
-            <p style={{ margin: 0, color: "var(--muted)" }}>
-              No ADaM case records for {disease} (lab data exists, but this disease isn’t in the case mart).
-            </p>
-          </div>
-        ) : (
-          <div className="kpis">
-            <Kpi featured variant="blue" live label="Suspected cases" value={fmt(cases.suspected)} delta={`${disease} suspected`} />
-          </div>
-        )}
-      </section>
 
       {/* 4) Laboratory testing */}
       <section className="section">
