@@ -22,14 +22,24 @@ const pctNum = (n) => `${Number(n || 0).toFixed(1)}%`;
 const dayLabel = (iso) =>
   new Date(iso).toLocaleDateString("en-KE", { month: "short", day: "numeric" });
 
-function Chart({ size = "chart-h", height, children }) {
+function Chart({ size = "chart-h", height, minWidth, children }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  return (
-    <div className={height ? undefined : size} style={height ? { width: "100%", height } : undefined}>
+
+  const inner = (
+    <div
+      className={!height && !minWidth ? size : undefined}
+      style={{
+        width: "100%",
+        ...(height && { height }),
+        ...(minWidth && { height: 300, minWidth }),
+      }}
+    >
       {mounted ? <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer> : null}
     </div>
   );
+
+  return minWidth ? <div className="chart-scroll">{inner}</div> : inner;
 }
 
 function Kpi({ variant, featured, label, value, delta, badge, live }) {
@@ -177,7 +187,7 @@ export default function Dashboard({ data }) {
         {/* Bottom: Screened by point of entry chart */}
         {hasPoeBreakdown ? (
             <ChartCard title="Screened by point of entry">
-              <Chart>
+              <Chart minWidth={Math.max(400, poeRows.length * 72)}>
                 <BarChart data={poeRows} margin={{ top: 8, right: 24, left: -10, bottom: 48 }}>
                   <CartesianGrid {...gridProps} />
                   <XAxis dataKey="name" {...axisProps} interval={0} angle={-30} textAnchor="end" tick={{ fontSize: 11, fill: "#69757f" }} />
@@ -227,7 +237,7 @@ export default function Dashboard({ data }) {
         </div>
         <div className="charts-wide">
           <ChartCard title={`Daily trend — positive & negative${asOfLab ? ` (${asOfLab})` : ""}`}>
-            <Chart>
+            <Chart minWidth={560}>
               <LineChart data={labTrend} margin={barMargin}>
                 <CartesianGrid {...gridProps} />
                 <XAxis dataKey="label" {...axisProps} minTickGap={20} />

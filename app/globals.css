@@ -213,6 +213,17 @@ html, body {
   .pill-live__dot { animation: none; }
 }
 
+/* ==================== Scrollable chart wrapper ==================== */
+.chart-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* thin scrollbar on desktop so it's visible but not clunky */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.chart-scroll::-webkit-scrollbar { height: 4px; }
+.chart-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
 /* ==================== Mobile responsiveness ==================== */
 
 /* Tablet: stack charts earlier if needed (already at 900px above) */
