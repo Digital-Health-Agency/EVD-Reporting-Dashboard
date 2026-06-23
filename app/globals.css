@@ -212,3 +212,68 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .pill-live__dot { animation: none; }
 }
+
+/* ==================== Mobile responsiveness ==================== */
+
+/* Tablet: stack charts earlier if needed (already at 900px above) */
+@media (max-width: 900px) {
+  .container { padding: 0 20px; }
+  .appbar__inner { padding: 12px 20px; }
+  .report-head h1 { font-size: 1.45rem; }
+}
+
+/* Phone */
+@media (max-width: 640px) {
+  /* Layout */
+  .container { padding: 0 14px; }
+
+  /* Appbar */
+  .appbar__inner { padding: 10px 14px; gap: 10px; }
+  .brand { gap: 10px; }
+  .brand__logo { height: 34px !important; width: auto !important; }
+  .brand__divider { height: 28px; }
+  .brand__text strong { font-size: 0.82rem; }
+  .partner__logo { height: 26px !important; width: auto !important; }
+
+  /* Tabs — horizontal scroll instead of wrapping */
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+    padding-bottom: 1px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 8px 14px; font-size: 0.82rem; white-space: nowrap; }
+  .tab--refresh { margin-left: 0; }
+
+  /* Report header */
+  .report-head { padding: 18px 0 14px; gap: 10px; }
+  .report-head h1 { font-size: 1.2rem; }
+  .report-head__sub { font-size: 0.8rem; }
+
+  /* Hero */
+  .hero { padding: 18px 16px; }
+  .hero__value { font-size: 2.6rem; }
+  .hero__sub { font-size: 0.8rem; gap: 6px; }
+
+  /* KPI cards */
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .kpi { padding: 12px 14px; }
+  .kpi__value { font-size: 1.7rem; }
+  .kpi--featured .kpi__value { font-size: 1.9rem; }
+
+  /* Sections */
+  .section { margin-top: 22px; }
+  .section__title { font-size: 1rem; }
+
+  /* Cards */
+  .card { padding: 14px 14px; }
+
+  /* Coming soon card */
+  .state .card { padding: 24px 20px; }
+
+  /* Footer */
+  .footer { padding: 24px 0 32px; }
+}

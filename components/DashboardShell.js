@@ -25,30 +25,15 @@ function ComingSoon({ name, color }) {
   );
 }
 
-const POLL_MS = 60_000; // marts are refreshed by the pipeline; re-read every 60s
+const POLL_MS = 60_000;
 
-// Top-level shell: disease tabs + data fetching. The UI talks ONLY to the
-// API routes (the data-layer seam) — never to the warehouse directly.
 export default function DashboardShell() {
   const [active, setActive] = useState(DEFAULT_DISEASE);
   const [data, setData] = useState(null);
-  const [counts, setCounts] = useState({}); // disease name -> tests_done
-  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [status, setStatus] = useState("loading");
   const [refreshing, setRefreshing] = useState(false);
   const reqId = useRef(0);
 
-  // Cross-disease test counts for the tab badges (best-effort).
-  const loadCounts = useCallback(() => {
-    fetch("/api/metrics", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows) => {
-        if (Array.isArray(rows)) setCounts(Object.fromEntries(rows.map((r) => [r.disease, r.total])));
-      })
-      .catch(() => {});
-  }, []);
-
-  // Composed payload for the active disease. background=true keeps the current
-  // view visible (no skeleton flash) during polls / manual refresh.
   const load = useCallback((disease, background = false) => {
     const id = ++reqId.current;
     if (background) setRefreshing(true);
@@ -59,7 +44,7 @@ export default function DashboardShell() {
         return r.json();
       })
       .then((payload) => {
-        if (id !== reqId.current) return; // stale response
+        if (id !== reqId.current) return;
         setData(payload);
         setStatus("ready");
       })
@@ -72,15 +57,13 @@ export default function DashboardShell() {
       });
   }, []);
 
-  useEffect(() => { loadCounts(); }, [loadCounts]);
-
   // Load on disease change, then poll. Skip for diseases without live data yet.
   useEffect(() => {
     if (active !== "ebola") return;
     load(active);
-    const t = setInterval(() => { load(active, true); loadCounts(); }, POLL_MS);
+    const t = setInterval(() => load(active, true), POLL_MS);
     return () => clearInterval(t);
-  }, [active, load, loadCounts]);
+  }, [active, load]);
 
   return (
     <>
@@ -105,7 +88,6 @@ export default function DashboardShell() {
         <nav className="tabs" role="tablist" aria-label="Disease">
           {DISEASES.map((d) => {
             const isActive = d.key === active;
-            const count = counts[d.name];
             return (
               <button
                 key={d.key}
@@ -117,13 +99,12 @@ export default function DashboardShell() {
               >
                 <span className="tab__dot" />
                 {d.name}
-                {typeof count === "number" ? <span className="tab__count">{count}</span> : null}
               </button>
             );
           })}
           <button
             className="tab tab--refresh"
-            onClick={() => { load(active, true); loadCounts(); }}
+            onClick={() => load(active, true)}
             disabled={refreshing}
             title="Re-read the latest values from the warehouse"
           >
