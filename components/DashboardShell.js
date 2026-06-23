@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Dashboard from "@/components/Dashboard";
+import PoeBubbleMap from "@/components/PoeBubbleMap";
 import { DISEASES, DEFAULT_DISEASE } from "@/lib/diseases";
 
 function ComingSoon({ name, color }) {
@@ -29,6 +30,7 @@ const POLL_MS = 60_000;
 
 export default function DashboardShell() {
   const [active, setActive] = useState(DEFAULT_DISEASE);
+  const [view, setView] = useState("dashboard"); // dashboard | map
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
   const [refreshing, setRefreshing] = useState(false);
@@ -103,6 +105,13 @@ export default function DashboardShell() {
             );
           })}
           <button
+            className={`tab tab--map ${view === "map" ? "tab--active" : ""}`}
+            onClick={() => setView((v) => (v === "map" ? "dashboard" : "map"))}
+            title="View screening across points of entry on the map"
+          >
+            {view === "map" ? "← Dashboard" : "🗺 POE map"}
+          </button>
+          <button
             className="tab tab--refresh"
             onClick={() => load(active, true)}
             disabled={refreshing}
@@ -112,6 +121,7 @@ export default function DashboardShell() {
           </button>
         </nav>
 
+<<<<<<< Updated upstream
         {active !== "ebola" ? (
           <ComingSoon
             name={DISEASES.find((d) => d.key === active)?.name}
@@ -119,6 +129,24 @@ export default function DashboardShell() {
           />
         ) : status === "ready" && data ? (
           <Dashboard data={data} />
+=======
+        {status === "ready" && data ? (
+          view === "map" ? (
+            <section className="section">
+              <div className="section__head">
+                <h2 className="section__title">Points of Entry — screening across Kenya</h2>
+                <p className="section__src">
+                  Every point of entry plotted geographically · bubble size and colour show screening volume · hover for details
+                </p>
+              </div>
+              <div className="card">
+                <PoeBubbleMap byPoe={data.poe?.byPoe || []} />
+              </div>
+            </section>
+          ) : (
+            <Dashboard data={data} />
+          )
+>>>>>>> Stashed changes
         ) : status === "error" ? (
           <div className="state">Could not load metrics. Is the warehouse running?</div>
         ) : (

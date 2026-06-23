@@ -213,6 +213,7 @@ html, body {
   .pill-live__dot { animation: none; }
 }
 
+<<<<<<< Updated upstream
 /* ==================== Scrollable chart wrapper ==================== */
 .chart-scroll {
   overflow-x: auto;
@@ -288,3 +289,28 @@ html, body {
   /* Footer */
   .footer { padding: 24px 0 32px; }
 }
+=======
+/* ---------- POE bubble map (full-page view) ---------- */
+.tab--map { color: var(--accent); }
+.poe-map { display: grid; grid-template-columns: 1.5fr 1fr; gap: 28px; align-items: center; }
+@media (max-width: 820px) { .poe-map { grid-template-columns: 1fr; } }
+.poe-map__canvas { width: 100%; max-width: 540px; margin: 0 auto; }
+.poe-map__side { display: flex; flex-direction: column; gap: 22px; }
+.poe-map__legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.poe-map__legend-title {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--muted); width: 100%;
+}
+.poe-map__swatch { display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; color: var(--muted); }
+.poe-map__swatch i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(11,87,78,0.35); }
+.poe-map__swatch--empty { width: 100%; margin-top: 2px; }
+.poe-map__swatch--empty i { border-width: 1.4px; }
+.poe-map__legend-note { width: 100%; font-size: 0.76rem; color: var(--faint); }
+.poe-map__summary {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 16px 0;
+}
+.poe-map__summary-num { font-size: 1.7rem; font-weight: 800; line-height: 1; color: var(--accent); }
+.poe-map__summary-label { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
+.poe-map__hint { margin: 0; font-size: 0.82rem; color: var(--muted); }
+>>>>>>> Stashed changes
