@@ -5,6 +5,26 @@ import Image from "next/image";
 import Dashboard from "@/components/Dashboard";
 import { DISEASES, DEFAULT_DISEASE } from "@/lib/diseases";
 
+function ComingSoon({ name, color }) {
+  return (
+    <div className="state">
+      <div className="card" style={{ maxWidth: 520, margin: "0 auto", textAlign: "left", padding: "32px 36px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 10, height: 10, borderRadius: "50%", background: color || "var(--accent)", flex: "none" }} />
+          <span style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.4px", color: "var(--muted)" }}>
+            {name}
+          </span>
+        </div>
+        <h2 style={{ margin: "0 0 10px", fontSize: "1.4rem", fontWeight: 800 }}>Coming Soon</h2>
+        <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.9rem", lineHeight: 1.7 }}>
+          {name} surveillance data is being integrated into the dashboard.
+          Our team is working hard to connect this pipeline — check back soon.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 const POLL_MS = 60_000; // marts are refreshed by the pipeline; re-read every 60s
 
 // Top-level shell: disease tabs + data fetching. The UI talks ONLY to the
@@ -54,8 +74,9 @@ export default function DashboardShell() {
 
   useEffect(() => { loadCounts(); }, [loadCounts]);
 
-  // Load on disease change, then poll that disease in the background.
+  // Load on disease change, then poll. Skip for diseases without live data yet.
   useEffect(() => {
+    if (active !== "ebola") return;
     load(active);
     const t = setInterval(() => { load(active, true); loadCounts(); }, POLL_MS);
     return () => clearInterval(t);
@@ -110,7 +131,12 @@ export default function DashboardShell() {
           </button>
         </nav>
 
-        {status === "ready" && data ? (
+        {active !== "ebola" ? (
+          <ComingSoon
+            name={DISEASES.find((d) => d.key === active)?.name}
+            color={DISEASES.find((d) => d.key === active)?.color}
+          />
+        ) : status === "ready" && data ? (
           <Dashboard data={data} />
         ) : status === "error" ? (
           <div className="state">Could not load metrics. Is the warehouse running?</div>

@@ -177,13 +177,13 @@ export default function Dashboard({ data }) {
         {/* Bottom: Screened by point of entry chart */}
         {hasPoeBreakdown ? (
             <ChartCard title="Screened by point of entry">
-              <Chart height={Math.max(300, poeRows.length * 34)}>
-                <BarChart data={poeRows} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 0 }}>
-                  <CartesianGrid {...gridProps} horizontal={false} />
-                  <XAxis type="number" {...axisProps} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" {...axisProps} width={170} interval={0} />
+              <Chart>
+                <BarChart data={poeRows} margin={{ top: 8, right: 24, left: -10, bottom: 48 }}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="name" {...axisProps} interval={0} angle={-30} textAnchor="end" tick={{ fontSize: 11, fill: "#69757f" }} />
+                  <YAxis {...axisProps} allowDecimals={false} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v) => fmt(v)} />
-                  <Bar dataKey="Screened" radius={[0, 3, 3, 0]}>
+                  <Bar dataKey="Screened" radius={[3, 3, 0, 0]}>
                     {poeRows.map((r, i) => <Cell key={i} fill={r.fill} />)}
                   </Bar>
                 </BarChart>
