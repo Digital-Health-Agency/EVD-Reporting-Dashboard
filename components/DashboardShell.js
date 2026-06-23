@@ -121,16 +121,12 @@ export default function DashboardShell() {
           </button>
         </nav>
 
-<<<<<<< Updated upstream
         {active !== "ebola" ? (
           <ComingSoon
             name={DISEASES.find((d) => d.key === active)?.name}
             color={DISEASES.find((d) => d.key === active)?.color}
           />
         ) : status === "ready" && data ? (
-          <Dashboard data={data} />
-=======
-        {status === "ready" && data ? (
           view === "map" ? (
             <section className="section">
               <div className="section__head">
@@ -146,7 +142,6 @@ export default function DashboardShell() {
           ) : (
             <Dashboard data={data} />
           )
->>>>>>> Stashed changes
         ) : status === "error" ? (
           <div className="state">Could not load metrics. Is the warehouse running?</div>
         ) : (

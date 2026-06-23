@@ -213,7 +213,6 @@ html, body {
   .pill-live__dot { animation: none; }
 }
 
-<<<<<<< Updated upstream
 /* ==================== Scrollable chart wrapper ==================== */
 .chart-scroll {
   overflow-x: auto;
@@ -289,7 +288,7 @@ html, body {
   /* Footer */
   .footer { padding: 24px 0 32px; }
 }
-=======
+
 /* ---------- POE bubble map (full-page view) ---------- */
 .tab--map { color: var(--accent); }
 .poe-map { display: grid; grid-template-columns: 1.5fr 1fr; gap: 28px; align-items: center; }
@@ -313,4 +312,3 @@ html, body {
 .poe-map__summary-num { font-size: 1.7rem; font-weight: 800; line-height: 1; color: var(--accent); }
 .poe-map__summary-label { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
 .poe-map__hint { margin: 0; font-size: 0.82rem; color: var(--muted); }
->>>>>>> Stashed changes
