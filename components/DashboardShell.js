@@ -66,7 +66,7 @@ export default function DashboardShell() {
       <header className="appbar">
         <div className="appbar__inner">
           <div className="brand">
-            <Image className="brand__logo" src="/moh-kenya.png" alt="Ministry of Health" width={246} height={46} priority />
+            <Image className="brand__logo" src="/nphi-kenya.png" alt="Kenya National Public Health Institute" width={147} height={46} priority />
             <div className="brand__divider" />
             <div className="brand__text">
               <strong>Ministry of Health, Kenya</strong>
