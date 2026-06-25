@@ -97,6 +97,35 @@ function ChartCard({ title, children }) {
   );
 }
 
+// Composite summary card: an icon + title, one featured metric box, then a list
+// of labelled detail rows (e.g. Cases → Confirmed + recoveries/deaths/CFR).
+function StatCard({ title, icon, iconBg, accent, feature, rows = [] }) {
+  return (
+    <div className="statcard">
+      <div className="statcard__head">
+        {icon ? <span className="statcard__icon" style={{ background: iconBg }}>{icon}</span> : null}
+        <h3 className="statcard__title">{title}</h3>
+      </div>
+      <div className={`statcard__feature statcard__feature--${accent}`}>
+        <div className="statcard__feature-label">{feature.label}</div>
+        <div className="statcard__feature-value">{feature.value}</div>
+        {feature.delta ? <div className="statcard__feature-delta">{feature.delta}</div> : null}
+      </div>
+      <div className="statcard__rows">
+        {rows.map((r) => (
+          <div className="statcard__row" key={r.label}>
+            <div>
+              <div className="statcard__row-label">{r.label}</div>
+              {r.sub ? <div className="statcard__row-sub">{r.sub}</div> : null}
+            </div>
+            <div className={`statcard__row-value ${r.color ? `is-${r.color}` : ""}`}>{r.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // A section with no backing mart yet: clearly a preview, never faked.
 function PreviewSection({ title, prov, blurb }) {
   return (
@@ -147,6 +176,13 @@ export default function Dashboard({ data }) {
     ? `${labs.firstTest} → ${labs.lastTest}` : null;
   const asOfLab = labs.lastTest ? `as of ${labs.lastTest}` : null;
 
+  // CFR = deaths / confirmed (0 when no confirmed cases). recoveries / 24h
+  // deltas aren't in the mart yet — wired to optional fields so they light up
+  // automatically once published; today they read 0 (correct: no active outbreak).
+  const cfr = cases.confirmed > 0 ? pctNum((cases.deaths / cases.confirmed) * 100) : "0%";
+  const confirmed24h = cases.newConfirmed24h ?? 0;
+  const tested24h = labs.newTested24h ?? 0;
+
   return (
     <>
       {/* Report header */}
@@ -162,25 +198,50 @@ export default function Dashboard({ data }) {
         </div>
       </div>
 
-      {/* 1) Positive Cases — one big headline number */}
-      <section className="hero">
-        <div className="hero__label">Positive cases — {disease}</div>
-        <div className="hero__value">{fmt(labs.positive)}</div>
-        <div className="hero__sub">
-          <span className="pill-live"><span className="pill-live__dot" />Live</span>
-          Lab-confirmed positives · positivity {pctNum(labs.positivityPct)} · {fmt(labs.testsDone)} tests done
-        </div>
+      {/* 1) Headline summary cards — Cases (priority) + Samples Tested */}
+      <section className="stat-grid">
+        <StatCard
+          title="Cases"
+          icon="🦠"
+          iconBg="#fdecec"
+          accent="red"
+          feature={{
+            label: "Confirmed",
+            value: fmt(cases.confirmed),
+            delta: `Last 24h: +${fmt(confirmed24h)}`,
+          }}
+          rows={[
+            { label: "Recoveries", value: fmt(cases.recoveries ?? 0), color: "green" },
+            { label: "Deaths", value: fmt(cases.deaths), color: "red" },
+            { label: "CFR", value: cfr, color: "amber" },
+          ]}
+        />
+        <StatCard
+          title="Samples Tested"
+          icon="🔬"
+          iconBg="#eaf1fb"
+          accent="blue"
+          feature={{
+            label: "Total Tested",
+            value: fmt(labs.testsDone),
+            delta: `Last 24h: +${fmt(tested24h)}`,
+          }}
+          rows={[
+            { label: "Positive", value: fmt(labs.positive), color: "red" },
+            { label: "Negative", value: fmt(labs.negative), color: "green" },
+          ]}
+        />
       </section>
 
-      {/* 2) Total screened + Suspected cases (top row) + Screened by Point of Entry (bottom) */}
+      {/* 2) Total screened + Alerts (top row) + Screened by Point of Entry (bottom) */}
       <section className="section">
         <SectionHead title="Screening at Points of Entry" src="Source: marts.screenings_by_poe" prov={prov.poe} />
         
-        {/* Top row: Total screened (left) + Suspected cases (right) */}
+        {/* Top row: Total screened (left) + Alerts (right) */}
         <div className="kpis" style={{ gridTemplateColumns: "1fr 1fr", marginBottom: 24 }}>
           <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
           {cases.available && (
-            <Kpi featured variant="blue" live label="Suspected cases" value={fmt(cases.suspected)} delta={`${disease} suspected`} />
+            <Kpi featured variant="blue" live label="Alerts" value={fmt(cases.suspected)} delta={`${disease} alerts`} />
           )}
         </div>
         
@@ -223,18 +284,12 @@ export default function Dashboard({ data }) {
         <div className="kpis">
           <Kpi featured variant="blue" live label="Tests done" value={fmt(labs.testsDone)} delta={`${disease} lab results`} />
           <Kpi variant="blue" label="Patients tested" value={fmt(labs.patientsTested)} />
-          <Kpi variant="amber" label="Positivity %" value={pctNum(labs.positivityPct)} delta="positive / resolved" />
-          <Kpi label="Avg turnaround" value={labs.avgTatDays == null ? "—" : `${labs.avgTatDays} days`} delta="specimen → result" />
         </div>
       </section>
 
       {/* 6) Results — positive / negative only */}
       <section className="section">
         <SectionHead title="Laboratory Results" src="Source: marts.lab_by_disease / lab_daily" prov={prov.labs} />
-        <div className="kpis" style={{ marginBottom: 16 }}>
-          <Kpi variant="red" label="Positive" value={fmt(labs.positive)} />
-          <Kpi variant="green" label="Negative" value={fmt(labs.negative)} />
-        </div>
         <div className="charts-wide">
           <ChartCard title={`Daily trend — positive & negative${asOfLab ? ` (${asOfLab})` : ""}`}>
             <Chart minWidth={560}>

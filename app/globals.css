@@ -312,3 +312,49 @@ html, body {
 .poe-map__summary-num { font-size: 1.7rem; font-weight: 800; line-height: 1; color: var(--accent); }
 .poe-map__summary-label { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
 .poe-map__hint { margin: 0; font-size: 0.82rem; color: var(--muted); }
+
+/* ---------- Composite summary cards (Cases / Samples Tested) ---------- */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+@media (max-width: 760px) { .stat-grid { grid-template-columns: 1fr; } }
+
+.statcard {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; box-shadow: var(--shadow); padding: 22px 24px;
+}
+.statcard__head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.statcard__icon {
+  width: 44px; height: 44px; border-radius: 12px; flex: none;
+  display: grid; place-items: center; font-size: 1.3rem;
+}
+.statcard__title { margin: 0; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px; }
+
+.statcard__feature {
+  border: 1px solid var(--border); border-left: 5px solid var(--accent);
+  border-radius: 12px; padding: 16px 18px;
+  background: var(--feat-tint, #f7f9fb);
+}
+.statcard__feature--red   { border-left-color: var(--red);   --feat-tint: #fdeeec; }
+.statcard__feature--blue  { border-left-color: var(--blue);  --feat-tint: #eef4fd; }
+.statcard__feature--green { border-left-color: var(--green); --feat-tint: #ecf6f0; }
+.statcard__feature--amber { border-left-color: var(--amber); --feat-tint: #fdf4e6; }
+.statcard__feature-label { font-size: 0.95rem; font-weight: 800; }
+.statcard__feature--red   .statcard__feature-label { color: var(--red); }
+.statcard__feature--blue  .statcard__feature-label { color: var(--blue); }
+.statcard__feature--green .statcard__feature-label { color: var(--green); }
+.statcard__feature--amber .statcard__feature-label { color: var(--amber); }
+.statcard__feature-value { font-size: 2.7rem; font-weight: 800; line-height: 1.05; margin-top: 2px; }
+.statcard__feature-delta { font-size: 0.8rem; color: var(--muted); margin-top: 5px; }
+
+.statcard__rows { margin-top: 6px; }
+.statcard__row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 2px; border-bottom: 1px dashed var(--border);
+}
+.statcard__row:last-child { border-bottom: none; }
+.statcard__row-label { font-size: 0.95rem; font-weight: 700; }
+.statcard__row-sub { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+.statcard__row-value { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.statcard__row-value.is-green { color: var(--green); }
+.statcard__row-value.is-red   { color: var(--red); }
+.statcard__row-value.is-amber { color: var(--amber); }
+.statcard__row-value.is-blue  { color: var(--blue); }
