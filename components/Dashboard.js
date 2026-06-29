@@ -152,6 +152,16 @@ export default function Dashboard({ data }) {
   const poe = data.poe;
   const prov = data.meta.provenance || {};
   const disease = data.meta.disease || "Disease";
+  const hardcodedScreened = 141670;
+  const hardcodedTested = 107;
+  const hardcodedConfirmed = 0;
+  const readinessMetrics = [
+    { label: "HCWs sensitised", value: 2741 },
+    { label: "HCWs trained", value: 334 },
+    { label: "Surge capacity", value: 343 },
+    { label: "Labs", value: 4 },
+    { label: "Total beds", value: 58 },
+  ];
 
   const dateLabel = useMemo(() => {
     const d = new Date(data.meta.lastUpdated);
@@ -179,7 +189,7 @@ export default function Dashboard({ data }) {
   // CFR = deaths / confirmed (0 when no confirmed cases). recoveries / 24h
   // deltas aren't in the mart yet — wired to optional fields so they light up
   // automatically once published; today they read 0 (correct: no active outbreak).
-  const cfr = cases.confirmed > 0 ? pctNum((cases.deaths / cases.confirmed) * 100) : "0%";
+  const cfr = hardcodedConfirmed > 0 ? pctNum((cases.deaths / hardcodedConfirmed) * 100) : "0%";
   const confirmed24h = cases.newConfirmed24h ?? 0;
   const tested24h = labs.newTested24h ?? 0;
 
@@ -207,7 +217,7 @@ export default function Dashboard({ data }) {
           accent="red"
           feature={{
             label: "Confirmed",
-            value: fmt(cases.confirmed),
+            value: fmt(hardcodedConfirmed),
             delta: `Last 24h: +${fmt(confirmed24h)}`,
           }}
           rows={[
@@ -223,7 +233,7 @@ export default function Dashboard({ data }) {
           accent="blue"
           feature={{
             label: "Total Tested",
-            value: fmt(labs.testsDone),
+            value: fmt(hardcodedTested),
             delta: `Last 24h: +${fmt(tested24h)}`,
           }}
           rows={[
@@ -239,7 +249,7 @@ export default function Dashboard({ data }) {
         
         {/* Top row: Total screened (left) + Alerts (right) */}
         <div className="kpis" style={{ gridTemplateColumns: "1fr 1fr", marginBottom: 24 }}>
-          <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
+          <Kpi featured variant="green" live label="Total screened" value={fmt(hardcodedScreened)} delta="all points of entry" />
           {cases.available && (
             <Kpi featured variant="blue" live label="Alerts" value={fmt(cases.suspected)} delta={`${disease} alerts`} />
           )}
@@ -274,16 +284,15 @@ export default function Dashboard({ data }) {
       </section>
 
 
-      {/* 4) Laboratory testing */}
+      {/* 4) Training and readiness */}
       <section className="section">
-        <SectionHead
-          title="Laboratory Testing"
-          src={`Source: marts.lab_by_disease${labRange ? ` · ${labRange}` : ""}`}
-          prov={prov.labs}
-        />
-        <div className="kpis">
-          <Kpi featured variant="blue" live label="Tests done" value={fmt(labs.testsDone)} delta={`${disease} lab results`} />
-          <Kpi variant="blue" label="Patients tested" value={fmt(labs.patientsTested)} />
+        <SectionHead title="Training and Readiness" prov={prov.labs} />
+        <div className="card">
+          <div className="kpis" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", marginTop: 8 }}>
+            {readinessMetrics.map((metric) => (
+              <Kpi key={metric.label} variant="blue" label={metric.label} value={fmt(metric.value)} />
+            ))}
+          </div>
         </div>
       </section>
 
