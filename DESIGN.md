@@ -55,7 +55,8 @@ Logo rules:
 
 - Keep original proportions.
 - Do not recolor, crop, stretch, blur, or place logos on busy backgrounds.
-- Header should lead with MoH identity and include DHA/NPHI as partners.
+- Header should stay compact and logo-led, with NPHI and DHA visible.
+- MoH ownership and public/executive navigation can live in the footer.
 - On compact mobile headers, show fewer words before shrinking logos.
 
 ## Color Tokens
@@ -164,8 +165,8 @@ Primary routes:
 
 Header rules:
 
-- Public page: official MoH/DHA/NPHI header, minimal links, clear report/help
-  action.
+- Public page: compact NPHI/DHA header, no route tabs, with report/help
+  actions handled by the page body or footer.
 - Executive page: compact command header with disease tabs, refresh, timestamp,
   and source status.
 - Operational page: official restricted-access header with login affordance.
@@ -182,35 +183,50 @@ Visual feel:
 
 - Light, official, calm.
 - DHA cyan header with navy support.
-- One clear status block.
-- Aggregate numbers only.
-- Public guidance in short, scannable blocks.
+- Navy first-view update block.
+- Uganda-style key metric cards for cumulative confirmed cases, admissions,
+  recoveries, and deaths.
+- Tabbed supporting sections for highlights, cases, tests, contacts, alerts,
+  and points of entry.
+- Public guidance in short, scannable blocks below the data.
 
 First viewport should include:
 
 - Official identity.
 - Disease/outbreak name.
 - Current status and as-of timestamp.
-- Aggregate headline figures.
-- Primary action: report/get help.
-- Secondary action: view executive dashboard or resources.
+- Latest aggregate update state.
+- Key metrics immediately after the first block.
 
 Use content like:
 
-- Current status
-- Cases
-- Tests
-- Contacts
-- POE screening
-- What to do
-- Hotline
-- Resources
+- Key metrics: confirmed, admissions, recoveries, deaths.
+- Highlights: new confirmed, suspected cases, tests done, travellers screened.
+- Cases: suspected, probable, imported/local split when available, outcomes.
+- Tests: total tested, pending results, positivity, result share.
+- Contacts: listed and followed-up contacts, with simple progress meter.
+- Alerts: screening alerts, suspected cases, report concern copy.
+- Points of entry: traveller screening totals and busiest reporting POEs.
+- Public guidance: what to do, help channels, and data safety.
+
+Component rules:
+
+- Use icon-led metric cards sparingly for the four public key metrics only.
+- Metric card colors follow data meaning: cyan for confirmed, amber for
+  admissions, green for recoveries, dark neutral/navy for deaths.
+- Tabs use pill buttons with visible selected state and horizontal scroll on
+  narrow screens.
+- Use segmented bars, progress meters, and short ranked lists for public
+  comprehension; avoid dense operational tables.
+- Loading and error states must stay aggregate-only and must not reveal
+  operational records.
 
 Avoid:
 
 - Long disease education articles on the dashboard first screen.
 - Line lists or facility-sensitive information.
 - Dramatic imagery that increases panic.
+- Executive-only controls or links in the public header.
 
 ### Executive Dashboard
 

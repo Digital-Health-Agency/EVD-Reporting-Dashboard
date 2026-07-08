@@ -275,7 +275,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 
 /* ---------- Public landing ---------- */
-.public-page { max-width: 1240px; margin: 0 auto; padding: 34px 28px 56px; }
+.public-page { max-width: 1240px; margin: 0 auto; padding: 34px 28px 64px; }
 .public-hero {
   display: grid; grid-template-columns: 1fr;
   gap: 28px; align-items: stretch;
@@ -299,13 +299,6 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 .btn--primary { background: var(--color-dha-cyan); color: #fff; }
 .btn--secondary { background: #fff; color: var(--color-dha-cyan); border-color: var(--border); }
-.public-status {
-  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
-  padding: 28px; display: flex; flex-direction: column; justify-content: center;
-}
-.public-status__label { color: var(--muted); font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
-.public-status strong { margin-top: 8px; font-size: 2rem; line-height: 1.1; color: var(--color-ink); }
-.public-status p { color: var(--muted); line-height: 1.6; }
 .public-key-metrics { margin-top: 36px; }
 .public-tabs-section { margin-top: 36px; }
 .public-section-head {
@@ -316,7 +309,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   color: var(--color-ink);
   font-size: 1.35rem;
   line-height: 1.15;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 .public-section-head p {
   margin: 0;
@@ -444,6 +437,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   flex-wrap: nowrap;
   gap: 8px;
   margin-bottom: 14px;
+  padding-bottom: 2px;
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -696,6 +690,18 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   }
   .public-panel__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .public-info { gap: 22px; }
+}
+
+@media (max-width: 540px) {
+  .public-hero__copy { padding: 24px 20px; }
+  .public-key-card__head { align-items: flex-start; }
+  .public-key-card__delta { max-width: 120px; justify-content: center; text-align: center; }
+  .public-panel__stats,
+  .public-panel__sections { grid-template-columns: 1fr; }
+  .public-panel-stat,
+  .public-panel-section { padding: 16px; }
+  .public-share__legend { flex-direction: column; gap: 7px; }
+  .public-meter__row { align-items: flex-start; flex-direction: column; gap: 4px; }
 }
 
 /* ---------- Operational locked page ---------- */
