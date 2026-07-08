@@ -174,7 +174,7 @@ Primary routes:
 
 - `/` - Public landing.
 - `/executive` - Executive situation dashboard.
-- `/operational` - Restricted operational placeholder now, real auth later.
+- `/operational` - Simulated sign-in + aggregate operational preview now, real auth later.
 
 Header rules:
 
@@ -324,16 +324,17 @@ Purpose: restricted response-team work surface.
 
 Current state:
 
-- Simple locked placeholder.
+- Simulated sign-in gate; any email/password can enter the preview.
 - Real authentication later.
-- No operational data shown before auth exists.
+- Aggregate preview data only after the simulated gate.
+- No patient, contact, traveller, or facility-sensitive line lists.
 
 Visual feel:
 
 - eCitizen-like official access page.
 - Navy or white official shell.
 - Short message: "Operational workspace requires sign in."
-- Clear disabled or future sign-in action.
+- Clear simulated sign-in action that does not imply real access control.
 
 Future authenticated state:
 
@@ -345,7 +346,8 @@ Future authenticated state:
 Avoid:
 
 - Mock login that implies real access.
-- Showing contact, patient, or facility-sensitive operational records.
+- Showing contact, patient, traveller, or facility-sensitive line records.
+- Filling the operational preview with unlabeled fake source values.
 
 ## Components
 
@@ -354,7 +356,7 @@ Preferred component set:
 - `AppHeader`: shared official chrome.
 - `PublicLanding`: aggregate public update page.
 - `ExecutiveDashboard`: wrapper around the current dashboard shell.
-- `OperationalLocked`: restricted placeholder.
+- `OperationalWorkspace`: simulated sign-in + aggregate operations preview.
 - `StatusCard`: compact KPI/status tile.
 - `SourcePill`: live/pending/preview/unavailable indicator.
 - `DataPanel`: chart/table panel with title, source, and empty state.

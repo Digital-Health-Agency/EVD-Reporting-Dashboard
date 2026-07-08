@@ -11,9 +11,9 @@ dashboard app:
 - **Public landing** - a safe, public-facing outbreak update page.
 - **Executive dashboard** - a linked national situation-report dashboard for
   leadership and response coordination.
-- **Operational workspace** - a restricted operational surface. It starts as a
-  locked placeholder; real authentication and sensitive operational data come
-  later.
+- **Operational workspace** - a restricted operational surface. It currently
+  uses a simulated sign-in gate and aggregate operations preview; real
+  authentication and sensitive line-level data come later.
 
 The app directory is now `dashboard/`.
 
@@ -62,8 +62,10 @@ pillars are moving, and which data sources are still pending.
 ### 3. Operational workspace (`/operational`)
 
 The operational surface is restricted. For now it should show a professional
-"login required / operational workspace coming online" screen and should not
-display sensitive data.
+simulated sign-in screen where any email/password can enter a preview
+workspace. The authenticated preview may show aggregate operational queues and
+indicators, but must not display patient, contact, traveller, or
+facility-sensitive line lists.
 
 When real authentication is added, this surface is expected to support response
 teams with:
@@ -78,8 +80,8 @@ teams with:
 - Action tracker for EOC tasks, owners, timelines, and blockers.
 - Exportable daily briefing inputs.
 
-Real auth is intentionally deferred. Do not expose operational data until an
-authentication and authorization model is in place.
+Real auth is intentionally deferred. Until then, keep the preview clearly
+labelled as simulated and aggregate-only.
 
 ---
 
@@ -147,6 +149,8 @@ data-source abstraction:
 - `components/DashboardShell.js` owns disease tabs, refresh/polling, POE map
   switching, and loading/error states.
 - `components/Dashboard.js` renders the current executive situation report.
+- `components/OperationalWorkspace.js` renders the simulated operational
+  sign-in gate and aggregate operations preview.
 - `components/PoeBubbleMap.js` renders the points-of-entry map view.
 - `app/api/metrics/[disease]/route.js` returns the composed dashboard payload.
 - `lib/datasource/index.js` composes lab, case, and POE sections through a
@@ -185,7 +189,7 @@ app/
 |-- executive/
 |   `-- page.js              # Executive situation-report dashboard
 |-- operational/
-|   `-- page.js              # Locked placeholder now; real auth later
+|   `-- page.js              # Simulated sign-in + aggregate operations preview
 |-- api/
 |   `-- metrics/
 |       |-- route.js
@@ -201,7 +205,7 @@ components/
 |-- AppHeader.js             # Shared MoH / NEOC / DHA chrome
 |-- PublicLanding.js         # Public aggregate update page
 |-- ExecutiveDashboard.js    # Wrapper around the current DashboardShell
-|-- OperationalLocked.js     # Restricted placeholder
+|-- OperationalWorkspace.js  # Simulated sign-in + aggregate operations preview
 |-- Dashboard.js             # Current executive report body
 |-- DashboardShell.js        # Current disease tabs + polling shell
 `-- PoeBubbleMap.js
