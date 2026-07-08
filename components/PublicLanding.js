@@ -4,12 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { fmt } from "@/lib/format";
 
 const PUBLIC_TABS = [
-  "Highlights",
-  "Cases",
-  "Tests",
-  "Contacts",
-  "Alerts",
-  "Points of entry",
+  { key: "highlights", label: "Highlights" },
+  { key: "cases", label: "Cases" },
+  { key: "tests", label: "Tests" },
+  { key: "contacts", label: "Contacts" },
+  { key: "alerts", label: "Alerts" },
+  { key: "poe", label: "Points of entry" },
 ];
 
 function MetricIcon({ name }) {
@@ -231,7 +231,7 @@ function PublicTabPanel({ activeTab, data }) {
     .sort((a, b) => (b.screened || 0) - (a.screened || 0))
     .slice(0, 5);
 
-  if (activeTab === "Highlights") {
+  if (activeTab === "highlights") {
     return (
       <div className="public-panel">
         <PanelStats
@@ -262,7 +262,7 @@ function PublicTabPanel({ activeTab, data }) {
     );
   }
 
-  if (activeTab === "Cases") {
+  if (activeTab === "cases") {
     return (
       <div className="public-panel">
         <PanelStats
@@ -295,7 +295,7 @@ function PublicTabPanel({ activeTab, data }) {
     );
   }
 
-  if (activeTab === "Tests") {
+  if (activeTab === "tests") {
     return (
       <div className="public-panel">
         <PanelStats
@@ -327,7 +327,7 @@ function PublicTabPanel({ activeTab, data }) {
     );
   }
 
-  if (activeTab === "Contacts") {
+  if (activeTab === "contacts") {
     return (
       <div className="public-panel">
         <PanelStats
@@ -355,7 +355,7 @@ function PublicTabPanel({ activeTab, data }) {
     );
   }
 
-  if (activeTab === "Alerts") {
+  if (activeTab === "alerts") {
     return (
       <div className="public-panel">
         <PanelStats
@@ -402,7 +402,7 @@ function PublicTabPanel({ activeTab, data }) {
 export default function PublicLanding() {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
-  const [activeTab, setActiveTab] = useState(PUBLIC_TABS[0]);
+  const [activeTab, setActiveTab] = useState(PUBLIC_TABS[0].key);
 
   const load = useCallback(() => {
     setStatus("loading");
@@ -470,21 +470,30 @@ export default function PublicLanding() {
           <h2>Detailed figures</h2>
           <p>Supporting indicators grouped by cases, testing, contacts, alerts, and points of entry.</p>
         </div>
-        <div className="public-tabs" role="tablist" aria-label="Ebola update sections">
-          {PUBLIC_TABS.map((tab) => (
-            <button
-              key={tab}
-              className={`public-tab ${activeTab === tab ? "is-active" : ""}`}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        <div className="public-tab-content">
+        <nav className="public-nav" aria-label="Ebola update sections">
+          <div className="tabs public-view-tabs" role="tablist" aria-label="Ebola update sections">
+            {PUBLIC_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                id={`public-tab-${tab.key}`}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.key}
+                aria-controls={`public-panel-${tab.key}`}
+                className={`tab ${activeTab === tab.key ? "tab--active" : ""}`}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+        <div
+          id={`public-panel-${activeTab}`}
+          className="public-tab-content"
+          role="tabpanel"
+          aria-labelledby={`public-tab-${activeTab}`}
+        >
           {status === "ready" ? (
             <PublicTabPanel activeTab={activeTab} data={data} />
           ) : (

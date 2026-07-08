@@ -9,7 +9,9 @@ test("public landing includes key metrics and public tabs", async () => {
   assert.match(source, /Detailed figures/);
   assert.match(source, /public-panel/);
   assert.match(source, /public-info/);
-  assert.match(source, /public-tabs/);
+  assert.match(source, /public-view-tabs/);
+  assert.match(source, /tab--active/);
+  assert.match(source, /role="tablist"/);
   assert.match(source, /Highlights/);
   assert.match(source, /Cases/);
   assert.match(source, /Tests/);

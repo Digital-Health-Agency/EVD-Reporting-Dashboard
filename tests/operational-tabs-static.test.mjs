@@ -11,6 +11,8 @@ test("operational workspace has Summary plus service-point tabs", async () => {
   }
   assert.match(source, /useState\("summary"\)/);
   assert.match(source, /aria-label="Operational workspace tabs"/);
+  assert.match(source, /ops-view-tabs/);
+  assert.match(source, /tab--active/);
   assert.match(source, /function SummaryTab/);
   assert.match(source, /function ServiceDetailTab/);
 });

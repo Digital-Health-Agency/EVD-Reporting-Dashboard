@@ -444,37 +444,20 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   letter-spacing: 0.04em;
 }
 
-.public-tabs {
+.public-nav {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 12px;
   margin-bottom: 16px;
-  padding: 4px 0 8px;
-  overflow-x: auto;
-  scrollbar-width: thin;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
 }
-.public-tab {
-  flex: 0 0 auto;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.public-tab:hover {
-  color: var(--color-dha-cyan);
-  border-color: rgba(26, 155, 210, 0.35);
-}
-.public-tab.is-active {
-  color: #fff;
-  background: var(--color-dha-cyan);
-  border-color: var(--color-dha-cyan);
+.tabs.public-view-tabs {
+  flex: 1 1 auto;
+  width: auto;
+  margin-top: 0;
+  border-bottom: none;
+  min-width: 0;
 }
 .public-tab-content {
   min-height: 0;
@@ -772,9 +755,20 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .report-head__sub { margin: 6px 0 0; font-size: 0.86rem; color: var(--muted); }
 .report-head__controls { display: flex; align-items: center; gap: 14px; }
 .asof { font-size: 0.84rem; color: var(--muted); }
+.select,
+.ops-filter select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 16px 16px;
+}
 .select {
-  font-size: 0.86rem; padding: 8px 12px; border-radius: 8px;
-  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font-size: 0.86rem; padding: 8px 34px 8px 12px; border-radius: 8px;
+  border: 1px solid var(--border); color: var(--text);
 }
 
 /* ---------- KPI cards (flexible grid) ---------- */
@@ -1395,16 +1389,18 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
   color: var(--color-ink);
   font: inherit;
   font-size: 0.92rem;
-  padding: 0 12px;
 }
 .ops-login-form input {
+  padding: 0 12px;
   border-color: rgba(255, 255, 255, 0.24);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
+}
+.ops-filter select {
+  padding: 0 34px 0 12px;
 }
 .ops-login-form input:focus-visible,
 .ops-filter select:focus-visible {
@@ -1459,6 +1455,20 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 .ops-tab-shell {
   margin-top: 20px;
+}
+.ops-nav {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+.tabs.ops-view-tabs {
+  flex: 1 1 auto;
+  width: auto;
+  margin-top: 0;
+  border-bottom: none;
+  min-width: 0;
 }
 .ops-tab-panel {
   padding-top: 8px;
@@ -1566,34 +1576,6 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   font-size: 0.78rem;
   line-height: 1.35;
   text-align: right;
-}
-.ops-service-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-.ops-service-tabs--primary {
-  margin-bottom: 0;
-}
-.ops-service-tabs button {
-  min-height: 44px;
-  flex: 0 0 auto;
-  padding: 0 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-.ops-service-tabs button.is-active {
-  background: var(--color-dha-cyan);
-  border-color: var(--color-dha-cyan);
-  color: #fff;
 }
 .ops-detail-head {
   display: grid;

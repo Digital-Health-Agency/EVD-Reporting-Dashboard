@@ -772,22 +772,24 @@ export default function OperationalWorkspace() {
       </section>
 
       <section className="ops-tab-shell">
-        <div className="ops-service-tabs ops-service-tabs--primary" role="tablist" aria-label="Operational workspace tabs">
-          {OPERATIONAL_TABS.map((tab) => (
-            <button
-              key={tab.key}
-              id={`ops-tab-${tab.key}`}
-              type="button"
-              role="tab"
-              aria-selected={activeTabKey === tab.key}
-              aria-controls={`ops-panel-${tab.key}`}
-              className={activeTabKey === tab.key ? "is-active" : ""}
-              onClick={() => setActiveTabKey(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <nav className="ops-nav" aria-label="Operational workspace tabs">
+          <div className="tabs ops-view-tabs" role="tablist" aria-label="Operational workspace tabs">
+            {OPERATIONAL_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                id={`ops-tab-${tab.key}`}
+                type="button"
+                role="tab"
+                aria-selected={activeTabKey === tab.key}
+                aria-controls={`ops-panel-${tab.key}`}
+                className={`tab ${activeTabKey === tab.key ? "tab--active" : ""}`}
+                onClick={() => setActiveTabKey(tab.key)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </nav>
 
         <OperationalTabFilters activeTab={activeTab} filters={filters} onChange={updateFilter} />
 
