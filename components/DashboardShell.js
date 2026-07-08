@@ -253,6 +253,7 @@ export default function DashboardShell() {
       {status === "ready" && data ? (
         <section
           id={`executive-panel-${view}`}
+          className="executive-tab-panel"
           role="tabpanel"
           aria-labelledby={`executive-tab-${view}`}
         >

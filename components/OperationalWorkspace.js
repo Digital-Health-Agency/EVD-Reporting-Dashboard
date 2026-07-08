@@ -791,14 +791,14 @@ export default function OperationalWorkspace() {
           </div>
         </nav>
 
-        <OperationalTabFilters activeTab={activeTab} filters={filters} onChange={updateFilter} />
-
         <div
           id={`ops-panel-${activeTab.key}`}
           className="ops-tab-panel"
           role="tabpanel"
           aria-labelledby={`ops-tab-${activeTab.key}`}
         >
+          <OperationalTabFilters activeTab={activeTab} filters={filters} onChange={updateFilter} />
+
           {activeTab.key === "summary" ? (
             <SummaryTab data={data} />
           ) : (
