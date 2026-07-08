@@ -1027,7 +1027,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 
 /* ---------- POE bubble map (full-page view) ---------- */
-.executive-page { padding-bottom: 40px; }
+.executive-page {
+  padding-top: 28px;
+  padding-bottom: 40px;
+}
 .poe-info-grid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
@@ -1407,7 +1410,8 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.ops-hero {
+.ops-hero,
+.executive-hero {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -1417,7 +1421,8 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   background: var(--color-navy);
   color: #fff;
 }
-.ops-kicker {
+.ops-kicker,
+.executive-kicker {
   display: block;
   margin-bottom: 10px;
   color: #a6ddf1;
@@ -1426,17 +1431,30 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.ops-hero h1 {
+.ops-hero h1,
+.executive-hero h1 {
   margin: 0;
   font-size: clamp(1.7rem, 3vw, 2.6rem);
   line-height: 1.08;
 }
-.ops-hero p {
+.ops-hero p,
+.executive-hero p {
   max-width: 680px;
   margin: 10px 0 0;
   color: #d8e4ee;
   font-size: 0.94rem;
   line-height: 1.55;
+}
+.executive-hero__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.executive-hero__asof {
+  font-size: 0.84rem;
+  color: #d8e4ee;
 }
 .ops-filter-panel {
   display: grid;
@@ -1767,10 +1785,15 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .ops-page {
     padding: 20px 16px 44px;
   }
-  .ops-hero {
+  .ops-hero,
+  .executive-hero {
     align-items: flex-start;
     flex-direction: column;
     padding: 24px 20px;
+  }
+  .executive-hero__actions {
+    align-items: flex-start;
+    width: 100%;
   }
   .ops-filter-panel {
     grid-template-columns: 1fr;

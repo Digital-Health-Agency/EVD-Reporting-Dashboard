@@ -28,12 +28,6 @@ function PoeExecutiveView({ data }) {
   const poe = data.poe || {};
   const byPoe = poe.byPoe || [];
   const prov = data.meta.provenance || {};
-  const disease = data.meta.disease || "Ebola";
-
-  const dateLabel = useMemo(() => {
-    const d = new Date(data.meta.lastUpdated);
-    return d.toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" });
-  }, [data.meta.lastUpdated]);
 
   const rankedPoes = useMemo(
     () =>
@@ -55,18 +49,6 @@ function PoeExecutiveView({ data }) {
 
   return (
     <>
-      <div className="report-head report-head--executive">
-        <div>
-          <h1>{disease} - Points of Entry Brief</h1>
-          <p className="report-head__sub">
-            Screening coverage, alert load and traveller flow across Kenya's mapped points of entry.
-          </p>
-        </div>
-        <div className="report-head__controls">
-          <span className="asof">As of {dateLabel}</span>
-        </div>
-      </div>
-
       <section className="brief-plain-grid poe-info-grid" aria-label="POE executive metrics">
         <PoeInfoMetric
           tone="green"
@@ -217,8 +199,37 @@ export default function DashboardShell() {
     return () => clearInterval(t);
   }, [load]);
 
+  const dateLabel = useMemo(() => {
+    if (!data?.meta?.lastUpdated) return null;
+    return new Date(data.meta.lastUpdated).toLocaleString("en-KE", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }, [data?.meta?.lastUpdated]);
+
   return (
     <main className="container executive-page">
+      <section className="executive-hero">
+        <div>
+          <span className="executive-kicker">Situation report dashboard</span>
+          <h1>Executive Situation Brief</h1>
+          <p>
+            Leadership view of cases, testing, screening, contacts and response readiness for authorized stakeholders.
+          </p>
+        </div>
+        <div className="executive-hero__actions">
+          {dateLabel ? <span className="executive-hero__asof">As of {dateLabel}</span> : null}
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={() => load(DEFAULT_DISEASE, true)}
+            disabled={refreshing}
+          >
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+      </section>
+
       <nav className="executive-nav" aria-label="Executive dashboard">
         <div className="tabs executive-view-tabs" role="tablist" aria-label="Executive dashboard views">
           {EXECUTIVE_TABS.map((tab) => (
@@ -237,15 +248,6 @@ export default function DashboardShell() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="tab tab--refresh executive-refresh"
-          onClick={() => load(DEFAULT_DISEASE, true)}
-          disabled={refreshing}
-          title="Re-read the latest values from the warehouse"
-        >
-          {refreshing ? "Refreshing..." : "Refresh"}
-        </button>
       </nav>
 
       {status === "ready" && data ? (

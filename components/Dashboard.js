@@ -260,18 +260,6 @@ export default function Dashboard({ data }) {
 
   return (
     <>
-      <div className="report-head report-head--executive">
-        <div>
-          <h1>{disease} - Executive Situation Brief</h1>
-          <p className="report-head__sub">
-            Leadership view of cases, testing, screening, contacts and response readiness.
-          </p>
-        </div>
-        <div className="report-head__controls">
-          <span className="asof">As of {dateLabel}</span>
-        </div>
-      </div>
-
       <FilterSummary
         disease={disease}
         dateLabel={dateLabel}

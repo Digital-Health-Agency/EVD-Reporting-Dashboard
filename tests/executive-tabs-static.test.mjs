@@ -6,6 +6,8 @@ test("executive dashboard exposes persistent Dashboard and POE tabs", async () =
   const source = await readFile(new URL("../components/DashboardShell.js", import.meta.url), "utf8");
 
   assert.match(source, /aria-label="Executive dashboard views"/);
+  assert.match(source, /className="executive-hero"/);
+  assert.match(source, /Executive Situation Brief/);
   assert.match(source, /label: "Dashboard"/);
   assert.match(source, /label: "POE"/);
   assert.match(source, /role="tablist"/);
