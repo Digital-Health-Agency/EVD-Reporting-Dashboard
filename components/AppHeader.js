@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 const VARIANT_LABEL = {
-  public: "Public update",
-  executive: "Executive dashboard",
+  public: "Situation update",
+  executive: "Situation dashboard",
   operational: "Restricted workspace",
 };
 
@@ -16,16 +16,11 @@ export default function AppHeader({ variant = "public" }) {
       </div>
       <div className="app-header__main">
         <Link className="app-header__brand" href="/" aria-label="Kenya EVD dashboard home">
-          <Image src="/moh-kenya.png" alt="Ministry of Health, Kenya" width={214} height={40} priority />
-          <span className="app-header__divider" aria-hidden="true" />
           <Image src="/nphi-kenya.png" alt="Kenya National Public Health Institute" width={128} height={40} priority />
         </Link>
 
         <nav className="app-header__nav" aria-label="Primary">
           <span className="app-header__eyebrow">{VARIANT_LABEL[variant] || VARIANT_LABEL.public}</span>
-          <Link href="/">Public</Link>
-          <Link href="/executive">Executive</Link>
-          <Link href="/operational">Operational</Link>
         </nav>
 
         <div className="app-header__partner">

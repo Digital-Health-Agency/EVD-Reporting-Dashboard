@@ -4,12 +4,12 @@ This guide is the visual and interaction source of truth for the Kenya
 EVD/BVD dashboard app. Keep the product clean, neat, official, and less wordy.
 
 The chosen direction is **Kenya Health Security Command**: a calm civic-health
-dashboard that feels official enough for MoH/GOK, modern enough for DHA, and
-clear enough for the public during an outbreak.
+dashboard that feels official enough for MoH, modern enough for DHA, and clear
+enough for the public during an outbreak.
 
 ## Design Principles
 
-- **Official first**: MoH, DHA, NPHI, and GOK identity must be visible and
+- **Official first**: MoH, DHA, and NPHI identity must be visible and
   treated respectfully.
 - **Data before decoration**: charts, numbers, maps, and source status carry
   the interface.
@@ -31,7 +31,7 @@ Borrow selectively from these references:
   public communication, government platform confidence.
 - **DHA website**: dark digital-health polish, cyan accents, official support
   actions such as Dial 147 and helpdesk.
-- **MoH website**: formal blue navigation, public-health portal structure,
+- **MoH website**: formal navigation, public-health portal structure,
   accessibility posture, alerts/resources framing.
 - **NPHI / emergency preparedness**: health-security and readiness tone.
 - **eCitizen / Huduma**: simple official login and service-action patterns.
@@ -55,7 +55,7 @@ Logo rules:
 
 - Keep original proportions.
 - Do not recolor, crop, stretch, blur, or place logos on busy backgrounds.
-- Header should lead with MoH/GOK identity and include DHA/NPHI as partners.
+- Header should lead with MoH identity and include DHA/NPHI as partners.
 - On compact mobile headers, show fewer words before shrinking logos.
 
 ## Color Tokens
@@ -74,7 +74,6 @@ Use semantic tokens, not raw one-off hex values in components.
   --color-muted: #64748b;
   --color-faint: #94a3b8;
 
-  --color-gok-blue: #1f4fb2;
   --color-dha-cyan: #1a9bd2;
   --color-navy: #071225;
   --color-alert: #b42318;
@@ -88,9 +87,10 @@ Use semantic tokens, not raw one-off hex values in components.
 
 Color usage:
 
-- **MoH/GOK blue**: navigation bars, official separators, active public links.
-- **DHA cyan**: digital-health accent, selected states, subtle highlights.
-- **Navy**: executive command header, operational login surface, footer.
+- **DHA cyan**: primary brand accent, navigation bars, selected states,
+  active links, and subtle highlights.
+- **Navy**: second brand color, executive command header, operational login
+  surface, footer.
 - **Alert red**: confirmed outbreak risk, deaths, critical warning states.
 - **Green**: recoveries, completed follow-up, healthy/safe states.
 - **Amber**: pending results, awaiting source, watch states.
@@ -181,7 +181,7 @@ Purpose: safe public outbreak communication.
 Visual feel:
 
 - Light, official, calm.
-- MoH/GOK blue header.
+- DHA cyan header with navy support.
 - One clear status block.
 - Aggregate numbers only.
 - Public guidance in short, scannable blocks.
