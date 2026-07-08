@@ -46,6 +46,35 @@ function MetricIcon({ name }) {
   return paths[name] || null;
 }
 
+function DeltaPill({ value }) {
+  if (!Number.isFinite(value)) return null;
+  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+  const magnitude = Math.abs(value);
+  return (
+    <span className="public-key-card__delta" aria-label={`Change in the last 24 hours: ${sign}${magnitude}`}>
+      Last 24h <strong>{sign}{fmt(magnitude)}</strong>
+    </span>
+  );
+}
+
+function KeyCard({ tone, icon, value, label, delta, children }) {
+  return (
+    <article className={`public-key-card public-key-card--${tone}`}>
+      <header className="public-key-card__head">
+        <div className="public-key-card__icon" aria-hidden="true">
+          <MetricIcon name={icon} />
+        </div>
+        <DeltaPill value={delta} />
+      </header>
+      <div className="public-key-card__main">
+        <strong>{fmt(value)}</strong>
+        <span>{label}</span>
+      </div>
+      {children}
+    </article>
+  );
+}
+
 function PublicKeyMetrics({ cases }) {
   const confirmed = cases?.confirmed ?? 0;
   const imported = cases?.importedCases;
@@ -54,10 +83,13 @@ function PublicKeyMetrics({ cases }) {
 
   return (
     <div className="public-key-grid">
-      <article className="public-key-card public-key-card--featured">
-        <div className="public-key-card__icon" aria-hidden="true">
-          <MetricIcon name="confirmed" />
-        </div>
+      <article className="public-key-card public-key-card--featured public-key-card--confirmed">
+        <header className="public-key-card__head">
+          <div className="public-key-card__icon" aria-hidden="true">
+            <MetricIcon name="confirmed" />
+          </div>
+          <DeltaPill value={cases?.newConfirmed24h} />
+        </header>
         <div className="public-key-card__main">
           <strong>{fmt(confirmed)}</strong>
           <span>Cumulative confirmed cases</span>
@@ -66,45 +98,37 @@ function PublicKeyMetrics({ cases }) {
           <div className="public-key-card__breakdown">
             <div>
               <strong>{fmt(imported)}</strong>
-              <span>Imported cases</span>
+              <span>Imported</span>
             </div>
             <div>
               <strong>{fmt(local)}</strong>
-              <span>Local cases</span>
+              <span>Local</span>
             </div>
           </div>
         ) : null}
       </article>
 
-      <article className="public-key-card public-key-card--admissions">
-        <div className="public-key-card__icon" aria-hidden="true">
-          <MetricIcon name="admissions" />
-        </div>
-        <div className="public-key-card__main">
-          <strong>{fmt(cases?.admitted)}</strong>
-          <span>Current admissions</span>
-        </div>
-      </article>
-
-      <article className="public-key-card public-key-card--recoveries">
-        <div className="public-key-card__icon" aria-hidden="true">
-          <MetricIcon name="recoveries" />
-        </div>
-        <div className="public-key-card__main">
-          <strong>{fmt(cases?.recoveries)}</strong>
-          <span>Recoveries</span>
-        </div>
-      </article>
-
-      <article className="public-key-card public-key-card--deaths">
-        <div className="public-key-card__icon" aria-hidden="true">
-          <MetricIcon name="deaths" />
-        </div>
-        <div className="public-key-card__main">
-          <strong>{fmt(cases?.deaths)}</strong>
-          <span>Cumulative deaths</span>
-        </div>
-      </article>
+      <KeyCard
+        tone="admissions"
+        icon="admissions"
+        value={cases?.admitted}
+        label="Current admissions"
+        delta={cases?.newAdmissions24h}
+      />
+      <KeyCard
+        tone="recoveries"
+        icon="recoveries"
+        value={cases?.recoveries}
+        label="Recoveries"
+        delta={cases?.newRecoveries24h}
+      />
+      <KeyCard
+        tone="deaths"
+        icon="deaths"
+        value={cases?.deaths}
+        label="Cumulative deaths"
+        delta={cases?.newDeaths24h}
+      />
     </div>
   );
 }

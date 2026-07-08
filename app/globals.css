@@ -224,67 +224,96 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+  align-items: stretch;
 }
 .public-key-card {
+  --key-fg: #ffffff;
+  --key-bg: var(--color-dha-cyan);
+  --key-chip: rgba(255, 255, 255, 0.18);
+  --key-muted: rgba(255, 255, 255, 0.82);
   display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 112px;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 140px;
   padding: 20px 22px;
   border-radius: calc(var(--radius) + 2px);
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(7, 18, 37, 0.08);
+  background: var(--key-bg);
+  color: var(--key-fg);
+  box-shadow: 0 4px 14px rgba(7, 18, 37, 0.05);
+}
+.public-key-card--confirmed {
+  --key-bg: #1a9bd2;
+}
+.public-key-card--admissions {
+  --key-bg: #b7791f;
+}
+.public-key-card--recoveries {
+  --key-bg: #1f7a4d;
+}
+.public-key-card--deaths {
+  --key-bg: #1f2937;
 }
 .public-key-card--featured {
   grid-column: 1 / -1;
-  min-height: 128px;
-  background: linear-gradient(135deg, #1a9bd2 0%, #1484b8 100%);
+  min-height: 148px;
 }
-.public-key-card--admissions {
-  background: linear-gradient(135deg, #f4c430 0%, #e0ad00 100%);
-  color: #1a1400;
-}
-.public-key-card--recoveries {
-  background: linear-gradient(135deg, #2f9d62 0%, #1f7a4d 100%);
-}
-.public-key-card--deaths {
-  background: linear-gradient(135deg, #243041 0%, #111827 100%);
+.public-key-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 .public-key-card__icon {
   flex: none;
-  width: 58px;
-  height: 58px;
+  width: 46px;
+  height: 46px;
   display: grid;
   place-items: center;
+  border-radius: 12px;
+  background: var(--key-chip);
+  color: var(--key-fg);
+}
+.public-key-card__icon svg { width: 24px; height: 24px; }
+.public-key-card__delta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--key-chip);
+  color: var(--key-fg);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
-.public-key-card--admissions .public-key-card__icon {
-  background: rgba(26, 20, 0, 0.12);
+.public-key-card__delta strong {
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
-.public-key-card__icon svg { width: 28px; height: 28px; }
 .public-key-card__main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  margin-top: auto;
   min-width: 0;
 }
 .public-key-card__main strong {
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-size: clamp(1.9rem, 3.6vw, 2.6rem);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .public-key-card__main span {
-  font-size: 0.95rem;
+  color: var(--key-muted);
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.35;
-  opacity: 0.95;
 }
 .public-key-card__breakdown {
-  margin-left: auto;
   display: flex;
-  gap: 28px;
-  text-align: right;
+  gap: 24px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 .public-key-card__breakdown div {
   display: flex;
@@ -292,14 +321,16 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   gap: 4px;
 }
 .public-key-card__breakdown strong {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .public-key-card__breakdown span {
-  font-size: 0.82rem;
+  color: var(--key-muted);
+  font-size: 0.76rem;
   font-weight: 700;
-  opacity: 0.92;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .public-tabs {
@@ -549,19 +580,13 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .public-hero__copy { min-height: auto; }
   .public-section-head h2 { font-size: 1.2rem; }
   .public-key-card {
-    min-height: 104px;
+    min-height: 128px;
     padding: 18px;
-  }
-  .public-key-card--featured {
-    flex-wrap: wrap;
-    align-items: flex-start;
+    gap: 14px;
   }
   .public-key-card__breakdown {
-    width: 100%;
-    margin-left: 0;
-    margin-top: 4px;
     justify-content: space-between;
-    text-align: left;
+    gap: 12px;
   }
   .public-panel__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .public-info { gap: 22px; }
