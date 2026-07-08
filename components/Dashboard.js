@@ -70,10 +70,13 @@ function Src({ prov }) {
       </span>
     );
   }
+  if (prov.source === "mock") {
+    return <span className="pill-mock" title={prov.label}>Mock data</span>;
+  }
   if (prov.source === "na") {
     return <span className="pill-pending" title={prov.label}>n/a</span>;
   }
-  return <span className="pill-pending" title={prov.label}>Preview · awaiting data</span>;
+  return <span className="pill-pending" title={prov.label}>Preview data</span>;
 }
 
 function SectionHead({ title, src, prov }) {
@@ -97,13 +100,13 @@ function ChartCard({ title, children }) {
   );
 }
 
-// Composite summary card: an icon + title, one featured metric box, then a list
-// of labelled detail rows (e.g. Cases → Confirmed + recoveries/deaths/CFR).
-function StatCard({ title, icon, iconBg, accent, feature, rows = [] }) {
+// Composite summary card: a marker + title, one featured metric box, then
+// labelled detail rows.
+function StatCard({ title, markerColor, accent, feature, rows = [] }) {
   return (
     <div className="statcard">
       <div className="statcard__head">
-        {icon ? <span className="statcard__icon" style={{ background: iconBg }}>{icon}</span> : null}
+        {markerColor ? <span className="statcard__marker" style={{ "--marker-color": markerColor }} aria-hidden="true" /> : null}
         <h3 className="statcard__title">{title}</h3>
       </div>
       <div className={`statcard__feature statcard__feature--${accent}`}>
@@ -133,7 +136,7 @@ function PreviewSection({ title, prov, blurb }) {
       <SectionHead title={title} prov={prov} />
       <div className="card">
         <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.9rem" }}>
-          <strong>Preview — awaiting data source.</strong> {blurb}
+          <strong>Preview - awaiting data source.</strong> {blurb}
         </p>
       </div>
     </section>
@@ -152,23 +155,14 @@ export default function Dashboard({ data }) {
   const poe = data.poe;
   const prov = data.meta.provenance || {};
   const disease = data.meta.disease || "Disease";
-  const hardcodedScreened = 141670;
-  const hardcodedTested = 107;
-  const hardcodedConfirmed = 0;
-  const readinessMetrics = [
-    { label: "HCWs sensitised", value: 2741 },
-    { label: "HCWs trained", value: 334 },
-    { label: "Surge capacity", value: 343 },
-    { label: "Labs", value: 4 },
-    { label: "Total beds", value: 58 },
-  ];
+  const readinessMetrics = data.readiness?.metrics || [];
 
   const dateLabel = useMemo(() => {
     const d = new Date(data.meta.lastUpdated);
     return d.toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" });
   }, [data.meta.lastUpdated]);
 
-  // Results trend — positive, negative, tests only (no inconclusive).
+  // Results trend - positive, negative, tests only (no inconclusive).
   const labTrend = (labs.trend || []).map((r) => ({
     label: dayLabel(r.date), Tests: r.tests, Positive: r.positive, Negative: r.negative,
   }));
@@ -183,24 +177,23 @@ export default function Dashboard({ data }) {
   const hasPoeBreakdown = (poe.byPoe || []).some((p) => !p.unknown);
 
   const labRange = labs.firstTest && labs.lastTest
-    ? `${labs.firstTest} → ${labs.lastTest}` : null;
+    ? `${labs.firstTest} to ${labs.lastTest}` : null;
   const asOfLab = labs.lastTest ? `as of ${labs.lastTest}` : null;
 
-  // CFR = deaths / confirmed (0 when no confirmed cases). recoveries / 24h
-  // deltas aren't in the mart yet — wired to optional fields so they light up
-  // automatically once published; today they read 0 (correct: no active outbreak).
-  const cfr = hardcodedConfirmed > 0 ? pctNum((cases.deaths / hardcodedConfirmed) * 100) : "0%";
+  const confirmed = cases.confirmed ?? 0;
+  const cfr = confirmed > 0 ? pctNum((cases.deaths / confirmed) * 100) : "0%";
   const confirmed24h = cases.newConfirmed24h ?? 0;
   const tested24h = labs.newTested24h ?? 0;
+  const alerts = poe.alerts ?? cases.suspected ?? 0;
 
   return (
     <>
       {/* Report header */}
       <div className="report-head">
         <div>
-          <h1>{disease} — National Situation Report</h1>
+          <h1>{disease} - National Situation Report</h1>
           <p className="report-head__sub">
-            Positive cases, screening at points of entry and laboratory testing from the analytics warehouse
+            Cases, screening at points of entry and laboratory testing from the dashboard API
           </p>
         </div>
         <div className="report-head__controls">
@@ -208,16 +201,15 @@ export default function Dashboard({ data }) {
         </div>
       </div>
 
-      {/* 1) Headline summary cards — Cases (priority) + Samples Tested */}
+      {/* 1) Headline summary cards - Cases (priority) + Samples Tested */}
       <section className="stat-grid">
         <StatCard
           title="Cases"
-          icon="🦠"
-          iconBg="#fdecec"
+          markerColor="var(--red)"
           accent="red"
           feature={{
             label: "Confirmed",
-            value: fmt(hardcodedConfirmed),
+            value: fmt(confirmed),
             delta: `Last 24h: +${fmt(confirmed24h)}`,
           }}
           rows={[
@@ -228,12 +220,11 @@ export default function Dashboard({ data }) {
         />
         <StatCard
           title="Samples Tested"
-          icon="🔬"
-          iconBg="#eaf1fb"
+          markerColor="var(--blue)"
           accent="blue"
           feature={{
             label: "Total Tested",
-            value: fmt(hardcodedTested),
+            value: fmt(labs.testsDone),
             delta: `Last 24h: +${fmt(tested24h)}`,
           }}
           rows={[
@@ -249,9 +240,9 @@ export default function Dashboard({ data }) {
         
         {/* Top row: Total screened (left) + Alerts (right) */}
         <div className="kpis" style={{ gridTemplateColumns: "1fr 1fr", marginBottom: 24 }}>
-          <Kpi featured variant="green" live label="Total screened" value={fmt(hardcodedScreened)} delta="all points of entry" />
+          <Kpi featured variant="green" live label="Total screened" value={fmt(poe.totalScreened)} delta="all points of entry" />
           {cases.available && (
-            <Kpi featured variant="blue" live label="Alerts" value={fmt(cases.suspected)} delta={`${disease} alerts`} />
+            <Kpi featured variant="blue" live label="Alerts" value={fmt(alerts)} delta={`${disease} alerts`} />
           )}
         </div>
         
@@ -274,19 +265,19 @@ export default function Dashboard({ data }) {
             <div className="card">
               <h3 className="card__title">Screened by point of entry</h3>
               <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: "0.9rem" }}>
-                The per–point-of-entry breakdown (JKIA, Busia, Moi, …) appears here once
+                The per-point-of-entry breakdown (JKIA, Busia, Moi, and others) appears here once
                 <strong> marts.screenings_by_poe</strong> is published in this environment. The
                 screening total on the left is live.
               </p>
             </div>
           )}
-        {poe.note ? <p className="section__src" style={{ marginTop: 10 }}>⚠ {poe.note}</p> : null}
+        {poe.note ? <p className="section__src" style={{ marginTop: 10 }}>Note: {poe.note}</p> : null}
       </section>
 
 
       {/* 4) Training and readiness */}
       <section className="section">
-        <SectionHead title="Training and Readiness" prov={prov.labs} />
+        <SectionHead title="Training and Readiness" prov={prov.readiness} />
         <div className="card">
           <div className="kpis" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", marginTop: 8 }}>
             {readinessMetrics.map((metric) => (
@@ -296,11 +287,11 @@ export default function Dashboard({ data }) {
         </div>
       </section>
 
-      {/* 6) Results — positive / negative only */}
+      {/* 6) Results - positive / negative only */}
       <section className="section">
         <SectionHead title="Laboratory Results" src="Source: marts.lab_by_disease / lab_daily" prov={prov.labs} />
         <div className="charts-wide">
-          <ChartCard title={`Daily trend — positive & negative${asOfLab ? ` (${asOfLab})` : ""}`}>
+          <ChartCard title={`Daily trend - positive and negative${asOfLab ? ` (${asOfLab})` : ""}`}>
             <Chart minWidth={560}>
               <LineChart data={labTrend} margin={barMargin}>
                 <CartesianGrid {...gridProps} />
@@ -339,11 +330,9 @@ export default function Dashboard({ data }) {
       />
 
       <footer className="footer">
-        Live metrics are read from the ClickHouse Gold marts (lab_by_disease, lab_daily,
-        cases_by_disease) via the dashboard’s API layer, plus interim traveller-screening totals
-        from stg_adam.screenings (point-of-entry breakdown appears once the source records it).
-        Sections marked “preview” are awaiting their data source and are never populated with
-        placeholder figures. Ebola/Marburg show 0 positives — that is correct (no active outbreak).
+        Metrics are read through the dashboard API layer. Mock data is used for local UI
+        development unless DATA_SOURCE=live is set. Sections marked preview are awaiting
+        their data source and are never populated with operational records.
       </footer>
     </>
   );

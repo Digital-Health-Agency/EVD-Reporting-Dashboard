@@ -135,8 +135,7 @@ export default function PoeBubbleMap({ byPoe = [] }) {
         <div className="poe-map__legend">
           <span className="poe-map__legend-title">Screening volume</span>
           <span className="poe-map__swatch"><i style={{ background: SCALE[0] }} />Low</span>
-          <span className="poe-map__swatch"><i style={{ background: SCALE[1] }} />·</span>
-          <span className="poe-map__swatch"><i style={{ background: SCALE[2] }} />·</span>
+          <span className="poe-map__swatch"><i style={{ background: SCALE[2] }} />Medium</span>
           <span className="poe-map__swatch"><i style={{ background: SCALE[3] }} />High</span>
           <span className="poe-map__legend-note">Bubble size = screening volume.</span>
           <span className="poe-map__swatch poe-map__swatch--empty">

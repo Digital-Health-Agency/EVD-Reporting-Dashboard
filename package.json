@@ -2,11 +2,13 @@
   "name": "kenya-evd-dashboard",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:mock": "node --test tests/mock-datasource.test.mjs"
   },
   "dependencies": {
     "@clickhouse/client": "^1.21.0",
