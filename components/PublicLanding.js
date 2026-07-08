@@ -3,15 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fmt } from "@/lib/format";
 
-function PublicMetric({ label, value, tone = "blue" }) {
-  return (
-    <div className={`public-metric public-metric--${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
 const PUBLIC_TABS = [
   "Highlights",
   "Cases",
@@ -21,44 +12,260 @@ const PUBLIC_TABS = [
   "Points of entry",
 ];
 
-function PublicTabPanel({ activeTab, data, updated }) {
+function MetricIcon({ name }) {
+  const paths = {
+    confirmed: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.2" />
+        <path d="M12 2v3.2M12 18.8V22M2 12h3.2M18.8 12H22M4.9 4.9l2.3 2.3M16.8 16.8l2.3 2.3M19.1 4.9l-2.3 2.3M7.2 16.8l-2.3 2.3" />
+      </svg>
+    ),
+    admissions: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <path d="M3 14h18v5H3z" />
+        <path d="M5 14V9a2 2 0 0 1 2-2h3v7M14 7h3a2 2 0 0 1 2 2v5" />
+        <path d="M9 11h2" />
+      </svg>
+    ),
+    recoveries: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <circle cx="12" cy="8" r="3.2" />
+        <path d="M6.5 20c.8-3 2.4-4.8 5.5-4.8s4.7 1.8 5.5 4.8" />
+        <path d="M16.5 11.5l1.8 1.8 3.2-3.2" />
+      </svg>
+    ),
+    deaths: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <path d="M8 4h8l-1 16H9L8 4z" />
+        <path d="M10 4V2h4v2" />
+        <path d="M9 10h6M9 14h6" />
+      </svg>
+    ),
+  };
+
+  return paths[name] || null;
+}
+
+function PublicKeyMetrics({ cases }) {
+  const confirmed = cases?.confirmed ?? 0;
+  const imported = cases?.importedCases;
+  const local = cases?.localCases;
+  const showBreakdown = Number.isFinite(imported) && Number.isFinite(local);
+
+  return (
+    <div className="public-key-grid">
+      <article className="public-key-card public-key-card--featured">
+        <div className="public-key-card__icon" aria-hidden="true">
+          <MetricIcon name="confirmed" />
+        </div>
+        <div className="public-key-card__main">
+          <strong>{fmt(confirmed)}</strong>
+          <span>Cumulative confirmed cases</span>
+        </div>
+        {showBreakdown ? (
+          <div className="public-key-card__breakdown">
+            <div>
+              <strong>{fmt(imported)}</strong>
+              <span>Imported cases</span>
+            </div>
+            <div>
+              <strong>{fmt(local)}</strong>
+              <span>Local cases</span>
+            </div>
+          </div>
+        ) : null}
+      </article>
+
+      <article className="public-key-card public-key-card--admissions">
+        <div className="public-key-card__icon" aria-hidden="true">
+          <MetricIcon name="admissions" />
+        </div>
+        <div className="public-key-card__main">
+          <strong>{fmt(cases?.admitted)}</strong>
+          <span>Current admissions</span>
+        </div>
+      </article>
+
+      <article className="public-key-card public-key-card--recoveries">
+        <div className="public-key-card__icon" aria-hidden="true">
+          <MetricIcon name="recoveries" />
+        </div>
+        <div className="public-key-card__main">
+          <strong>{fmt(cases?.recoveries)}</strong>
+          <span>Recoveries</span>
+        </div>
+      </article>
+
+      <article className="public-key-card public-key-card--deaths">
+        <div className="public-key-card__icon" aria-hidden="true">
+          <MetricIcon name="deaths" />
+        </div>
+        <div className="public-key-card__main">
+          <strong>{fmt(cases?.deaths)}</strong>
+          <span>Cumulative deaths</span>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function PanelStats({ items }) {
+  return (
+    <dl className="public-panel__stats">
+      {items.map((item) => (
+        <div key={item.label} className="public-panel-stat">
+          <dt>{item.label}</dt>
+          <dd>{item.value}</dd>
+          {item.hint ? <p>{item.hint}</p> : null}
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function PanelSection({ title, children }) {
+  return (
+    <div className="public-panel-section">
+      <h3>{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function ShareBar({ segments }) {
+  const total = segments.reduce((sum, segment) => sum + segment.value, 0);
+
+  return (
+    <div className="public-share">
+      <div className="public-share__bar" role="img" aria-label={segments.map((s) => `${s.label}: ${fmt(s.value)}`).join(", ")}>
+        {total > 0 ? segments.map((segment) => (
+          <span
+            key={segment.label}
+            className={`public-share__seg public-share__seg--${segment.tone}`}
+            style={{ width: `${(segment.value / total) * 100}%` }}
+          />
+        )) : <span className="public-share__seg public-share__seg--empty" style={{ width: "100%" }} />}
+      </div>
+      <ul className="public-share__legend">
+        {segments.map((segment) => (
+          <li key={segment.label}>
+            <span className={`public-share__dot public-share__dot--${segment.tone}`} aria-hidden="true" />
+            {segment.label}
+            <strong>{fmt(segment.value)}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ProgressMeter({ value, total, caption }) {
+  const pct = total > 0 ? Math.min(100, (value / total) * 100) : 0;
+
+  return (
+    <div className="public-meter">
+      <div className="public-meter__row">
+        <strong>{pct.toFixed(0)}%</strong>
+        <span>{caption}</span>
+      </div>
+      <div className="public-meter__track" role="img" aria-label={`${pct.toFixed(0)}% ${caption}`}>
+        <span style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function RankList({ rows }) {
+  const max = Math.max(1, ...rows.map((row) => row.value));
+
+  return (
+    <ul className="public-rank">
+      {rows.map((row) => (
+        <li key={row.label}>
+          <div className="public-rank__row">
+            <span>{row.label}</span>
+            <strong>{fmt(row.value)}</strong>
+          </div>
+          <div className="public-rank__track" aria-hidden="true">
+            <span style={{ width: `${(row.value / max) * 100}%` }} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PublicTabPanel({ activeTab, data }) {
   if (!data) {
-    return <div className="public-loading">Loading tab details...</div>;
+    return <div className="public-loading public-loading--inline">Loading tab details...</div>;
   }
 
   const cases = data.cases || {};
   const labs = data.labs || {};
   const poe = data.poe || {};
-  const contactsCompleted = Math.max(0, (cases.contactsFollowedUp || 0) - (cases.admitted || 0));
   const topPoe = [...(poe.byPoe || [])]
     .sort((a, b) => (b.screened || 0) - (a.screened || 0))
-    .slice(0, 4);
+    .slice(0, 5);
 
   if (activeTab === "Highlights") {
     return (
-      <div className="public-tab-panel public-tab-panel--split">
-        <div>
-          <h3>Latest public update</h3>
-          <p>Active national surveillance is ongoing. This page shows public aggregate indicators only.</p>
+      <div className="public-panel">
+        <PanelStats
+          items={[
+            { label: "New confirmed (24h)", value: fmt(cases.newConfirmed24h) },
+            { label: "Suspected cases", value: fmt(cases.suspected) },
+            { label: "Tests done", value: fmt(labs.testsDone) },
+            { label: "Travellers screened", value: fmt(poe.totalScreened) },
+          ]}
+        />
+        <div className="public-panel__sections">
+          <PanelSection title="Testing">
+            <ProgressMeter
+              value={labs.positive || 0}
+              total={labs.testsDone || 0}
+              caption="of tests came back positive"
+            />
+          </PanelSection>
+          <PanelSection title="Contact tracing">
+            <ProgressMeter
+              value={cases.contactsFollowedUp || 0}
+              total={cases.contactsListed || 0}
+              caption="of listed contacts reached by health teams"
+            />
+          </PanelSection>
         </div>
-        <dl className="public-tab-list">
-          <div><dt>Last updated</dt><dd>{updated || "Loading"}</dd></div>
-          <div><dt>Data source</dt><dd>{data.meta?.provenance?.labs?.source === "mock" ? "Mock API preview" : "Dashboard API"}</dd></div>
-          <div><dt>Public advice</dt><dd>Report symptoms early and use official help channels.</dd></div>
-        </dl>
       </div>
     );
   }
 
   if (activeTab === "Cases") {
     return (
-      <div className="public-tab-panel">
-        <div className="public-tab-metrics">
-          <PublicMetric label="Confirmed" value={fmt(cases.confirmed)} tone="alert" />
-          <PublicMetric label="Suspected" value={fmt(cases.suspected)} tone="amber" />
-          <PublicMetric label="Recoveries" value={fmt(cases.recoveries)} tone="green" />
-          <PublicMetric label="Deaths" value={fmt(cases.deaths)} tone="alert" />
-          <PublicMetric label="Current admissions" value={fmt(cases.admitted)} tone="blue" />
+      <div className="public-panel">
+        <PanelStats
+          items={[
+            { label: "Total cases", value: fmt(cases.totalCases) },
+            { label: "Suspected", value: fmt(cases.suspected) },
+            { label: "Probable", value: fmt(cases.probable) },
+          ]}
+        />
+        <div className="public-panel__sections">
+          <PanelSection title="Where confirmed cases came from">
+            <ShareBar
+              segments={[
+                { label: "Imported", value: cases.importedCases || 0, tone: "blue" },
+                { label: "Local", value: cases.localCases || 0, tone: "amber" },
+              ]}
+            />
+          </PanelSection>
+          <PanelSection title="Outcomes">
+            <ShareBar
+              segments={[
+                { label: "Recovered", value: cases.recoveries || 0, tone: "green" },
+                { label: "In care", value: cases.admitted || 0, tone: "blue" },
+                { label: "Died", value: cases.deaths || 0, tone: "red" },
+              ]}
+            />
+          </PanelSection>
         </div>
       </div>
     );
@@ -66,13 +273,31 @@ function PublicTabPanel({ activeTab, data, updated }) {
 
   if (activeTab === "Tests") {
     return (
-      <div className="public-tab-panel">
-        <div className="public-tab-metrics">
-          <PublicMetric label="Total tested" value={fmt(labs.testsDone)} tone="blue" />
-          <PublicMetric label="Positive" value={fmt(labs.positive)} tone="alert" />
-          <PublicMetric label="Negative" value={fmt(labs.negative)} tone="green" />
-          <PublicMetric label="Pending" value={fmt(labs.pendingResults)} tone="amber" />
-          <PublicMetric label="Positivity" value={`${Number(labs.positivityPct || 0).toFixed(1)}%`} tone="blue" />
+      <div className="public-panel">
+        <PanelStats
+          items={[
+            { label: "Total tested", value: fmt(labs.testsDone) },
+            { label: "Tested in last 24h", value: fmt(labs.newTested24h) },
+            { label: "Awaiting results", value: fmt(labs.pendingResults) },
+          ]}
+        />
+        <div className="public-panel__sections">
+          <PanelSection title="Results">
+            <ShareBar
+              segments={[
+                { label: "Negative", value: labs.negative || 0, tone: "green" },
+                { label: "Positive", value: labs.positive || 0, tone: "red" },
+                { label: "Inconclusive", value: labs.inconclusive || 0, tone: "amber" },
+              ]}
+            />
+          </PanelSection>
+          <PanelSection title="Positivity">
+            <ProgressMeter
+              value={labs.positive || 0}
+              total={labs.testsDone || 0}
+              caption="of all tests were positive"
+            />
+          </PanelSection>
         </div>
       </div>
     );
@@ -80,11 +305,27 @@ function PublicTabPanel({ activeTab, data, updated }) {
 
   if (activeTab === "Contacts") {
     return (
-      <div className="public-tab-panel">
-        <div className="public-tab-metrics">
-          <PublicMetric label="Contacts listed" value={fmt(cases.contactsListed)} tone="amber" />
-          <PublicMetric label="Followed up" value={fmt(cases.contactsFollowedUp)} tone="green" />
-          <PublicMetric label="Completed estimate" value={fmt(contactsCompleted)} tone="blue" />
+      <div className="public-panel">
+        <PanelStats
+          items={[
+            { label: "Contacts listed", value: fmt(cases.contactsListed) },
+            { label: "Followed up", value: fmt(cases.contactsFollowedUp) },
+          ]}
+        />
+        <div className="public-panel__sections">
+          <PanelSection title="Follow-up progress">
+            <ProgressMeter
+              value={cases.contactsFollowedUp || 0}
+              total={cases.contactsListed || 0}
+              caption="of listed contacts checked on by health teams"
+            />
+          </PanelSection>
+          <PanelSection title="Why this matters">
+            <p className="public-panel-note">
+              Everyone who had close contact with a confirmed case is monitored
+              for 21 days so any new illness is caught early.
+            </p>
+          </PanelSection>
         </div>
       </div>
     );
@@ -92,31 +333,44 @@ function PublicTabPanel({ activeTab, data, updated }) {
 
   if (activeTab === "Alerts") {
     return (
-      <div className="public-tab-panel public-tab-panel--split">
-        <div>
-          <h3>Public alerts</h3>
-          <p>Alerts shown here are aggregate signals from public screening and surveillance summaries.</p>
+      <div className="public-panel">
+        <PanelStats
+          items={[
+            { label: "Screening alerts", value: fmt(poe.alerts) },
+            { label: "Suspected cases", value: fmt(cases.suspected) },
+            { label: "New confirmed (24h)", value: fmt(cases.newConfirmed24h) },
+          ]}
+        />
+        <div className="public-panel__sections">
+          <PanelSection title="Report a concern">
+            <p className="public-panel-note">
+              If you or someone near you has fever, unusual bleeding, or has had
+              contact with a sick traveller, call <strong>147</strong> free of
+              charge. Alerts here are aggregate signals from screening and
+              surveillance summaries.
+            </p>
+          </PanelSection>
         </div>
-        <dl className="public-tab-list">
-          <div><dt>POE alerts</dt><dd>{fmt(poe.alerts)}</dd></div>
-          <div><dt>Suspected cases</dt><dd>{fmt(cases.suspected)}</dd></div>
-          <div><dt>Help line</dt><dd>Dial 147</dd></div>
-        </dl>
       </div>
     );
   }
 
   return (
-    <div className="public-tab-panel public-tab-panel--split">
-      <div>
-        <h3>Points of entry</h3>
-        <p>Traveller screening totals are shown as aggregate figures for public awareness.</p>
+    <div className="public-panel">
+      <PanelStats
+        items={[
+          { label: "Travellers screened", value: fmt(poe.totalScreened) },
+          { label: "Unique travellers", value: fmt(poe.uniqueTravelers) },
+          { label: "Screening alerts", value: fmt(poe.alerts) },
+        ]}
+      />
+      <div className="public-panel__sections">
+        <PanelSection title="Busiest screening points">
+          <RankList
+            rows={topPoe.map((row) => ({ label: row.name, value: row.screened || 0 }))}
+          />
+        </PanelSection>
       </div>
-      <dl className="public-tab-list">
-        <div><dt>Travellers screened</dt><dd>{fmt(poe.totalScreened)}</dd></div>
-        <div><dt>Unique travellers</dt><dd>{fmt(poe.uniqueTravelers)}</dd></div>
-        <div><dt>Top reporting POE</dt><dd>{topPoe[0]?.name || "Loading"}</dd></div>
-      </dl>
     </div>
   );
 }
@@ -152,15 +406,6 @@ export default function PublicLanding() {
     });
   }, [data?.meta?.lastUpdated]);
 
-  const metrics = data ? [
-    { label: "Confirmed cases", value: fmt(data.cases?.confirmed), tone: "alert" },
-    { label: "Tests done", value: fmt(data.labs?.testsDone), tone: "blue" },
-    { label: "POE screened", value: fmt(data.poe?.totalScreened), tone: "green" },
-    { label: "Contacts listed", value: fmt(data.cases?.contactsListed), tone: "amber" },
-    { label: "Recoveries", value: fmt(data.cases?.recoveries), tone: "green" },
-    { label: "Current admissions", value: fmt(data.cases?.admitted), tone: "blue" },
-  ] : [];
-
   return (
     <main className="public-page">
       <section className="public-hero">
@@ -185,18 +430,22 @@ export default function PublicLanding() {
       <section className="public-key-metrics" aria-label="Key public metrics">
         <div className="public-section-head">
           <h2>Key metrics</h2>
-          <p>Public aggregate figures from the latest dashboard API update.</p>
+          <p>Headline confirmed cases, admissions, recoveries, and deaths from the latest national update.</p>
         </div>
-        <div className="public-band">
-        {status === "ready" ? metrics.map((metric) => (
-          <PublicMetric key={metric.label} {...metric} />
-        )) : (
-          <div className="public-loading">{status === "error" ? "Metrics unavailable" : "Loading metrics..."}</div>
+        {status === "ready" ? (
+          <PublicKeyMetrics cases={data.cases} />
+        ) : (
+          <div className="public-loading public-loading--block">
+            {status === "error" ? "Metrics unavailable" : "Loading metrics..."}
+          </div>
         )}
-        </div>
       </section>
 
       <section className="public-tabs-section" aria-label="Public update sections">
+        <div className="public-section-head">
+          <h2>Detailed figures</h2>
+          <p>Supporting indicators grouped by cases, testing, contacts, alerts, and points of entry.</p>
+        </div>
         <div className="public-tabs" role="tablist" aria-label="Ebola update sections">
           {PUBLIC_TABS.map((tab) => (
             <button
@@ -211,26 +460,37 @@ export default function PublicLanding() {
             </button>
           ))}
         </div>
-        {status === "ready" ? (
-          <PublicTabPanel activeTab={activeTab} data={data} updated={updated} />
-        ) : (
-          <div className="public-loading">{status === "error" ? "Sections unavailable" : "Loading sections..."}</div>
-        )}
+        <div className="public-tab-content">
+          {status === "ready" ? (
+            <PublicTabPanel activeTab={activeTab} data={data} />
+          ) : (
+            <div className="public-loading public-loading--inline">
+              {status === "error" ? "Sections unavailable" : "Loading sections..."}
+            </div>
+          )}
+        </div>
       </section>
 
-      <section className="public-grid">
-        <article>
+      <section className="public-info" aria-label="Public guidance">
+        <div className="public-info__col">
           <h2>What to do</h2>
-          <p>Report symptoms early, follow MoH guidance, and avoid direct contact with body fluids from anyone who is unwell.</p>
-        </article>
-        <article>
+          <ul>
+            <li>Report symptoms early — fever, unusual bleeding, or sudden illness.</li>
+            <li>Follow official MoH guidance.</li>
+            <li>Avoid direct contact with body fluids from anyone who is unwell.</li>
+          </ul>
+        </div>
+        <div className="public-info__col">
           <h2>Help channels</h2>
-          <p>Use Dial 147 for health support. Use official MoH and DHA channels for verified updates.</p>
-        </article>
-        <article>
+          <ul>
+            <li>Dial <strong>147</strong> for free health support.</li>
+            <li>Use official MoH and DHA channels for verified updates.</li>
+          </ul>
+        </div>
+        <div className="public-info__col">
           <h2>Data safety</h2>
-          <p>This public page shows aggregate indicators only. Operational records remain restricted.</p>
-        </article>
+          <p>This page shows aggregate indicators only. Operational records remain restricted.</p>
+        </div>
       </section>
     </main>
   );
