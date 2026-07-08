@@ -336,11 +336,18 @@ Visual feel:
 - Short message: "Operational workspace requires sign in."
 - Clear simulated sign-in action that does not imply real access control.
 
-Future authenticated state:
+Authenticated preview state:
 
-- Sidebar or compact top navigation for response teams.
-- Work queues for cases, contacts, lab, POE, community, and action tracker.
-- Filters by period, county, subcounty, ward, facility, and POE.
+- Compact top navigation for Summary, Laboratory, POE, Health facilities,
+  Community, Contacts, and EOC actions.
+- Summary tab for aggregate queues, priority metrics, data quality flags, and
+  action tracker context.
+- Service-point tabs for cases, contacts, lab, POE, community, and action
+  tracker detail.
+- Data filters on each tab. Summary uses cross-cutting geography/service
+  filters; service tabs use the fields that match their source data, such as
+  lab, result status, sample source, POE, alert status, facility, case status,
+  follow-up status, owner, deadline, and priority.
 - Data quality flags and source status.
 
 Avoid:
@@ -356,7 +363,8 @@ Preferred component set:
 - `AppHeader`: shared official chrome.
 - `PublicLanding`: aggregate public update page.
 - `ExecutiveDashboard`: wrapper around the current dashboard shell.
-- `OperationalWorkspace`: simulated sign-in + aggregate operations preview.
+- `OperationalWorkspace`: simulated sign-in + operational Summary and
+  service-point tabs with scoped data filters.
 - `StatusCard`: compact KPI/status tile.
 - `SourcePill`: live/pending/preview/unavailable indicator.
 - `DataPanel`: chart/table panel with title, source, and empty state.

@@ -1241,6 +1241,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .is-blue { color: var(--blue) !important; }
 .is-green { color: var(--green) !important; }
 .is-amber { color: var(--amber) !important; }
+.is-navy { color: var(--color-navy) !important; }
 .data-empty {
   min-height: 180px;
   display: grid;
@@ -1456,6 +1457,23 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   color: var(--muted);
   font-size: 0.68rem;
 }
+.ops-tab-shell {
+  margin-top: 20px;
+}
+.ops-tab-panel {
+  padding-top: 8px;
+}
+.ops-tab-filter-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
 .ops-critical-grid,
 .ops-plain-grid {
   display: grid;
@@ -1556,6 +1574,9 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   overflow-x: auto;
   padding-bottom: 4px;
 }
+.ops-service-tabs--primary {
+  margin-bottom: 0;
+}
 .ops-service-tabs button {
   min-height: 44px;
   flex: 0 0 auto;
@@ -1573,6 +1594,62 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   background: var(--color-dha-cyan);
   border-color: var(--color-dha-cyan);
   color: #fff;
+}
+.ops-detail-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.34fr);
+  gap: 16px;
+  align-items: stretch;
+  margin-top: 20px;
+}
+.ops-detail-head > div:first-child,
+.ops-source-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.ops-detail-head span,
+.ops-source-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ops-detail-head h2 {
+  margin: 8px 0 0;
+  color: var(--color-ink);
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+.ops-detail-head p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.ops-source-card strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--color-ink);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.ops-service-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.ops-service-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
+  gap: 16px;
+  margin-top: 16px;
 }
 .ops-drill-grid {
   display: grid;
@@ -1672,6 +1749,9 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .pillar-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ops-filter-panel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ops-plain-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ops-service-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ops-service-detail-grid,
+  .ops-detail-head { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -1695,8 +1775,11 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .source-grid,
   .ops-critical-grid,
   .ops-plain-grid,
+  .ops-service-metric-grid,
   .ops-main-grid,
-  .ops-drill-grid {
+  .ops-drill-grid,
+  .ops-service-detail-grid,
+  .ops-detail-head {
     grid-template-columns: 1fr;
   }
   .ops-page {
@@ -1708,6 +1791,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
     padding: 24px 20px;
   }
   .ops-filter-panel {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+  .ops-tab-filter-panel {
     grid-template-columns: 1fr;
     padding: 14px;
   }

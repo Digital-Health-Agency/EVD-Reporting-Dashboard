@@ -67,13 +67,15 @@ workspace. The authenticated preview may show aggregate operational queues and
 indicators, but must not display patient, contact, traveller, or
 facility-sensitive line lists.
 
-When real authentication is added, this surface is expected to support response
-teams with:
+The authenticated preview supports response teams with:
 
-- Case, contact, laboratory, point-of-entry, and community-surveillance work
-  queues.
-- Filters by period, county, subcounty, ward, facility, point of entry, and
-  disease.
+- A Summary tab for aggregate operational queues, priority metrics, data quality
+  flags, and EOC actions.
+- Dedicated Laboratory, POE, Health facilities, Community, Contacts, and EOC
+  actions tabs.
+- Tab-specific data filters, including period, geography, facility, point of
+  entry, laboratory, result status, alert status, follow-up status, action
+  owner, deadline, and priority where relevant.
 - Data quality and source-provenance flags.
 - Follow-up performance, alert investigation status, and sample turnaround
   status.
@@ -150,7 +152,7 @@ data-source abstraction:
   switching, and loading/error states.
 - `components/Dashboard.js` renders the current executive situation report.
 - `components/OperationalWorkspace.js` renders the simulated operational
-  sign-in gate and aggregate operations preview.
+  sign-in gate, Summary tab, service-point tabs, and tab-specific filters.
 - `components/PoeBubbleMap.js` renders the points-of-entry map view.
 - `app/api/metrics/[disease]/route.js` returns the composed dashboard payload.
 - `lib/datasource/index.js` composes lab, case, and POE sections through a
