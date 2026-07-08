@@ -5,7 +5,7 @@ export default function SiteFooter() {
     <footer className="site-footer">
       <div className="site-footer__inner">
         <div className="site-footer__brand">
-          <span className="site-footer__eyebrow">Kenya EVD/BVD surveillance</span>
+          <span className="site-footer__eyebrow">Kenya Ebola surveillance</span>
           <strong>Ministry of Health, Kenya</strong>
           <p>National public health situation dashboard.</p>
         </div>

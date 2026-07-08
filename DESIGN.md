@@ -1,7 +1,7 @@
 # EVD Dashboard Design Guide
 
 This guide is the visual and interaction source of truth for the Kenya
-EVD/BVD dashboard app. Keep the product clean, neat, official, and less wordy.
+Ebola dashboard app. Keep the product clean, neat, official, and less wordy.
 
 The chosen direction is **Kenya Health Security Command**: a calm civic-health
 dashboard that feels official enough for MoH, modern enough for DHA, and clear
@@ -180,7 +180,7 @@ Header rules:
 
 - Public page: compact NPHI/DHA header, no route tabs, with report/help
   actions handled by the page body or footer.
-- Executive page: compact command header with disease tabs, refresh, timestamp,
+- Executive page: compact command header with refresh, timestamp,
   and source status.
 - Operational page: official restricted-access header with login affordance.
 
@@ -340,7 +340,7 @@ Future authenticated state:
 
 - Sidebar or compact top navigation for response teams.
 - Work queues for cases, contacts, lab, POE, community, and action tracker.
-- Filters by period, county, subcounty, ward, facility, POE, and disease.
+- Filters by period, county, subcounty, ward, facility, and POE.
 - Data quality flags and source status.
 
 Avoid:

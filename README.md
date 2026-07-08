@@ -1,9 +1,9 @@
-# Kenya EVD/BVD Surveillance Dashboard
+# Kenya Ebola Surveillance Dashboard
 
-A Next.js application for Kenya's national Ebola/Bundibugyo virus disease
-surveillance response. The dashboard is built for the **Ministry of Health,
-Kenya**, the **National Emergency Operations Centre (NEOC)**, and the
-**Digital Health Agency (DHA)**.
+A Next.js application for Kenya's national Ebola virus disease surveillance
+response. The dashboard is built for the **Ministry of Health, Kenya**, the
+**National Emergency Operations Centre (NEOC)**, and the **Digital Health
+Agency (DHA)**.
 
 The project has moved from a single executive dashboard into a three-surface
 dashboard app:
@@ -146,7 +146,7 @@ data-source abstraction:
 
 - `app/page.js` currently renders `DashboardShell`; this should move to
   `/executive` as the app gains a public landing page.
-- `components/DashboardShell.js` owns disease tabs, refresh/polling, POE map
+- `components/DashboardShell.js` owns Ebola refresh/polling, POE map
   switching, and loading/error states.
 - `components/Dashboard.js` renders the current executive situation report.
 - `components/OperationalWorkspace.js` renders the simulated operational
@@ -207,7 +207,7 @@ components/
 |-- ExecutiveDashboard.js    # Wrapper around the current DashboardShell
 |-- OperationalWorkspace.js  # Simulated sign-in + aggregate operations preview
 |-- Dashboard.js             # Current executive report body
-|-- DashboardShell.js        # Current disease tabs + polling shell
+|-- DashboardShell.js        # Current Ebola polling shell
 `-- PoeBubbleMap.js
 ```
 
@@ -224,7 +224,7 @@ Guiding principles:
 
 ## International References And Lessons
 
-Recent EVD/BVD dashboards suggest a useful audience split:
+Recent Ebola dashboards suggest a useful audience split:
 
 - **Uganda public updates**:
   [`evd-daily.health.go.ug`](https://evd-daily.health.go.ug/) is a lightweight

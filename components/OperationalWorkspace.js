@@ -17,7 +17,6 @@ import {
 import { fmt } from "@/lib/format";
 
 const FILTERS = {
-  disease: ["Ebola", "Bundibugyo", "Marburg"],
   period: ["Last 24h", "Last 7 days", "Last 14 days", "Last 21 days"],
   county: ["National", "Nairobi", "Busia", "Mombasa", "Kajiado", "Turkana"],
   subcounty: ["All subcounties", "Embakasi", "Matayos", "Changamwe", "Kajiado Central", "Turkana West"],
@@ -29,7 +28,6 @@ const FILTERS = {
 const FACTOR = {
   period: { "Last 24h": 0.28, "Last 7 days": 0.7, "Last 14 days": 1, "Last 21 days": 1.24 },
   county: { National: 1, Nairobi: 0.42, Busia: 0.31, Mombasa: 0.24, Kajiado: 0.18, Turkana: 0.14 },
-  disease: { Ebola: 1, Bundibugyo: 0.74, Marburg: 0.38 },
 };
 
 const SERVICE_PANELS = {
@@ -83,8 +81,7 @@ function n(value) {
 function scale(filters) {
   return (
     (FACTOR.period[filters.period] || 1) *
-    (FACTOR.county[filters.county] || 1) *
-    (FACTOR.disease[filters.disease] || 1)
+    (FACTOR.county[filters.county] || 1)
   );
 }
 
@@ -257,7 +254,6 @@ export default function OperationalWorkspace() {
   const [user, setUser] = useState(null);
   const [activeService, setActiveService] = useState("poe");
   const [filters, setFilters] = useState({
-    disease: "Ebola",
     period: "Last 14 days",
     county: "National",
     subcounty: "All subcounties",
@@ -289,7 +285,6 @@ export default function OperationalWorkspace() {
       </section>
 
       <section className="ops-filter-panel" aria-label="Operational filters">
-        <FilterSelect label="Disease" value={filters.disease} options={FILTERS.disease} onChange={(value) => setFilters((current) => ({ ...current, disease: value }))} />
         <FilterSelect label="Period" value={filters.period} options={FILTERS.period} onChange={(value) => setFilters((current) => ({ ...current, period: value }))} />
         <FilterSelect label="County" value={filters.county} options={FILTERS.county} onChange={(value) => setFilters((current) => ({ ...current, county: value }))} />
         <FilterSelect label="Subcounty" value={filters.subcounty} options={FILTERS.subcounty} onChange={(value) => setFilters((current) => ({ ...current, subcounty: value }))} />

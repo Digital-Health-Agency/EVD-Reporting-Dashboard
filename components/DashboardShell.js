@@ -1,15 +1,187 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "@/components/Dashboard";
-import PoeBubbleMap from "@/components/PoeBubbleMap";
-import { DISEASES, DEFAULT_DISEASE } from "@/lib/diseases";
+import PoeBubbleMap, { POE_COUNT } from "@/components/PoeBubbleMap";
+import { DEFAULT_DISEASE } from "@/lib/diseases";
+import { fmt } from "@/lib/format";
 
 const POLL_MS = 60_000;
+const EXECUTIVE_TABS = [
+  { key: "dashboard", label: "Dashboard", title: "Executive situation brief" },
+  { key: "poe", label: "POE", title: "Point-of-entry screening map and details" },
+];
+
+const ratioPct = (value, total) => (total > 0 ? Math.min(100, (value / total) * 100) : 0);
+
+function PoeInfoMetric({ tone = "blue", label, value, hint }) {
+  return (
+    <article className="brief-metric brief-metric--plain">
+      <span className="brief-metric__label">{label}</span>
+      <strong className={`brief-metric__value is-${tone}`}>{value}</strong>
+      {hint ? <span className="brief-metric__detail">{hint}</span> : null}
+    </article>
+  );
+}
+
+function PoeExecutiveView({ data }) {
+  const poe = data.poe || {};
+  const byPoe = poe.byPoe || [];
+  const prov = data.meta.provenance || {};
+  const disease = data.meta.disease || "Ebola";
+
+  const dateLabel = useMemo(() => {
+    const d = new Date(data.meta.lastUpdated);
+    return d.toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" });
+  }, [data.meta.lastUpdated]);
+
+  const rankedPoes = useMemo(
+    () =>
+      [...byPoe]
+        .filter((row) => !row.unknown)
+        .sort((a, b) => (b.screened || 0) - (a.screened || 0)),
+    [byPoe]
+  );
+
+  const totalScreened =
+    poe.totalScreened || rankedPoes.reduce((sum, row) => sum + (row.screened || 0), 0);
+  const uniqueTravelers =
+    poe.uniqueTravelers || rankedPoes.reduce((sum, row) => sum + (row.uniqueTravelers || 0), 0);
+  const alerts = poe.alerts || rankedPoes.reduce((sum, row) => sum + (row.alerts || 0), 0);
+  const reportingPoes = rankedPoes.filter((row) => (row.screened || 0) > 0).length;
+  const highestVolume = rankedPoes[0];
+  const alertRate = ratioPct(alerts, totalScreened);
+  const sourceLabel = prov.poe?.label || "marts.screenings_by_poe";
+
+  return (
+    <>
+      <div className="report-head report-head--executive">
+        <div>
+          <h1>{disease} - Points of Entry Brief</h1>
+          <p className="report-head__sub">
+            Screening coverage, alert load and traveller flow across Kenya's mapped points of entry.
+          </p>
+        </div>
+        <div className="report-head__controls">
+          <span className="asof">As of {dateLabel}</span>
+        </div>
+      </div>
+
+      <section className="brief-plain-grid poe-info-grid" aria-label="POE executive metrics">
+        <PoeInfoMetric
+          tone="green"
+          label="Travellers screened"
+          value={fmt(totalScreened)}
+          hint="All reporting points of entry"
+        />
+        <PoeInfoMetric
+          tone="blue"
+          label="Unique travellers"
+          value={fmt(uniqueTravelers)}
+          hint="Deduplicated traveller count"
+        />
+        <PoeInfoMetric
+          tone="amber"
+          label="POE alerts"
+          value={fmt(alerts)}
+          hint={`${alertRate.toFixed(1)}% alert rate`}
+        />
+        <PoeInfoMetric
+          tone="blue"
+          label="Reporting POEs"
+          value={`${reportingPoes}/${POE_COUNT}`}
+          hint="Mapped POEs with screening data"
+        />
+        <PoeInfoMetric
+          tone="green"
+          label="Highest volume"
+          value={highestVolume?.name || "--"}
+          hint={highestVolume ? `${fmt(highestVolume.screened || 0)} screened` : "Awaiting POE rows"}
+        />
+        <PoeInfoMetric
+          tone="blue"
+          label="Source"
+          value={prov.poe?.source === "live" ? "Live" : "Preview"}
+          hint={sourceLabel}
+        />
+      </section>
+
+      <section className="section">
+        <div className="section__head">
+          <h2 className="section__title">Points of Entry - map and screening detail</h2>
+          <p className="section__src">
+            Bubble size and colour show traveller screening volume. Side cards keep the executive readout visible beside the map.
+          </p>
+        </div>
+
+        <div className="poe-tab-layout">
+          <div className="card poe-map-card">
+            <PoeBubbleMap byPoe={byPoe} />
+          </div>
+
+          <div className="poe-side-stack">
+            <article className="card">
+              <div className="card__head card__head--stack">
+                <h3 className="card__title">Top reporting points of entry</h3>
+                <p className="card__summary">Highest screening volumes for briefing and resource prioritisation.</p>
+              </div>
+              {rankedPoes.length ? (
+                <div className="table-wrap">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Point of entry</th>
+                        <th className="num">Screened</th>
+                        <th className="num">Alerts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rankedPoes.slice(0, 6).map((row) => (
+                        <tr key={row.name}>
+                          <td>{row.name}</td>
+                          <td className="num">{fmt(row.screened || 0)}</td>
+                          <td className="num">{fmt(row.alerts || 0)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="data-empty">POE screening rows appear once the source mart is available.</div>
+              )}
+            </article>
+
+            <article className="card">
+              <div className="card__head card__head--stack">
+                <h3 className="card__title">Executive readout</h3>
+                <p className="card__summary">Fast context for senior review before drilling into operations.</p>
+              </div>
+              <ul className="mini-metric-list poe-readout-list">
+                <li>
+                  <span>Coverage</span>
+                  <strong>{reportingPoes ? `${reportingPoes} POEs reporting` : "Awaiting reports"}</strong>
+                </li>
+                <li>
+                  <span>Alert pressure</span>
+                  <strong>{alerts ? `${fmt(alerts)} alerts from screening` : "No alerts reported"}</strong>
+                </li>
+                <li>
+                  <span>Data source</span>
+                  <strong>{sourceLabel}</strong>
+                </li>
+              </ul>
+            </article>
+          </div>
+        </div>
+
+        {poe.note ? <p className="section__src section__note">Note: {poe.note}</p> : null}
+      </section>
+    </>
+  );
+}
 
 export default function DashboardShell() {
-  const [active, setActive] = useState(DEFAULT_DISEASE);
-  const [view, setView] = useState("dashboard"); // dashboard | map
+  const [view, setView] = useState("dashboard"); // dashboard | poe
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
   const [refreshing, setRefreshing] = useState(false);
@@ -38,42 +210,37 @@ export default function DashboardShell() {
       });
   }, []);
 
-  // Load on disease change, then poll.
+  // Load Ebola metrics, then poll.
   useEffect(() => {
-    load(active);
-    const t = setInterval(() => load(active, true), POLL_MS);
+    load(DEFAULT_DISEASE);
+    const t = setInterval(() => load(DEFAULT_DISEASE, true), POLL_MS);
     return () => clearInterval(t);
-  }, [active, load]);
+  }, [load]);
 
   return (
     <main className="container executive-page">
-      <nav className="tabs" role="tablist" aria-label="Disease">
-        {DISEASES.map((d) => {
-          const isActive = d.key === active;
-          return (
+      <nav className="executive-nav" aria-label="Executive dashboard">
+        <div className="tabs executive-view-tabs" role="tablist" aria-label="Executive dashboard views">
+          {EXECUTIVE_TABS.map((tab) => (
             <button
-              key={d.key}
+              key={tab.key}
+              id={`executive-tab-${tab.key}`}
+              type="button"
               role="tab"
-              aria-selected={isActive}
-              className={`tab ${isActive ? "tab--active" : ""}`}
-              style={{ "--tab-accent": d.color }}
-              onClick={() => setActive(d.key)}
+              aria-selected={view === tab.key}
+              aria-controls={`executive-panel-${tab.key}`}
+              className={`tab ${view === tab.key ? "tab--active" : ""}`}
+              onClick={() => setView(tab.key)}
+              title={tab.title}
             >
-              <span className="tab__dot" />
-              {d.name}
+              {tab.label}
             </button>
-          );
-        })}
+          ))}
+        </div>
         <button
-          className={`tab tab--map ${view === "map" ? "tab--active" : ""}`}
-          onClick={() => setView((v) => (v === "map" ? "dashboard" : "map"))}
-          title="View screening across points of entry on the map"
-        >
-          {view === "map" ? "Dashboard" : "POE map"}
-        </button>
-        <button
-          className="tab tab--refresh"
-          onClick={() => load(active, true)}
+          type="button"
+          className="tab tab--refresh executive-refresh"
+          onClick={() => load(DEFAULT_DISEASE, true)}
           disabled={refreshing}
           title="Re-read the latest values from the warehouse"
         >
@@ -82,25 +249,21 @@ export default function DashboardShell() {
       </nav>
 
       {status === "ready" && data ? (
-        view === "map" ? (
-          <section className="section">
-            <div className="section__head">
-              <h2 className="section__title">Points of Entry - screening across Kenya</h2>
-              <p className="section__src">
-                Every point of entry plotted geographically. Bubble size and colour show screening volume.
-              </p>
-            </div>
-            <div className="card">
-              <PoeBubbleMap byPoe={data.poe?.byPoe || []} />
-            </div>
-          </section>
-        ) : (
-          <Dashboard data={data} />
-        )
+        <section
+          id={`executive-panel-${view}`}
+          role="tabpanel"
+          aria-labelledby={`executive-tab-${view}`}
+        >
+          {view === "poe" ? (
+            <PoeExecutiveView data={data} />
+          ) : (
+            <Dashboard data={data} />
+          )}
+        </section>
       ) : status === "error" ? (
         <div className="state">Could not load metrics. Is the warehouse running?</div>
       ) : (
-        <div className="state">Loading {DISEASES.find((d) => d.key === active)?.name} metrics...</div>
+        <div className="state">Loading Ebola metrics...</div>
       )}
     </main>
   );
