@@ -435,8 +435,8 @@ export default function PublicLanding() {
       <section className="public-hero">
         <div className="public-hero__copy">
           <p className="public-label">Kenya EVD/BVD surveillance</p>
-          <h1>Current Ebola situation update</h1>
-          <p aria-live="polite">
+          <h1 className="public-hero__title">Current Ebola situation update</h1>
+          <p className="public-hero__meta" aria-live="polite">
             {status === "error"
               ? "Unable to load the latest update."
               : updated

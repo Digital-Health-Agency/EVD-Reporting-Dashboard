@@ -132,17 +132,17 @@ Copy rules:
 Use an 8px spacing rhythm:
 
 - 4px: tiny gaps inside labels.
-- 8px: icon/text gaps.
-- 16px: component padding and compact card gaps.
-- 24px: section rhythm inside dashboards.
-- 32px: page block separation.
-- 48px: public landing section separation.
+- 8px: icon/text gaps, label-to-value gaps inside compact blocks.
+- 12px: secondary vertical list rhythm on public guidance blocks.
+- 16px: component padding, compact card gaps, grid gaps, and heading-to-body spacing inside panels.
+- 24px: section rhythm inside dashboards, panel block separation, card padding on dense surfaces.
+- 32px: page block separation, hero grid gap, public info divider padding.
+- 48px: public landing major section separation.
 
 Container rules:
 
-- Max content width: 1240px for dashboards.
-- Public landing can use a slightly wider first viewport, but content still
-  aligns to a readable grid.
+- Max content width: 1240px for dashboards and the public landing page.
+- Public landing content aligns to the same readable grid as dashboards.
 - Cards use 8px radius unless a local component needs less.
 - Avoid nested cards.
 - Avoid decorative panels that do not contain actionable or scannable content.
@@ -150,10 +150,23 @@ Container rules:
 Responsive rules:
 
 - Design mobile first, then expand to 768px, 1024px, and 1440px.
+- Public landing breakpoints: `860px` (tablet stack) and `540px` (compact mobile).
 - Mobile must show the most important status before secondary context.
 - No horizontal page scroll.
 - Charts that need width should use scroll wrappers with stable height.
 - Touch targets must be at least 44px.
+
+Public landing shell spacing:
+
+| Surface | Desktop | Tablet (`<=860px`) | Mobile (`<=540px`) |
+| --- | --- | --- | --- |
+| Page padding | `32px 24px 64px` | `24px 16px 48px` | `16px 16px 40px` |
+| Major section gap | `48px` | `40px` | inherits tablet |
+| Section intro to content | `24px` | `20px` | inherits tablet |
+| Hero copy padding | `clamp(32px, 5vw, 48px)` | inherits desktop | `24px 20px` |
+
+Implementation lives in `app/globals.css` under `.public-*` classes used by
+`components/PublicLanding.js`.
 
 ## Navigation
 
@@ -221,12 +234,56 @@ Component rules:
 - Loading and error states must stay aggregate-only and must not reveal
   operational records.
 
+Spacing rules:
+
+- Keep all public landing spacing on the 8px rhythm. Do not introduce one-off
+  values such as `14px`, `18px`, or `22px` unless a breakpoint explicitly
+  requires a tighter mobile adjustment.
+- Hero block:
+  - Label to title: `16px` (`12px` on compact mobile).
+  - Title to timestamp/meta: `16px` (`12px` on compact mobile).
+  - Error/retry actions: `24px` above the action row.
+  - Use semantic hooks: `public-hero__title`, `public-hero__meta`.
+- Section headers (`public-section-head`):
+  - Heading to supporting copy: `8px`.
+  - Header block to content below: `24px` desktop, `20px` tablet.
+- Key metric cards:
+  - Grid gap: `16px`.
+  - Card padding: `24px` desktop, `20px` tablet.
+  - Internal stack gap: `16px`.
+  - Value to label inside card: `8px`.
+  - Delta pill padding: `8px 12px`; icon/header row gap: `16px`.
+  - Featured breakdown row: `16px` top padding, `8px` top margin, `8px` gap
+    between breakdown label and value.
+- Tabs and tab panels:
+  - Tab bar gap: `8px`; margin below tabs: `16px`.
+  - Tab buttons: `44px` min-height, `16px` horizontal padding.
+  - Tab content top padding: `8px`.
+- Panel stats and sections:
+  - Panel vertical rhythm: `24px` desktop, `20px` tablet.
+  - Stat/section grid gap: `16px`.
+  - Stat card padding: `20px` desktop, `16px` compact mobile.
+  - Section card padding: `24px` desktop, `16px` compact mobile.
+  - Stat label to value: `8px`; section title to content: `16px`
+    (`12px` compact mobile).
+- Share bars, meters, and ranked lists:
+  - Share bar to legend: `16px`.
+  - Meter caption row gap: `12px`; meter row to track: `12px`.
+  - Ranked list item gap: `16px`; label row to bar: `8px`.
+- Public guidance footer (`public-info`):
+  - Top separation from data above: `48px` margin, `32px` divider padding.
+  - Column gap: `32px` desktop, `24px` tablet.
+  - Column heading to body: `16px` (`12px` compact mobile).
+  - List item gap: `12px`.
+- Loading placeholders: `24px` padding inside bordered states.
+
 Avoid:
 
 - Long disease education articles on the dashboard first screen.
 - Line lists or facility-sensitive information.
 - Dramatic imagery that increases panic.
 - Executive-only controls or links in the public header.
+- Cramped hero text or uneven card padding that breaks scan rhythm.
 
 ### Executive Dashboard
 
@@ -438,6 +495,9 @@ Avoid:
 - Keep layout stable while data loads.
 - Use responsive constraints for boards, KPI grids, chart heights, and maps.
 - Public page must never expose operational variables.
+- Public landing spacing is defined in `app/globals.css` (`.public-*`) and
+  should stay aligned with this guide; update both files when changing public
+  page rhythm.
 
 ## Design QA Checklist
 
@@ -454,5 +514,7 @@ Before considering a UI pass done:
 - Mobile has no horizontal overflow.
 - Keyboard focus is visible.
 - Contrast passes for text and key data marks.
+- Public landing spacing follows the 8px rhythm at desktop, tablet, and mobile.
+- Public tab buttons and primary actions meet the 44px touch target minimum.
 - No purple/pink startup gradients.
 - No fake operational data.
