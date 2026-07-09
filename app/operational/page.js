@@ -1,4 +1,5 @@
 import AppHeader from "@/components/AppHeader";
+import OperationalAuthGate from "@/components/auth/OperationalAuthGate";
 import OperationalWorkspace from "@/components/OperationalWorkspace";
 
 export const metadata = {
@@ -9,7 +10,9 @@ export default function OperationalPage() {
   return (
     <>
       <AppHeader variant="operational" />
-      <OperationalWorkspace />
+      <OperationalAuthGate>
+        <OperationalWorkspace />
+      </OperationalAuthGate>
     </>
   );
 }

@@ -324,9 +324,10 @@ Purpose: restricted response-team work surface.
 
 Current state:
 
-- Simulated sign-in gate; any email/password can enter the preview.
-- Real authentication later.
-- Aggregate preview data only after the simulated gate.
+- Real Better Auth sign-in, password reset, and session management.
+- Signed-in users can enter the operational workspace.
+- Admin users get the Users tab and `/users` account-management pages.
+- Aggregate preview data only after authentication.
 - No patient, contact, traveller, or facility-sensitive line lists.
 
 Visual feel:
@@ -334,12 +335,12 @@ Visual feel:
 - eCitizen-like official access page.
 - Navy or white official shell.
 - Short message: "Operational workspace requires sign in."
-- Clear simulated sign-in action that does not imply real access control.
+- Clear login and account recovery actions.
 
 Authenticated preview state:
 
 - Compact top navigation for Summary, Laboratory, POE, Health facilities,
-  Community, Contacts, and EOC actions.
+  Community, Contacts, EOC actions, and admin-only Users.
 - Summary tab for aggregate queues, priority metrics, data quality flags, and
   action tracker context.
 - Service-point tabs for cases, contacts, lab, POE, community, and action
@@ -349,10 +350,12 @@ Authenticated preview state:
   lab, result status, sample source, POE, alert status, facility, case status,
   follow-up status, owner, deadline, and priority.
 - Data quality flags and source status.
+- Profile pages for display name, profile photo, and password updates.
+- Header account menu with Profile and Logout once signed in.
 
 Avoid:
 
-- Mock login that implies real access.
+- Returning to mock or simulated access controls.
 - Showing contact, patient, traveller, or facility-sensitive line records.
 - Filling the operational preview with unlabeled fake source values.
 
@@ -363,8 +366,8 @@ Preferred component set:
 - `AppHeader`: shared official chrome.
 - `PublicLanding`: aggregate public update page.
 - `ExecutiveDashboard`: wrapper around the current dashboard shell.
-- `OperationalWorkspace`: simulated sign-in + operational Summary and
-  service-point tabs with scoped data filters.
+- `OperationalWorkspace`: authenticated operational Summary, service-point
+  tabs, and admin-only Users tab with scoped data filters.
 - `StatusCard`: compact KPI/status tile.
 - `SourcePill`: live/pending/preview/unavailable indicator.
 - `DataPanel`: chart/table panel with title, source, and empty state.
@@ -487,6 +490,9 @@ Examples:
 - "Results pending"
 - "Source awaiting publication"
 - "Operational workspace requires sign in"
+- "Sign in"
+- "Forgot password"
+- "User management"
 
 Avoid:
 

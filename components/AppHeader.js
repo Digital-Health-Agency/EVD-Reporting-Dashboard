@@ -1,5 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { displayName, initialsFor } from "@/lib/auth-user";
 
 const VARIANT_LABEL = {
   public: "Situation update",
@@ -26,6 +32,15 @@ function MailIcon() {
 
 export default function AppHeader({ variant = "public" }) {
   const label = VARIANT_LABEL[variant] || VARIANT_LABEL.public;
+  const router = useRouter();
+  const { user, isAuthenticated, isPending, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  async function handleLogout() {
+    await logout();
+    setMenuOpen(false);
+    router.push("/login");
+  }
 
   return (
     <header className={`app-header app-header--${variant}`}>
@@ -39,6 +54,31 @@ export default function AppHeader({ variant = "public" }) {
             <MailIcon />
             <span>helpdesk@dha.go.ke</span>
           </a>
+          <div className="app-header__auth">
+            {!isPending && !isAuthenticated ? (
+              <Link className="app-header__login" href="/login">Login</Link>
+            ) : null}
+            {!isPending && isAuthenticated ? (
+              <div className="app-header__user-menu">
+                <button
+                  className="app-header__user-button"
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  <span className="app-header__avatar" aria-hidden="true">{initialsFor(user)}</span>
+                  <span>{displayName(user)}</span>
+                </button>
+                {menuOpen ? (
+                  <div className="app-header__menu" role="menu">
+                    <Link role="menuitem" href="/profile" onClick={() => setMenuOpen(false)}>Profile</Link>
+                    <button role="menuitem" type="button" onClick={handleLogout}>Logout</button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
       <div className="app-header__main">

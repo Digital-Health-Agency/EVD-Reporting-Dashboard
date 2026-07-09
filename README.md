@@ -12,8 +12,8 @@ dashboard app:
 - **Executive dashboard** - a linked national situation-report dashboard for
   leadership and response coordination.
 - **Operational workspace** - a restricted operational surface. It currently
-  uses a simulated sign-in gate and aggregate operations preview; real
-  authentication and sensitive line-level data come later.
+  uses real Better Auth sign-in and aggregate operations preview; sensitive
+  line-level data remains out of the UI.
 
 The app directory is now `dashboard/`.
 
@@ -61,11 +61,10 @@ pillars are moving, and which data sources are still pending.
 
 ### 3. Operational workspace (`/operational`)
 
-The operational surface is restricted. For now it should show a professional
-simulated sign-in screen where any email/password can enter a preview
-workspace. The authenticated preview may show aggregate operational queues and
-indicators, but must not display patient, contact, traveller, or
-facility-sensitive line lists.
+The operational surface is restricted. Users sign in with DHA EVD accounts
+before entering the workspace. The authenticated view may show aggregate
+operational queues and indicators, but must not display patient, contact,
+traveller, or facility-sensitive line lists.
 
 The authenticated preview supports response teams with:
 
@@ -80,10 +79,13 @@ The authenticated preview supports response teams with:
 - Follow-up performance, alert investigation status, and sample turnaround
   status.
 - Action tracker for EOC tasks, owners, timelines, and blockers.
+- Admin-only Users tab plus `/users` pages for login account, role, status and
+  password actions.
+- Profile pages for display name, photo and password updates.
 - Exportable daily briefing inputs.
 
-Real auth is intentionally deferred. Until then, keep the preview clearly
-labelled as simulated and aggregate-only.
+Keep the authenticated operational workspace aggregate-only until role rules and
+backend data contracts explicitly permit more sensitive operational records.
 
 ---
 
@@ -151,8 +153,9 @@ data-source abstraction:
 - `components/DashboardShell.js` owns Ebola refresh/polling, POE map
   switching, and loading/error states.
 - `components/Dashboard.js` renders the current executive situation report.
-- `components/OperationalWorkspace.js` renders the simulated operational
-  sign-in gate, Summary tab, service-point tabs, and tab-specific filters.
+- `components/OperationalWorkspace.js` renders the authenticated operational
+  Summary tab, service-point tabs, admin-only Users tab, and tab-specific
+  filters.
 - `components/PoeBubbleMap.js` renders the points-of-entry map view.
 - `app/api/metrics/[disease]/route.js` returns the composed dashboard payload.
 - `lib/datasource/index.js` composes lab, case, and POE sections through a
@@ -191,7 +194,25 @@ app/
 |-- executive/
 |   `-- page.js              # Executive situation-report dashboard
 |-- operational/
-|   `-- page.js              # Simulated sign-in + aggregate operations preview
+|   `-- page.js              # Auth-gated aggregate operations preview
+|-- login/
+|   `-- page.js              # Sign in
+|-- forgot-password/
+|   `-- page.js              # Request reset link
+|-- reset-password/
+|   `-- page.js              # Complete password reset
+|-- profile/
+|   |-- page.js              # Current login account
+|   |-- edit/
+|   |   `-- page.js          # Name and photo update
+|   `-- change-password/
+|       `-- page.js          # Password update
+|-- users/
+|   |-- page.js              # Admin user management
+|   |-- new/
+|   |   `-- page.js          # Create login user
+|   `-- [id]/
+|       `-- page.js          # Edit login user
 |-- api/
 |   `-- metrics/
 |       |-- route.js
@@ -207,7 +228,9 @@ components/
 |-- AppHeader.js             # Shared MoH / NEOC / DHA chrome
 |-- PublicLanding.js         # Public aggregate update page
 |-- ExecutiveDashboard.js    # Wrapper around the current DashboardShell
-|-- OperationalWorkspace.js  # Simulated sign-in + aggregate operations preview
+|-- OperationalWorkspace.js  # Authenticated aggregate operations preview
+|-- auth/                    # Auth/profile/admin route gates
+|-- users/                   # User management components
 |-- Dashboard.js             # Current executive report body
 |-- DashboardShell.js        # Current Ebola polling shell
 `-- PoeBubbleMap.js
@@ -338,9 +361,9 @@ Executive page:
 
 Operational page:
 
-- Locked placeholder now.
-- Real login/auth later.
-- Sensitive data only after authentication and role rules exist.
+- Real login and session management now.
+- Users tab and `/users` pages are admin-only.
+- Sensitive data only after authentication and role rules explicitly permit it.
 
 ---
 

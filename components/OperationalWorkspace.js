@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ResponsiveContainer,
   BarChart,
@@ -15,6 +16,9 @@ import {
   Legend,
 } from "recharts";
 import { fmt } from "@/lib/format";
+import { useAuth } from "@/hooks/use-auth";
+import { displayName } from "@/lib/auth-user";
+import UsersManagement from "@/components/users/UsersManagement";
 
 const FILTER_FIELDS = {
   period: { label: "Period", options: ["Last 24h", "Last 7 days", "Last 14 days", "Last 21 days"] },
@@ -49,6 +53,7 @@ const TAB_FILTERS = {
   community: ["period", "county", "subcounty", "ward", "signalStatus", "communitySource"],
   contacts: ["period", "county", "ward", "followUpStatus", "riskLevel"],
   actions: ["pillar", "owner", "deadline", "actionStatus", "priority"],
+  users: [],
 };
 
 const OPERATIONAL_TABS = [
@@ -107,6 +112,14 @@ const OPERATIONAL_TABS = [
     source: "Incident-management action tracker",
     cadence: "Live action-owner updates",
     description: "Owner, priority, blocker and deadline status for response coordination tasks.",
+  },
+  {
+    key: "users",
+    label: "Users",
+    title: "User management",
+    source: "DHA EVD login accounts",
+    cadence: "Admin updates",
+    description: "Admin-only account, role, status and password actions.",
   },
 ];
 
@@ -269,46 +282,6 @@ function Chart({ height = 300, children }) {
   );
 }
 
-function LoginGate({ onLogin }) {
-  const [form, setForm] = useState({ email: "", password: "" });
-
-  function submit(event) {
-    event.preventDefault();
-    onLogin(form.email || "preview@dha.go.ke");
-  }
-
-  return (
-    <main className="locked-page ops-login-page">
-      <section className="locked-card ops-login-card">
-        <span className="locked-card__label">Restricted access</span>
-        <h1>Operational workspace requires sign in</h1>
-        <p>Temporary preview gate. Any email and password can enter this prototype.</p>
-        <form className="ops-login-form" onSubmit={submit}>
-          <label>
-            <span>Email</span>
-            <input
-              type="email"
-              autoComplete="email"
-              value={form.email}
-              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-            />
-          </label>
-          <label>
-            <span>Password</span>
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={form.password}
-              onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-            />
-          </label>
-          <button className="btn btn--primary" type="submit">Sign in</button>
-        </form>
-      </section>
-    </main>
-  );
-}
-
 function ImportantMetric({ tone, label, value, detail }) {
   return (
     <article className={`ops-metric ops-metric--important ops-metric--${tone}`}>
@@ -342,9 +315,12 @@ function FilterSelect({ fieldKey, value, onChange }) {
 }
 
 function OperationalTabFilters({ activeTab, filters, onChange }) {
+  const fields = TAB_FILTERS[activeTab.key] || [];
+  if (fields.length === 0) return null;
+
   return (
     <section className="ops-tab-filter-panel" aria-label={`${activeTab.label} data filters`}>
-      {TAB_FILTERS[activeTab.key].map((fieldKey) => (
+      {fields.map((fieldKey) => (
         <FilterSelect
           key={`${activeTab.key}-${fieldKey}`}
           fieldKey={fieldKey}
@@ -739,7 +715,7 @@ function ServiceDetailTab({ activeTab, data }) {
 }
 
 export default function OperationalWorkspace() {
-  const [user, setUser] = useState(null);
+  const { user, isAdmin } = useAuth();
   const [activeTabKey, setActiveTabKey] = useState("summary");
   const [filters, setFilters] = useState(() =>
     Object.fromEntries(
@@ -748,33 +724,45 @@ export default function OperationalWorkspace() {
   );
 
   const data = useMemo(() => buildData(filters), [filters]);
-  const activeTab = OPERATIONAL_TABS.find((tab) => tab.key === activeTabKey) || OPERATIONAL_TABS[0];
+  const visibleTabs = useMemo(
+    () => OPERATIONAL_TABS.filter((tab) => tab.key !== "users" || isAdmin),
+    [isAdmin],
+  );
+  const activeTab = visibleTabs.find((tab) => tab.key === activeTabKey) || visibleTabs[0];
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0 });
-  }, [user]);
+  }, []);
+
+  useEffect(() => {
+    if (!visibleTabs.some((tab) => tab.key === activeTabKey)) {
+      setActiveTabKey("summary");
+    }
+  }, [activeTabKey, visibleTabs]);
 
   function updateFilter(key, value) {
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
-  if (!user) return <LoginGate onLogin={setUser} />;
-
   return (
     <main className="ops-page">
       <section className="ops-hero">
         <div>
-          <span className="ops-kicker">Aggregate operations preview</span>
+          <span className="ops-kicker">Restricted operational workspace</span>
           <h1>Operational Response Workspace</h1>
           <p>Service-point workspaces, data filters and aggregate response queues for EOC teams. No patient or contact line lists are shown.</p>
         </div>
-        <button className="btn btn--secondary" type="button" onClick={() => setUser(null)}>Sign out</button>
+        <div className="ops-hero__account">
+          <span>Signed in</span>
+          <strong>{displayName(user)}</strong>
+          <Link className="btn btn--secondary" href="/profile">Profile</Link>
+        </div>
       </section>
 
       <section className="ops-tab-shell">
         <nav className="ops-nav" aria-label="Operational workspace tabs">
           <div className="tabs ops-view-tabs" role="tablist" aria-label="Operational workspace tabs">
-            {OPERATIONAL_TABS.map((tab) => (
+            {visibleTabs.map((tab) => (
               <button
                 key={tab.key}
                 id={`ops-tab-${tab.key}`}
@@ -799,7 +787,9 @@ export default function OperationalWorkspace() {
         >
           <OperationalTabFilters activeTab={activeTab} filters={filters} onChange={updateFilter} />
 
-          {activeTab.key === "summary" ? (
+          {activeTab.key === "users" ? (
+            <UsersManagement embedded />
+          ) : activeTab.key === "summary" ? (
             <SummaryTab data={data} />
           ) : (
             <ServiceDetailTab activeTab={activeTab} data={data} />
