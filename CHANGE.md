@@ -8,3 +8,7 @@
 ## 1.0.0 (2026-07-09)
 - Major release: dashboard auth flows, account management, login UI improvements, and configurable API URL via environment.
 
+
+## 1.0.1 (2026-07-09)
+- Fix production Docker builds by baking NEXT_PUBLIC_SERVER_URL in at build time via CI secret and Dockerfile build arg.
+
