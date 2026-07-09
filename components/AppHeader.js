@@ -1,11 +1,23 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { displayName, initialsFor } from "@/lib/auth-user";
 
 const VARIANT_LABEL = {
   public: "Situation update",
   executive: "Situation dashboard",
   operational: "Restricted workspace",
 };
+
+const DASHBOARD_LINKS = [
+  { href: "/", label: "Public", key: "public" },
+  { href: "/executive", label: "Executive", key: "executive" },
+  { href: "/operational", label: "Operational", key: "operational" },
+];
 
 function PhoneIcon() {
   return (
@@ -24,8 +36,27 @@ function MailIcon() {
   );
 }
 
+function ChevronDownIcon() {
+  return (
+    <svg className="app-header__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
 export default function AppHeader({ variant = "public" }) {
   const label = VARIANT_LABEL[variant] || VARIANT_LABEL.public;
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, isAuthenticated, isPending, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isProfileRoute = pathname?.startsWith("/profile");
+
+  async function handleLogout() {
+    setMenuOpen(false);
+    router.replace("/");
+    await logout();
+  }
 
   return (
     <header className={`app-header app-header--${variant}`}>
@@ -39,6 +70,55 @@ export default function AppHeader({ variant = "public" }) {
             <MailIcon />
             <span>helpdesk@dha.go.ke</span>
           </a>
+          <div className="app-header__auth">
+            {!isPending && !isAuthenticated ? (
+              <Link className="app-header__login" href="/login">Login</Link>
+            ) : null}
+            {!isPending && isAuthenticated ? (
+              <div className="app-header__user-menu">
+                <button
+                  className="app-header__user-button"
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  <span className="app-header__avatar" aria-hidden="true">{initialsFor(user)}</span>
+                  <span className="app-header__user-name">{displayName(user)}</span>
+                  <ChevronDownIcon />
+                </button>
+                {menuOpen ? (
+                  <div className="app-header__menu" role="menu">
+                    <p className="app-header__menu-label">Dashboards</p>
+                    <div className="app-header__menu-divider" role="separator" />
+                    <div role="group" aria-label="Dashboards">
+                      {DASHBOARD_LINKS.map((item) => (
+                        <Link
+                          key={item.href}
+                          role="menuitem"
+                          href={item.href}
+                          aria-current={!isProfileRoute && variant === item.key ? "page" : undefined}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="app-header__menu-divider" role="separator" />
+                    <Link
+                      role="menuitem"
+                      href="/profile"
+                      aria-current={isProfileRoute ? "page" : undefined}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <button role="menuitem" type="button" onClick={handleLogout}>Logout</button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
       <div className="app-header__main">

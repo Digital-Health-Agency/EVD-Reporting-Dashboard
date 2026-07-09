@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fmt } from "@/lib/format";
 
 const PUBLIC_TABS = [
@@ -402,20 +402,31 @@ function PublicTabPanel({ activeTab, data }) {
 export default function PublicLanding() {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState(PUBLIC_TABS[0].key);
+  const reqId = useRef(0);
 
-  const load = useCallback(() => {
-    setStatus("loading");
+  const load = useCallback((background = false) => {
+    const id = ++reqId.current;
+    if (background) setRefreshing(true);
+    else setStatus("loading");
     fetch("/api/metrics/ebola", { cache: "no-store" })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();
       })
       .then((payload) => {
+        if (id !== reqId.current) return;
         setData(payload);
         setStatus("ready");
       })
-      .catch(() => setStatus("error"));
+      .catch(() => {
+        if (id !== reqId.current) return;
+        if (!background) setStatus("error");
+      })
+      .finally(() => {
+        if (id === reqId.current) setRefreshing(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -434,20 +445,27 @@ export default function PublicLanding() {
     <main className="public-page">
       <section className="public-hero">
         <div className="public-hero__copy">
-          <p className="public-label">Kenya Ebola surveillance</p>
-          <h1 className="public-hero__title">Current Ebola situation update</h1>
-          <p className="public-hero__meta" aria-live="polite">
-            {status === "error"
-              ? "Unable to load the latest update."
-              : updated
-                ? `Last updated ${updated}.`
-                : "Loading latest figures..."}
-          </p>
-          {status === "error" ? (
-            <div className="public-actions">
-              <button className="btn btn--secondary" type="button" onClick={load}>Retry</button>
-            </div>
-          ) : null}
+          <div>
+            <p className="public-label">Kenya Ebola surveillance</p>
+            <h1 className="public-hero__title">Current Ebola situation update</h1>
+            <p className="public-hero__meta" aria-live="polite">
+              {status === "error"
+                ? "Unable to load the latest update."
+                : updated
+                  ? `Last updated ${updated}.`
+                  : "Loading latest figures..."}
+            </p>
+          </div>
+          <div className="hero-tile__actions">
+            <button
+              className="btn btn--secondary"
+              type="button"
+              onClick={() => load(true)}
+              disabled={refreshing}
+            >
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
       </section>
 
