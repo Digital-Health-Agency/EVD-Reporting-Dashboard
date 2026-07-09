@@ -1002,11 +1002,14 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
   color: var(--color-ink);
   font: inherit;
   font-size: 0.92rem;
+}
+.form-field input,
+.users-toolbar input {
   padding: 0 12px;
+  background: var(--surface);
 }
 .password-field {
   position: relative;
@@ -1338,7 +1341,9 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .report-head__controls { display: flex; align-items: center; gap: 14px; }
 .asof { font-size: 0.84rem; color: var(--muted); }
 .select,
-.ops-filter select {
+.ops-filter select,
+.form-field select,
+.users-toolbar select {
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
@@ -1347,10 +1352,14 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   background-repeat: no-repeat;
   background-position: right 6px center;
   background-size: 16px 16px;
+  padding: 0 34px 0 12px;
 }
 .select {
-  font-size: 0.86rem; padding: 8px 34px 8px 12px; border-radius: 8px;
-  border: 1px solid var(--border); color: var(--text);
+  font-size: 0.86rem;
+  padding: 8px 34px 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 /* ---------- KPI cards (flexible grid) ---------- */
@@ -1986,9 +1995,6 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   border-color: rgba(255, 255, 255, 0.24);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
-}
-.ops-filter select {
-  padding: 0 34px 0 12px;
 }
 .ops-login-form input:focus-visible,
 .ops-filter select:focus-visible {

@@ -53,9 +53,9 @@ export default function AppHeader({ variant = "public" }) {
   const isProfileRoute = pathname?.startsWith("/profile");
 
   async function handleLogout() {
-    await logout();
     setMenuOpen(false);
-    router.push("/login");
+    router.replace("/");
+    await logout();
   }
 
   return (

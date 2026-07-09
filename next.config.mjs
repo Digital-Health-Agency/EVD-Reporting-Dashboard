@@ -3,7 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
   async rewrites() {
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:4000";
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+    if (!serverUrl) {
+      throw new Error(
+        "NEXT_PUBLIC_SERVER_URL is required. Copy .env.example to .env.local and set it.",
+      );
+    }
     return {
       fallback: [
         {
