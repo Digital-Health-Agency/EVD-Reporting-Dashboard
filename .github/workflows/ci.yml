@@ -51,6 +51,8 @@ jobs:
             ghcr.io/${{ env.OWNER_LC }}/dashboard:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_SERVER_URL=${{ secrets.NEXT_PUBLIC_SERVER_URL }}
 
       # - name: Deploy to production
       #   run: |
