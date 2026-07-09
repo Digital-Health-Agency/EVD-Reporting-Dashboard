@@ -37,6 +37,8 @@ const POES = [
   { name: "Eldoret", match: ["eldoret"], type: "Airport", x: 97.1, y: 329.3, labelSide: "left" },
 ];
 
+export const POE_COUNT = POES.length;
+
 // Sequential teal scale by screening volume (light = low, dark = high).
 const SCALE = ["#cfe8e3", "#86c8bd", "#3a9e90", "#0e6e63"];
 function colorFor(frac) {
@@ -96,8 +98,16 @@ export default function PoeBubbleMap({ byPoe = [] }) {
           <path d={KENYA_PATH} fill="#eef4f3" stroke="#cdd9d6" strokeWidth={1.2} />
 
           {points.map((p, i) => {
-            const labelLeft = p.labelSide === "left";
-            const lx = labelLeft ? p.x - p.r - 6 : p.x + p.r + 6;
+            let labelLeft = p.labelSide === "left";
+            let lx = labelLeft ? p.x - p.r - 6 : p.x + p.r + 6;
+            if (lx < 8) {
+              labelLeft = false;
+              lx = p.x + p.r + 6;
+            }
+            if (lx > VIEW_W - 8) {
+              labelLeft = true;
+              lx = p.x - p.r - 6;
+            }
             return (
               <g key={p.name}>
                 <circle
@@ -135,8 +145,7 @@ export default function PoeBubbleMap({ byPoe = [] }) {
         <div className="poe-map__legend">
           <span className="poe-map__legend-title">Screening volume</span>
           <span className="poe-map__swatch"><i style={{ background: SCALE[0] }} />Low</span>
-          <span className="poe-map__swatch"><i style={{ background: SCALE[1] }} />·</span>
-          <span className="poe-map__swatch"><i style={{ background: SCALE[2] }} />·</span>
+          <span className="poe-map__swatch"><i style={{ background: SCALE[2] }} />Medium</span>
           <span className="poe-map__swatch"><i style={{ background: SCALE[3] }} />High</span>
           <span className="poe-map__legend-note">Bubble size = screening volume.</span>
           <span className="poe-map__swatch poe-map__swatch--empty">
@@ -147,7 +156,7 @@ export default function PoeBubbleMap({ byPoe = [] }) {
 
         <div className="poe-map__summary">
           <div>
-            <div className="poe-map__summary-num">{POES.length}</div>
+            <div className="poe-map__summary-num">{POE_COUNT}</div>
             <div className="poe-map__summary-label">Points of entry</div>
           </div>
           <div>

@@ -1,7 +1,11 @@
-import DashboardShell from "@/components/DashboardShell";
+import AppHeader from "@/components/AppHeader";
+import PublicLanding from "@/components/PublicLanding";
 
-// The shell owns disease tabs + data fetching. It calls the API routes
-// (the data-layer seam) — components never touch the warehouse directly.
 export default function Page() {
-  return <DashboardShell />;
+  return (
+    <>
+      <AppHeader variant="public" />
+      <PublicLanding />
+    </>
+  );
 }

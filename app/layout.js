@@ -1,15 +1,19 @@
 import "./globals.css";
+import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = {
-  title: "Kenya EVD Situation Dashboard",
+  title: "Kenya EVD Dashboard",
   description:
-    "Ministry of Health — National EOC situation overview for the Ebola Virus Disease response in Kenya.",
+    "Ministry of Health national Ebola surveillance dashboard for public, executive and operational response surfaces.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

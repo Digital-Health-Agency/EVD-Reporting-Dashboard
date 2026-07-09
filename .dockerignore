@@ -1,0 +1,9 @@
+node_modules
+.next
+.env
+.env.*
+*.md
+.git
+.superpowers
+.DS_Store
+*.log

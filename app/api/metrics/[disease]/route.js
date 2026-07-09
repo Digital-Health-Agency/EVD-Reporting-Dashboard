@@ -1,12 +1,10 @@
-// API route: composed dashboard payload for one disease.
+// API route: composed dashboard payload for Ebola.
 //
 // This is the seam the UI calls (never the warehouse directly). It delegates to
 // the data layer, which selects an adapter. In v2 a Spring Boot service replaces
 // the data layer behind this same URL contract.
 //
 //   GET /api/metrics/ebola   ->  full DashboardData for Ebola
-//   GET /api/metrics/mpox
-//   GET /api/metrics/marburg
 
 import { NextResponse } from "next/server";
 import { getDashboardData } from "@/lib/datasource";
