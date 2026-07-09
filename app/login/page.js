@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppHeader from "@/components/AppHeader";
 import AuthShell from "@/components/auth/AuthShell";
+import PasswordField from "@/components/PasswordField";
 import { signIn } from "@/lib/auth-client";
 
 function LoginForm() {
@@ -55,17 +56,14 @@ function LoginForm() {
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
           />
         </label>
-        <label className="form-field" htmlFor="password">
-          <span>Password</span>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={form.password}
-            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-          />
-        </label>
+        <PasswordField
+          id="password"
+          label="Password"
+          autoComplete="current-password"
+          required
+          value={form.password}
+          onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+        />
         <div className="auth-form__row">
           <Link href="/forgot-password">Forgot password?</Link>
         </div>

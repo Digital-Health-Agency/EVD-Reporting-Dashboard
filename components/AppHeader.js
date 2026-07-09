@@ -30,6 +30,14 @@ function MailIcon() {
   );
 }
 
+function ChevronDownIcon() {
+  return (
+    <svg className="app-header__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
 export default function AppHeader({ variant = "public" }) {
   const label = VARIANT_LABEL[variant] || VARIANT_LABEL.public;
   const router = useRouter();
@@ -68,7 +76,8 @@ export default function AppHeader({ variant = "public" }) {
                   onClick={() => setMenuOpen((open) => !open)}
                 >
                   <span className="app-header__avatar" aria-hidden="true">{initialsFor(user)}</span>
-                  <span>{displayName(user)}</span>
+                  <span className="app-header__user-name">{displayName(user)}</span>
+                  <ChevronDownIcon />
                 </button>
                 {menuOpen ? (
                   <div className="app-header__menu" role="menu">

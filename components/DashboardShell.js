@@ -217,8 +217,8 @@ export default function DashboardShell() {
             Leadership view of cases, testing, screening, contacts and response readiness for authorized stakeholders.
           </p>
         </div>
-        <div className="executive-hero__actions">
-          {dateLabel ? <span className="executive-hero__asof">As of {dateLabel}</span> : null}
+        <div className="hero-tile__actions">
+          {dateLabel ? <span className="hero-tile__asof">As of {dateLabel}</span> : null}
           <button
             className="btn btn--secondary"
             type="button"

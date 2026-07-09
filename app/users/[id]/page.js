@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AppHeader from "@/components/AppHeader";
 import AdminGate from "@/components/auth/AdminGate";
+import PasswordField from "@/components/PasswordField";
 import UserForm from "@/components/users/UserForm";
 import { api } from "@/lib/api-client";
 import { formatDate, normalizeAuthUser, roleLabel, statusLabel } from "@/lib/auth-user";
@@ -154,16 +155,13 @@ export default function UserDetailPage() {
                   {user.status === "active" ? "Deactivate user" : "Activate user"}
                 </button>
                 <form className="console-form console-form--compact" onSubmit={setUserPassword}>
-                  <label className="form-field" htmlFor="admin-user-password">
-                    <span>New password</span>
-                    <input
-                      id="admin-user-password"
-                      type="password"
-                      minLength={8}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                    />
-                  </label>
+                  <PasswordField
+                    id="admin-user-password"
+                    label="New password"
+                    minLength={8}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
                   <button className="btn btn--primary" type="submit">Set password</button>
                 </form>
                 <button className="btn btn--danger" type="button" onClick={deleteUser}>Delete user</button>

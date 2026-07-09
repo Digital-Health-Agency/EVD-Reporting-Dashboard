@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import ProfileGate from "@/components/auth/ProfileGate";
+import PasswordField from "@/components/PasswordField";
 import { changePassword } from "@/lib/auth-client";
 
 export default function ChangePasswordPage() {
@@ -65,37 +66,28 @@ export default function ChangePasswordPage() {
             <form className="console-form" onSubmit={submit}>
               {error ? <p className="form-alert" role="alert">{error}</p> : null}
               {message ? <p className="form-success" role="status">{message}</p> : null}
-              <label className="form-field" htmlFor="current-password">
-                <span>Current password</span>
-                <input
-                  id="current-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={form.currentPassword}
-                  onChange={(event) => setForm((current) => ({ ...current, currentPassword: event.target.value }))}
-                />
-              </label>
+              <PasswordField
+                id="current-password"
+                label="Current password"
+                autoComplete="current-password"
+                value={form.currentPassword}
+                onChange={(event) => setForm((current) => ({ ...current, currentPassword: event.target.value }))}
+              />
               <div className="form-grid">
-                <label className="form-field" htmlFor="new-password">
-                  <span>New password</span>
-                  <input
-                    id="new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={form.newPassword}
-                    onChange={(event) => setForm((current) => ({ ...current, newPassword: event.target.value }))}
-                  />
-                </label>
-                <label className="form-field" htmlFor="confirm-new-password">
-                  <span>Confirm new password</span>
-                  <input
-                    id="confirm-new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={form.confirmPassword}
-                    onChange={(event) => setForm((current) => ({ ...current, confirmPassword: event.target.value }))}
-                  />
-                </label>
+                <PasswordField
+                  id="new-password"
+                  label="New password"
+                  autoComplete="new-password"
+                  value={form.newPassword}
+                  onChange={(event) => setForm((current) => ({ ...current, newPassword: event.target.value }))}
+                />
+                <PasswordField
+                  id="confirm-new-password"
+                  label="Confirm new password"
+                  autoComplete="new-password"
+                  value={form.confirmPassword}
+                  onChange={(event) => setForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                />
               </div>
               <div className="form-actions">
                 <Link className="btn btn--secondary" href="/profile">Cancel</Link>

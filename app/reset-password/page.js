@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AuthShell from "@/components/auth/AuthShell";
+import PasswordField from "@/components/PasswordField";
 import { resetPassword } from "@/lib/auth-client";
 
 function ResetPasswordForm() {
@@ -54,28 +55,22 @@ function ResetPasswordForm() {
       <form className="auth-form" onSubmit={submit}>
         {error ? <p className="form-alert" role="alert">{error}</p> : null}
         {success ? <p className="form-success" role="status">Password reset successful. Redirecting to sign in...</p> : null}
-        <label className="form-field" htmlFor="password">
-          <span>New password</span>
-          <input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={form.password}
-            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-          />
-        </label>
-        <label className="form-field" htmlFor="confirm-password">
-          <span>Confirm new password</span>
-          <input
-            id="confirm-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={form.confirmPassword}
-            onChange={(event) => setForm((current) => ({ ...current, confirmPassword: event.target.value }))}
-          />
-        </label>
+        <PasswordField
+          id="password"
+          label="New password"
+          autoComplete="new-password"
+          required
+          value={form.password}
+          onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+        />
+        <PasswordField
+          id="confirm-password"
+          label="Confirm new password"
+          autoComplete="new-password"
+          required
+          value={form.confirmPassword}
+          onChange={(event) => setForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+        />
         <button className="btn btn--primary" type="submit" disabled={busy || success}>
           {busy ? "Updating..." : "Update password"}
         </button>

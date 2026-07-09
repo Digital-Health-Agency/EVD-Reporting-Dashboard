@@ -46,6 +46,9 @@ test("auth routes include login, forgot password, and reset password flows", asy
   assert.match(reset, /token/);
   assert.match(reset, /Passwords do not match/);
   assert.doesNotMatch(await source("../components/auth/AuthShell.js"), /Kenya EVD Dashboard/);
+  assert.match(await source("../components/PasswordField.js"), /Show password/);
+  assert.match(await source("../components/PasswordField.js"), /Hide password/);
+  assert.match(login, /PasswordField/);
 });
 
 test("shared header exposes login when signed out and profile logout menu when signed in", async () => {

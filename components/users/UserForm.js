@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PasswordField from "@/components/PasswordField";
 
 export default function UserForm({
   initialUser,
@@ -85,17 +86,14 @@ export default function UserForm({
           </select>
         </label>
         {includePassword ? (
-          <label className="form-field" htmlFor="user-password">
-            <span>Password</span>
-            <input
-              id="user-password"
-              type="password"
-              minLength={8}
-              placeholder="Optional"
-              value={form.password}
-              onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-            />
-          </label>
+          <PasswordField
+            id="user-password"
+            label="Password"
+            minLength={8}
+            placeholder="Optional"
+            value={form.password}
+            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+          />
         ) : null}
       </div>
       <div className="form-actions">

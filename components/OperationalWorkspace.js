@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -17,7 +16,6 @@ import {
 } from "recharts";
 import { fmt } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
-import { displayName } from "@/lib/auth-user";
 import UsersManagement from "@/components/users/UsersManagement";
 
 const FILTER_FIELDS = {
@@ -715,8 +713,9 @@ function ServiceDetailTab({ activeTab, data }) {
 }
 
 export default function OperationalWorkspace() {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const [activeTabKey, setActiveTabKey] = useState("summary");
+  const [refreshing, setRefreshing] = useState(false);
   const [filters, setFilters] = useState(() =>
     Object.fromEntries(
       Object.entries(FILTER_FIELDS).map(([key, field]) => [key, DEFAULT_FILTERS[key] || field.options[0]])
@@ -744,6 +743,11 @@ export default function OperationalWorkspace() {
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
+  function handleRefresh() {
+    setRefreshing(true);
+    window.location.reload();
+  }
+
   return (
     <main className="ops-page">
       <section className="ops-hero">
@@ -752,10 +756,15 @@ export default function OperationalWorkspace() {
           <h1>Operational Response Workspace</h1>
           <p>Service-point workspaces, data filters and aggregate response queues for EOC teams. No patient or contact line lists are shown.</p>
         </div>
-        <div className="ops-hero__account">
-          <span>Signed in</span>
-          <strong>{displayName(user)}</strong>
-          <Link className="btn btn--secondary" href="/profile">Profile</Link>
+        <div className="hero-tile__actions">
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
       </section>
 
