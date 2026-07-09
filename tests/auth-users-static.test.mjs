@@ -7,12 +7,14 @@ async function source(path) {
 }
 
 test("dashboard auth utilities use Better Auth with the EVD app id", async () => {
-  const [authClient, apiClient, appId, nextConfig] = await Promise.all([
-    source("../lib/auth-client.js"),
-    source("../lib/api-client.js"),
-    source("../lib/app-id.js"),
-    source("../next.config.mjs"),
-  ]);
+  const [authClient, apiClient, appId, nextConfig, apiProxyConfig] =
+    await Promise.all([
+      source("../lib/auth-client.js"),
+      source("../lib/api-client.js"),
+      source("../lib/app-id.js"),
+      source("../next.config.mjs"),
+      source("../lib/api-proxy-config.js"),
+    ]);
 
   assert.match(authClient, /createAuthClient/);
   assert.match(authClient, /better-auth\/react/);
@@ -25,7 +27,9 @@ test("dashboard auth utilities use Better Auth with the EVD app id", async () =>
   assert.match(appId, /dashboard/);
   assert.match(nextConfig, /fallback/);
   assert.match(nextConfig, /\/api\/auth\/:path\*/);
-  assert.match(nextConfig, /NEXT_PUBLIC_SERVER_URL/);
+  assert.match(nextConfig, /resolveApiProxyUrl/);
+  assert.match(apiProxyConfig, /SERVER_URL/);
+  assert.match(apiProxyConfig, /NEXT_PUBLIC_SERVER_URL/);
 });
 
 test("auth routes include login, forgot password, and reset password flows", async () => {

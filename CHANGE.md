@@ -20,3 +20,7 @@
 ## 2.0.1 (2026-07-09)
 - Fix Docker build reliability by syncing package-lock.json with package.json version.
 
+
+## 2.0.2 (2026-07-09)
+- Fix production API proxying by preferring server-only SERVER_URL over public NEXT_PUBLIC_SERVER_URL, avoiding reverse-proxy hairpinning.
+

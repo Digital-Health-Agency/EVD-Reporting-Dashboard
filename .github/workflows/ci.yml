@@ -52,6 +52,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
+            SERVER_URL=${{ secrets.SERVER_URL }}
             NEXT_PUBLIC_SERVER_URL=${{ secrets.NEXT_PUBLIC_SERVER_URL }}
 
       # - name: Deploy to production
