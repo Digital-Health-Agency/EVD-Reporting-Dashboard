@@ -164,6 +164,19 @@ data-source abstraction:
 - `lib/contracts.js` defines the UI-facing dashboard payload shape and empty
   section factories.
 
+## API Proxy Configuration
+
+The dashboard keeps browser requests same-origin by proxying `/api/*` and
+`/api/auth/*` through the Next.js server to the NestJS API.
+
+Set `SERVER_URL` to the API base URL reachable from the dashboard server or
+container. In production this should normally be an internal service URL such
+as `http://server:4000` rather than the public `https://api...` hostname, so the
+dashboard does not hairpin through the public reverse proxy.
+
+`NEXT_PUBLIC_SERVER_URL` is still accepted as a legacy fallback for existing
+builds, but new deployments should prefer `SERVER_URL`.
+
 Current live data comes from ClickHouse Gold/interim tables where available:
 
 - `marts.lab_by_disease`

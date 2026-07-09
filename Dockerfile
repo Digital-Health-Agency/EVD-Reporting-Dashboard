@@ -10,7 +10,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ARG NEXT_PUBLIC_SERVER_URL
+ARG SERVER_URL
 
+ENV SERVER_URL=$SERVER_URL
 ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
 
 RUN npm run build

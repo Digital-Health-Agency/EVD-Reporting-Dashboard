@@ -1,14 +1,11 @@
+import { resolveApiProxyUrl } from "./lib/api-proxy-config.js";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
   async rewrites() {
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-    if (!serverUrl) {
-      throw new Error(
-        "NEXT_PUBLIC_SERVER_URL is required. Copy .env.example to .env.local and set it.",
-      );
-    }
+    const serverUrl = resolveApiProxyUrl();
     return {
       fallback: [
         {
