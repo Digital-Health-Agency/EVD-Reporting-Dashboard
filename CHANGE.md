@@ -12,3 +12,7 @@
 ## 1.0.1 (2026-07-09)
 - Fix production Docker builds by baking NEXT_PUBLIC_SERVER_URL in at build time via CI secret and Dockerfile build arg.
 
+
+## 2.0.0 (2026-07-09)
+- Major release: add EVD dataset and indicators reference documentation for data alignment.
+
