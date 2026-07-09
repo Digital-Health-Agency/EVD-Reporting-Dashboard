@@ -16,3 +16,7 @@
 ## 2.0.0 (2026-07-09)
 - Major release: add EVD dataset and indicators reference documentation for data alignment.
 
+
+## 2.0.1 (2026-07-09)
+- Fix Docker build reliability by syncing package-lock.json with package.json version.
+
