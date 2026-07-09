@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { displayName, initialsFor } from "@/lib/auth-user";
 
@@ -12,6 +12,12 @@ const VARIANT_LABEL = {
   executive: "Situation dashboard",
   operational: "Restricted workspace",
 };
+
+const DASHBOARD_LINKS = [
+  { href: "/", label: "Public", key: "public" },
+  { href: "/executive", label: "Executive", key: "executive" },
+  { href: "/operational", label: "Operational", key: "operational" },
+];
 
 function PhoneIcon() {
   return (
@@ -41,8 +47,10 @@ function ChevronDownIcon() {
 export default function AppHeader({ variant = "public" }) {
   const label = VARIANT_LABEL[variant] || VARIANT_LABEL.public;
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, isPending, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isProfileRoute = pathname?.startsWith("/profile");
 
   async function handleLogout() {
     await logout();
@@ -81,7 +89,30 @@ export default function AppHeader({ variant = "public" }) {
                 </button>
                 {menuOpen ? (
                   <div className="app-header__menu" role="menu">
-                    <Link role="menuitem" href="/profile" onClick={() => setMenuOpen(false)}>Profile</Link>
+                    <p className="app-header__menu-label">Dashboards</p>
+                    <div className="app-header__menu-divider" role="separator" />
+                    <div role="group" aria-label="Dashboards">
+                      {DASHBOARD_LINKS.map((item) => (
+                        <Link
+                          key={item.href}
+                          role="menuitem"
+                          href={item.href}
+                          aria-current={!isProfileRoute && variant === item.key ? "page" : undefined}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="app-header__menu-divider" role="separator" />
+                    <Link
+                      role="menuitem"
+                      href="/profile"
+                      aria-current={isProfileRoute ? "page" : undefined}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
                     <button role="menuitem" type="button" onClick={handleLogout}>Logout</button>
                   </div>
                 ) : null}
