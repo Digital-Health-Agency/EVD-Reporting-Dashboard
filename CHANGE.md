@@ -44,3 +44,7 @@
 ## 3.0.0 (2026-07-10)
 - Public and executive dashboards use flagged/alerts terminology, executive testing trend adds positivity rate, and alerts card styling updates.
 
+
+## 3.0.1 (2026-07-10)
+- Centralize deaths card color token for public and executive metric styling consistency.
+

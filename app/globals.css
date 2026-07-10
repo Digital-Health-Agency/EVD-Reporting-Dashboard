@@ -12,6 +12,7 @@
   --color-alert: #b42318;
   --color-warning: #b7791f;
   --color-success: #1f7a4d;
+  --color-deaths: #2b3648;
   --color-info: #0369a1;
   --focus-ring: #1a9bd2;
 
@@ -541,7 +542,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   --key-bg: #1f7a4d;
 }
 .public-key-card--deaths {
-  --key-bg: #1f2937;
+  --key-bg: var(--color-deaths);
 }
 .public-key-card--featured {
   grid-column: 1 / -1;
@@ -1848,7 +1849,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .brief-metric--alert { background: var(--color-alert); }
 .brief-metric--navy { background: var(--color-navy); }
 .brief-metric--amber { background: var(--color-warning); }
-.brief-metric--critical { background: #2b3648; }
+.brief-metric--critical { background: var(--color-deaths); }
 .brief-metric--important .brief-metric__label,
 .brief-metric--important .brief-metric__delta,
 .brief-metric--important .brief-metric__detail {
