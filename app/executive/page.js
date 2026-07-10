@@ -1,4 +1,5 @@
 import AppHeader from "@/components/AppHeader";
+import ExecutiveAuthGate from "@/components/auth/ExecutiveAuthGate";
 import DashboardShell from "@/components/DashboardShell";
 
 export const metadata = {
@@ -9,7 +10,9 @@ export default function ExecutivePage() {
   return (
     <>
       <AppHeader variant="executive" />
-      <DashboardShell />
+      <ExecutiveAuthGate>
+        <DashboardShell />
+      </ExecutiveAuthGate>
     </>
   );
 }

@@ -67,6 +67,13 @@ test("shared header exposes login when signed out and profile logout menu when s
   assert.match(header, /app-header__user-menu/);
 });
 
+test("executive dashboard is session gated like the operational workspace", async () => {
+  const page = await source("../app/executive/page.js");
+
+  assert.match(page, /ExecutiveAuthGate/);
+  assert.match(page, /DashboardShell/);
+});
+
 test("operational workspace is session gated and has admin-only Users as the final tab", async () => {
   const [page, workspace] = await Promise.all([
     source("../app/operational/page.js"),
