@@ -14,11 +14,11 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { fmt } from "@/lib/format";
+import { fmt, formatLastUpdatedLabel } from "@/lib/format";
 import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 const C = {
-  tests: "#1a9bd2",
+  tests: "#35459c",
   positive: "#b42318",
   negative: "#1f7a4d",
   inconclusive: "#b7791f",
@@ -243,8 +243,7 @@ export default function Dashboard({ data }) {
   const readinessMetrics = data.readiness?.metrics || [];
 
   const dateLabel = useMemo(() => {
-    const d = new Date(data.meta.lastUpdated);
-    return d.toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" });
+    return formatLastUpdatedLabel(data.meta.lastUpdated);
   }, [data.meta.lastUpdated]);
 
   const labTrend = (labs.trend || []).map((r) => ({

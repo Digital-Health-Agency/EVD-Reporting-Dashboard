@@ -75,14 +75,14 @@ Use semantic tokens, not raw one-off hex values in components.
   --color-muted: #64748b;
   --color-faint: #94a3b8;
 
-  --color-dha-cyan: #1a9bd2;
+  --color-dha-cyan: #35459c;
   --color-navy: #071225;
   --color-alert: #b42318;
   --color-warning: #b7791f;
   --color-success: #1f7a4d;
   --color-info: #0369a1;
 
-  --focus-ring: #1a9bd2;
+  --focus-ring: #35459c;
 }
 ```
 
