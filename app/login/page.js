@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppHeader from "@/components/AppHeader";
 import AuthShell from "@/components/auth/AuthShell";
 import PasswordField from "@/components/PasswordField";
+import { useAuth } from "@/hooks/use-auth";
 import { signIn } from "@/lib/auth-client";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, isPending, refetch } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(
     searchParams.get("error") === "unauthorized"
@@ -19,6 +21,12 @@ function LoginForm() {
   );
   const [busy, setBusy] = useState(false);
   const next = searchParams.get("next") || "/operational";
+  const destination = next.startsWith("/") ? next : "/operational";
+
+  useEffect(() => {
+    if (isPending || !isAuthenticated) return;
+    router.replace(destination);
+  }, [destination, isAuthenticated, isPending, router]);
 
   async function submit(event) {
     event.preventDefault();
@@ -33,7 +41,8 @@ function LoginForm() {
         setError(result.error.message || "Invalid email or password.");
         return;
       }
-      router.push(next.startsWith("/") ? next : "/operational");
+      await refetch();
+      router.replace(destination);
     } catch {
       setError("Unable to sign in. Please try again.");
     } finally {

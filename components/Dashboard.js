@@ -22,6 +22,7 @@ const C = {
   positive: "#b42318",
   negative: "#1f7a4d",
   inconclusive: "#b7791f",
+  positivity: "#93370d",
   pending: "#64748b",
   screened: "#0e6e63",
   alerts: "#0369a1",
@@ -155,7 +156,7 @@ function PlainMetric({ tone = "blue", label, value, hint, description }) {
 function FilterSummary({ disease, dateLabel, labRange, sourceMode }) {
   const filters = [
     { label: "Disease", value: disease },
-    { label: "Period", value: labRange || "Latest available" },
+    { label: "Period", value: labRange || "Available range pending" },
     { label: "Geography", value: "National" },
     { label: "Sources", value: sourceMode },
     { label: "Updated", value: dateLabel },
@@ -251,6 +252,7 @@ export default function Dashboard({ data }) {
     Tests: r.tests,
     Positive: r.positive,
     Negative: r.negative,
+    "Positivity rate": r.tests > 0 ? Number(((r.positive / r.tests) * 100).toFixed(1)) : 0,
   }));
 
   const resultRows = [
@@ -278,7 +280,7 @@ export default function Dashboard({ data }) {
   const deaths = cases.deaths ?? 0;
   const cfr = confirmed > 0 ? pctNum((deaths / confirmed) * 100) : "0%";
   const confirmed24h = cases.newConfirmed24h ?? 0;
-  const latestCases = cases.latestCases ?? 0;
+  const cases24h = cases.newCases24h ?? cases.latestCases ?? 0;
   const tested24h = labs.newTested24h ?? 0;
   const alerts = poe.alerts ?? cases.suspected ?? 0;
   const contactFollowPct = ratioPct(cases.contactsFollowedUp || 0, cases.contactsListed || 0);
@@ -298,15 +300,15 @@ export default function Dashboard({ data }) {
       <section className="brief-priority-grid" aria-label="Executive priority metrics">
         <PriorityMetric
           tone="alert"
-          label="Total cases"
+          label="Total flagged"
           value={fmt(totalCases)}
-          delta={`Latest +${fmt(latestCases)}`}
+          delta={`Last 24h flagged +${fmt(cases24h)}`}
           detail={`${fmt(confirmed)} confirmed`}
           description={INDICATOR_TOOLTIPS.totalCases}
         />
         <PriorityMetric
-          tone="navy"
-          label="Suspected cases"
+          tone="amber"
+          label="Alerts"
           value={fmt(cases.suspected)}
           delta={`Samples ${fmt(cases.samplesCollected)}`}
           detail={`${fmt(cases.testedCases)} tested case records`}
@@ -317,7 +319,7 @@ export default function Dashboard({ data }) {
           label="Deaths"
           value={fmt(deaths)}
           delta={`CFR ${cfr}`}
-          detail={`Latest +${fmt(cases.newDeaths24h ?? 0)}`}
+          detail={`Last 24h +${fmt(cases.newDeaths24h ?? 0)}`}
           description={INDICATOR_TOOLTIPS.deaths}
         />
       </section>
@@ -327,23 +329,22 @@ export default function Dashboard({ data }) {
           tone="green"
           label="Confirmed cases"
           value={fmt(confirmed)}
-          hint={`Latest +${fmt(confirmed24h)}`}
+          hint={`Last 24h +${fmt(confirmed24h)}`}
           description={INDICATOR_TOOLTIPS.confirmedCases}
         />
         <PlainMetric
           tone="green"
           label="Recoveries"
           value={fmt(cases.recoveries)}
-          hint={`Latest +${fmt(cases.newRecoveries24h ?? 0)}`}
+          hint={`Last 24h +${fmt(cases.newRecoveries24h ?? 0)}`}
           description={INDICATOR_TOOLTIPS.recoveries}
         />
-        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Latest +${fmt(tested24h)}`} description={INDICATOR_TOOLTIPS.testsDone} />
+        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Last 24h +${fmt(tested24h)}`} description={INDICATOR_TOOLTIPS.testsDone} />
         <PlainMetric tone="blue" label="Positive tests" value={fmt(labs.positive)} hint="Lab results" description={INDICATOR_TOOLTIPS.positiveTests} />
         <PlainMetric tone="blue" label="Positivity" value={pctNum(labs.positivityPct)} hint="Positive share of tests" description={INDICATOR_TOOLTIPS.positivity} />
         <PlainMetric tone="green" label="Screening records" value={fmt(poe.totalScreened)} hint="All reporting POEs" description={INDICATOR_TOOLTIPS.screeningRecords} />
-        <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Suspected screening records" description={INDICATOR_TOOLTIPS.poeAlerts} />
+        <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Flagged screening records" description={INDICATOR_TOOLTIPS.poeAlerts} />
         <PlainMetric tone="amber" label="Samples collected" value={fmt(cases.samplesCollected)} hint="Case investigation records" description={INDICATOR_TOOLTIPS.samplesCollected} />
-        <PlainMetric tone="blue" label="Tested cases" value={fmt(cases.testedCases)} hint="Case records marked tested" description={INDICATOR_TOOLTIPS.testedCases} />
       </section>
 
       <section className="section">
@@ -351,19 +352,42 @@ export default function Dashboard({ data }) {
         <div className="charts-wide">
           <ChartCard
             title={`Testing trend${asOfLab ? ` (${asOfLab})` : ""}`}
-            summary="Reporting-period trend for tests, positives and negatives."
+            summary="Reporting-period trend for tests, positives, negatives and positivity rate."
           >
             {labTrend.length ? (
               <Chart minWidth={560}>
-                <LineChart data={labTrend} margin={barMargin}>
+                <LineChart data={labTrend} margin={{ top: 8, right: 48, left: -10, bottom: 0 }}>
                   <CartesianGrid {...gridProps} />
                   <XAxis dataKey="label" {...axisProps} minTickGap={20} />
-                  <YAxis {...axisProps} allowDecimals={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <YAxis yAxisId="count" {...axisProps} allowDecimals={false} />
+                  <YAxis
+                    yAxisId="rate"
+                    orientation="right"
+                    {...axisProps}
+                    allowDecimals
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    formatter={(value, name) =>
+                      name === "Positivity rate"
+                        ? [`${Number(value).toFixed(1)}%`, name]
+                        : [fmt(value), name]
+                    }
+                  />
                   <Legend wrapperStyle={legendStyle} />
-                  <Line type="monotone" dataKey="Tests" stroke={C.tests} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Positive" stroke={C.positive} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Negative" stroke={C.negative} strokeWidth={2} dot={false} />
+                  <Line yAxisId="count" type="monotone" dataKey="Tests" stroke={C.tests} strokeWidth={2} dot={false} />
+                  <Line yAxisId="count" type="monotone" dataKey="Positive" stroke={C.positive} strokeWidth={2} dot={false} />
+                  <Line yAxisId="count" type="monotone" dataKey="Negative" stroke={C.negative} strokeWidth={2} dot={false} />
+                  <Line
+                    yAxisId="rate"
+                    type="monotone"
+                    dataKey="Positivity rate"
+                    stroke={C.positivity}
+                    strokeWidth={2}
+                    dot={false}
+                    strokeDasharray="6 4"
+                  />
                 </LineChart>
               </Chart>
             ) : (

@@ -66,8 +66,8 @@ function DeltaPill({ value }) {
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
   const magnitude = Math.abs(value);
   return (
-    <span className="public-key-card__delta" aria-label={`Change in the latest reporting period: ${sign}${magnitude}`}>
-      Latest <strong>{sign}{fmt(magnitude)}</strong>
+    <span className="public-key-card__delta" aria-label={`Change in the last 24 hours: ${sign}${magnitude}`}>
+      Last 24h <strong>{sign}{fmt(magnitude)}</strong>
     </span>
   );
 }
@@ -109,29 +109,27 @@ function KeyCard({ tone, icon, value, label, delta, description, children }) {
 
 function PublicKeyMetrics({ data }) {
   const cases = data?.cases || {};
-  const labs = data?.labs || {};
-  const poe = data?.poe || {};
 
   return (
     <div className="public-key-grid">
       <article
         className="public-key-card public-key-card--featured public-key-card--confirmed indicator-tooltip-host"
-        {...tooltipAttrs(INDICATOR_TOOLTIPS.totalCases, "Total cases")}
+        {...tooltipAttrs(INDICATOR_TOOLTIPS.totalCases, "Total flagged")}
       >
         <header className="public-key-card__head">
           <div className="public-key-card__icon" aria-hidden="true">
             <MetricIcon name="confirmed" />
           </div>
-          <DeltaPill value={cases.latestCases} />
+          <DeltaPill value={cases.newCases24h ?? cases.latestCases} />
         </header>
         <div className="public-key-card__main">
           <strong>{fmt(cases.totalCases)}</strong>
-          <span>Total cases</span>
+          <span>Total flagged</span>
         </div>
         <div className="public-key-card__breakdown">
           <div>
             <strong>{fmt(cases.suspected)}</strong>
-            <span>Suspected</span>
+            <span>Alerts</span>
           </div>
           <div>
             <strong>{fmt(cases.confirmed)}</strong>
@@ -151,19 +149,19 @@ function PublicKeyMetrics({ data }) {
       />
       <KeyCard
         tone="recoveries"
-        icon="tests"
-        value={labs.testsDone}
-        label="Tests done"
-        delta={labs.newTested24h}
-        description={INDICATOR_TOOLTIPS.testsDone}
+        icon="recoveries"
+        value={cases.recoveries}
+        label="Recoveries"
+        delta={cases.newRecoveries24h}
+        description={INDICATOR_TOOLTIPS.recoveries}
       />
       <KeyCard
         tone="deaths"
-        icon="screening"
-        value={poe.totalScreened}
-        label="Screening records"
-        delta={poe.latestScreened}
-        description={INDICATOR_TOOLTIPS.screeningRecords}
+        icon="deaths"
+        value={cases.deaths}
+        label="Deaths"
+        delta={cases.newDeaths24h}
+        description={INDICATOR_TOOLTIPS.deaths}
       />
     </div>
   );
@@ -277,8 +275,8 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Latest cases", value: fmt(cases.latestCases), description: INDICATOR_TOOLTIPS.latestCases },
-            { label: "Suspected cases", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Last 24h flagged", value: fmt(cases.newCases24h ?? cases.latestCases), description: INDICATOR_TOOLTIPS.latestCases },
+            { label: "Alerts", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
             { label: "Tests done", value: fmt(labs.testsDone), description: INDICATOR_TOOLTIPS.testsDone },
             { label: "Screening records", value: fmt(poe.totalScreened), description: INDICATOR_TOOLTIPS.screeningRecords },
           ]}
@@ -308,8 +306,8 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Total cases", value: fmt(cases.totalCases), description: INDICATOR_TOOLTIPS.totalCases },
-            { label: "Suspected", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Total flagged", value: fmt(cases.totalCases), description: INDICATOR_TOOLTIPS.totalCases },
+            { label: "Alerts", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
             { label: "Confirmed", value: fmt(cases.confirmed), description: INDICATOR_TOOLTIPS.confirmedCases },
             { label: "Probable", value: fmt(cases.probable), description: INDICATOR_TOOLTIPS.probableCases },
           ]}
@@ -343,7 +341,7 @@ function PublicTabPanel({ activeTab, data }) {
         <PanelStats
           items={[
             { label: "Total tested", value: fmt(labs.testsDone), description: INDICATOR_TOOLTIPS.testsDone },
-            { label: "Latest period tested", value: fmt(labs.newTested24h), description: INDICATOR_TOOLTIPS.latestTests },
+            { label: "Last 24h tested", value: fmt(labs.newTested24h), description: INDICATOR_TOOLTIPS.latestTests },
             { label: "Positive tests", value: fmt(labs.positive), description: INDICATOR_TOOLTIPS.positiveTests },
             { label: "Inconclusive", value: fmt(labs.inconclusive), description: INDICATOR_TOOLTIPS.inconclusiveTests },
           ]}
@@ -404,8 +402,8 @@ function PublicTabPanel({ activeTab, data }) {
         <PanelStats
           items={[
             { label: "Screening alerts", value: fmt(poe.alerts), description: INDICATOR_TOOLTIPS.poeAlerts },
-            { label: "Suspected cases", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
-            { label: "Latest confirmed", value: fmt(cases.newConfirmed24h), description: INDICATOR_TOOLTIPS.confirmedCases },
+            { label: "Alerts", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Last 24h confirmed", value: fmt(cases.newConfirmed24h), description: INDICATOR_TOOLTIPS.confirmedCases },
           ]}
         />
         <div className="public-panel__sections">
@@ -493,10 +491,10 @@ export default function PublicLanding() {
             <h1 className="public-hero__title">Current Ebola situation update</h1>
             <p className="public-hero__meta" aria-live="polite">
               {status === "error"
-                ? "Unable to load the latest update."
+                ? "Unable to load the current update."
                 : updated
                   ? `Last updated ${updated}.`
-                  : "Loading latest figures..."}
+                  : "Loading current figures..."}
             </p>
           </div>
           <div className="hero-tile__actions">
@@ -515,7 +513,7 @@ export default function PublicLanding() {
       <section className="public-key-metrics" aria-label="Key public metrics">
         <div className="public-section-head">
           <h2>Key metrics</h2>
-          <p>Headline confirmed cases, admissions, recoveries, and deaths from the latest national update.</p>
+          <p>Headline confirmed cases, admissions, recoveries, and deaths from the current national update.</p>
         </div>
         {status === "ready" ? (
           <PublicKeyMetrics data={data} />

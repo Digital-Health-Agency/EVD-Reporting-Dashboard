@@ -13,6 +13,7 @@ export function useAuth() {
     session: session.data,
     isAuthenticated: Boolean(user),
     isPending: Boolean(session.isPending),
+    isRefetching: Boolean(session.isRefetching),
     error: session.error,
     role,
     isAdmin: role === "admin",

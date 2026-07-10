@@ -8,15 +8,15 @@ import { useAuth } from "@/hooks/use-auth";
 export default function AdminGate({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isAdmin, isPending } = useAuth();
+  const { isAuthenticated, isAdmin, isPending, isRefetching } = useAuth();
 
   useEffect(() => {
-    if (isPending || isAuthenticated) return;
+    if (isPending || isRefetching || isAuthenticated) return;
     const next = encodeURIComponent(pathname || "/users");
     router.replace(`/login?next=${next}`);
-  }, [isAuthenticated, isPending, pathname, router]);
+  }, [isAuthenticated, isPending, isRefetching, pathname, router]);
 
-  if (isPending) {
+  if (isPending || isRefetching) {
     return (
       <main className="locked-page">
         <section className="locked-card">
