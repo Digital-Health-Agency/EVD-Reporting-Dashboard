@@ -62,13 +62,13 @@ export default function AppHeader({ variant = "public" }) {
     <header className={`app-header app-header--${variant}`}>
       <div className="app-header__top">
         <div className="app-header__top-inner">
-          <a className="app-header__contact" href="tel:147">
+          <a className="app-header__contact" href="tel:719">
             <PhoneIcon />
-            <span>Dial <strong>147</strong></span>
+            <span>Dial <strong>719</strong></span>
           </a>
-          <a className="app-header__contact app-header__contact--email" href="mailto:helpdesk@dha.go.ke">
+          <a className="app-header__contact app-header__contact--email" href="mailto:dg@nphi.go.ke">
             <MailIcon />
-            <span>helpdesk@dha.go.ke</span>
+            <span>dg@nphi.go.ke</span>
           </a>
           <div className="app-header__auth">
             {!isPending && !isAuthenticated ? (

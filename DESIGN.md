@@ -30,7 +30,7 @@ Borrow selectively from these references:
 - **Healthy Together / getdesign.md**: civic public-health technology, clear
   public communication, government platform confidence.
 - **DHA website**: dark digital-health polish, cyan accents, official support
-  actions such as Dial 147 and helpdesk.
+  actions such as Dial 719 and dg@nphi.go.ke.
 - **MoH website**: formal navigation, public-health portal structure,
   accessibility posture, alerts/resources framing.
 - **NPHI / emergency preparedness**: health-security and readiness tone.

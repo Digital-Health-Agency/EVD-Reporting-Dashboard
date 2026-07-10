@@ -48,3 +48,7 @@
 ## 3.0.1 (2026-07-10)
 - Centralize deaths card color token for public and executive metric styling consistency.
 
+
+## 4.0.0 (2026-07-10)
+- Streamline the public dashboard around confirmed cases, total screened, recoveries, and deaths; remove legacy tabs and show laboratory testing figures directly.
+
