@@ -1847,6 +1847,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 .brief-metric--alert { background: var(--color-alert); }
 .brief-metric--navy { background: var(--color-navy); }
+.brief-metric--amber { background: var(--color-warning); }
 .brief-metric--critical { background: #2b3648; }
 .brief-metric--important .brief-metric__label,
 .brief-metric--important .brief-metric__delta,

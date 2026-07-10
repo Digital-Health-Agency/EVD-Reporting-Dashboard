@@ -22,6 +22,7 @@ const C = {
   positive: "#b42318",
   negative: "#1f7a4d",
   inconclusive: "#b7791f",
+  positivity: "#93370d",
   pending: "#64748b",
   screened: "#0e6e63",
   alerts: "#0369a1",
@@ -251,6 +252,7 @@ export default function Dashboard({ data }) {
     Tests: r.tests,
     Positive: r.positive,
     Negative: r.negative,
+    "Positivity rate": r.tests > 0 ? Number(((r.positive / r.tests) * 100).toFixed(1)) : 0,
   }));
 
   const resultRows = [
@@ -305,7 +307,7 @@ export default function Dashboard({ data }) {
           description={INDICATOR_TOOLTIPS.totalCases}
         />
         <PriorityMetric
-          tone="navy"
+          tone="amber"
           label="Alerts"
           value={fmt(cases.suspected)}
           delta={`Samples ${fmt(cases.samplesCollected)}`}
@@ -350,19 +352,42 @@ export default function Dashboard({ data }) {
         <div className="charts-wide">
           <ChartCard
             title={`Testing trend${asOfLab ? ` (${asOfLab})` : ""}`}
-            summary="Reporting-period trend for tests, positives and negatives."
+            summary="Reporting-period trend for tests, positives, negatives and positivity rate."
           >
             {labTrend.length ? (
               <Chart minWidth={560}>
-                <LineChart data={labTrend} margin={barMargin}>
+                <LineChart data={labTrend} margin={{ top: 8, right: 48, left: -10, bottom: 0 }}>
                   <CartesianGrid {...gridProps} />
                   <XAxis dataKey="label" {...axisProps} minTickGap={20} />
-                  <YAxis {...axisProps} allowDecimals={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <YAxis yAxisId="count" {...axisProps} allowDecimals={false} />
+                  <YAxis
+                    yAxisId="rate"
+                    orientation="right"
+                    {...axisProps}
+                    allowDecimals
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    formatter={(value, name) =>
+                      name === "Positivity rate"
+                        ? [`${Number(value).toFixed(1)}%`, name]
+                        : [fmt(value), name]
+                    }
+                  />
                   <Legend wrapperStyle={legendStyle} />
-                  <Line type="monotone" dataKey="Tests" stroke={C.tests} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Positive" stroke={C.positive} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Negative" stroke={C.negative} strokeWidth={2} dot={false} />
+                  <Line yAxisId="count" type="monotone" dataKey="Tests" stroke={C.tests} strokeWidth={2} dot={false} />
+                  <Line yAxisId="count" type="monotone" dataKey="Positive" stroke={C.positive} strokeWidth={2} dot={false} />
+                  <Line yAxisId="count" type="monotone" dataKey="Negative" stroke={C.negative} strokeWidth={2} dot={false} />
+                  <Line
+                    yAxisId="rate"
+                    type="monotone"
+                    dataKey="Positivity rate"
+                    stroke={C.positivity}
+                    strokeWidth={2}
+                    dot={false}
+                    strokeDasharray="6 4"
+                  />
                 </LineChart>
               </Chart>
             ) : (
