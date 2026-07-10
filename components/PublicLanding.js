@@ -129,32 +129,6 @@ function PublicKeyMetrics({ data }) {
         <IndicatorBubble text={INDICATOR_TOOLTIPS.confirmedCases} />
       </article>
 
-      <article
-        className="public-key-card public-key-card--confirmed indicator-tooltip-host"
-        {...tooltipAttrs(INDICATOR_TOOLTIPS.totalCases, "Total flagged")}
-      >
-        <header className="public-key-card__head">
-          <div className="public-key-card__icon" aria-hidden="true">
-            <MetricIcon name="screening" />
-          </div>
-          <DeltaPill value={cases.newCases24h ?? cases.latestCases} />
-        </header>
-        <div className="public-key-card__main">
-          <strong>{fmt(cases.totalCases)}</strong>
-          <span>Total flagged</span>
-        </div>
-        <div className="public-key-card__breakdown">
-          <div>
-            <strong>{fmt(cases.suspected)}</strong>
-            <span>Alerts</span>
-          </div>
-          <div>
-            <strong>{fmt(cases.confirmed)}</strong>
-            <span>Confirmed</span>
-          </div>
-        </div>
-        <IndicatorBubble text={INDICATOR_TOOLTIPS.totalCases} />
-      </article>
       <KeyCard
         tone="recoveries"
         icon="recoveries"
