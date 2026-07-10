@@ -28,3 +28,7 @@
 ## 2.1.0 (2026-07-09)
 - Tresting
 
+
+## 2.2.0 (2026-07-10)
+- Fetch executive and public dashboard metrics from the backend /api/analytics/metrics endpoint, removing the local ClickHouse and mock datasource layer.
+
