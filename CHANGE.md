@@ -40,3 +40,7 @@
 ## 2.4.0 (2026-07-10)
 - Coordinated minor release for production deployment.
 
+
+## 3.0.0 (2026-07-10)
+- Public and executive dashboards use flagged/alerts terminology, executive testing trend adds positivity rate, and alerts card styling updates.
+

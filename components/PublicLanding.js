@@ -109,8 +109,6 @@ function KeyCard({ tone, icon, value, label, delta, description, children }) {
 
 function PublicKeyMetrics({ data }) {
   const cases = data?.cases || {};
-  const labs = data?.labs || {};
-  const poe = data?.poe || {};
 
   return (
     <div className="public-key-grid">
@@ -151,19 +149,19 @@ function PublicKeyMetrics({ data }) {
       />
       <KeyCard
         tone="recoveries"
-        icon="tests"
-        value={labs.testsDone}
-        label="Tests done"
-        delta={labs.newTested24h}
-        description={INDICATOR_TOOLTIPS.testsDone}
+        icon="recoveries"
+        value={cases.recoveries}
+        label="Recoveries"
+        delta={cases.newRecoveries24h}
+        description={INDICATOR_TOOLTIPS.recoveries}
       />
       <KeyCard
         tone="deaths"
-        icon="screening"
-        value={poe.totalScreened}
-        label="Screening records"
-        delta={poe.newScreened24h ?? poe.latestScreened}
-        description={INDICATOR_TOOLTIPS.screeningRecords}
+        icon="deaths"
+        value={cases.deaths}
+        label="Deaths"
+        delta={cases.newDeaths24h}
+        description={INDICATOR_TOOLTIPS.deaths}
       />
     </div>
   );

@@ -8,6 +8,10 @@ test("public landing includes key metrics and public tabs", async () => {
   assert.match(source, /Key metrics/);
   assert.match(source, /Last 24h/);
   assert.doesNotMatch(source, /Latest/);
+  assert.match(source, /label="Recoveries"/);
+  assert.match(source, /label="Deaths"/);
+  assert.doesNotMatch(source, /label="Tests done"/);
+  assert.doesNotMatch(source, /label="Screening records"/);
   assert.match(source, /Detailed figures/);
   assert.match(source, /public-panel/);
   assert.match(source, /public-info/);
