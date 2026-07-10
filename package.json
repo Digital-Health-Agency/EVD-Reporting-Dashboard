@@ -1,6 +1,6 @@
 {
   "name": "kenya-evd-dashboard",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,12 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:mock": "node --test tests/mock-datasource.test.mjs",
+    "test:analytics": "node --test tests/analytics-backend-static.test.mjs",
     "test:footer": "node --test tests/footer-static.test.mjs",
     "test:public": "node --test tests/public-landing-static.test.mjs"
   },
   "dependencies": {
-    "@clickhouse/client": "^1.21.0",
     "better-auth": "^1.6.23",
     "next": "^16.2.9",
     "react": "^19.2.7",

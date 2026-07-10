@@ -145,8 +145,8 @@ backend data pipelines, not on the public page.
 
 ## Current Implementation
 
-The current app already contains the executive dashboard implementation and live
-data-source abstraction:
+The current app already contains the executive dashboard implementation and
+backend-owned analytics integration:
 
 - `app/page.js` currently renders `DashboardShell`; this should move to
   `/executive` as the app gains a public landing page.
@@ -157,10 +157,10 @@ data-source abstraction:
   Summary tab, service-point tabs, admin-only Users tab, and tab-specific
   filters.
 - `components/PoeBubbleMap.js` renders the points-of-entry map view.
-- `app/api/metrics/[disease]/route.js` returns the composed dashboard payload.
-- `lib/datasource/index.js` composes lab, case, and POE sections through a
-  swappable adapter.
-- `lib/datasource/live.js` is the ClickHouse adapter.
+- `components/DashboardShell.js` and `components/PublicLanding.js` fetch
+  `/api/analytics/metrics`, which is proxied to the NestJS backend.
+- The NestJS backend owns all analytics SQL and reads the restored Postgres
+  `gold` schema through `ANALYTICS_DATABASE_URL`.
 - `lib/contracts.js` defines the UI-facing dashboard payload shape and empty
   section factories.
 
@@ -177,16 +177,19 @@ dashboard does not hairpin through the public reverse proxy.
 `NEXT_PUBLIC_SERVER_URL` is still accepted as a legacy fallback for existing
 builds, but new deployments should prefer `SERVER_URL`.
 
-Current live data comes from ClickHouse Gold/interim tables where available:
+Current live data comes from backend analytics endpoints backed by Postgres
+`gold` tables where available:
 
-- `marts.lab_by_disease`
-- `marts.lab_daily`
-- `marts.cases_by_disease`
-- `marts.screenings_by_poe` when published
-- `stg_adam.screenings` as an interim point-of-entry screening fallback
+- `gold.report_case_summary`
+- `gold.report_case_trend`
+- `gold.report_case_distribution`
+- `gold.report_laboratory_summary`
+- `gold.report_screening_summary`
+- `gold.report_geographic_summary`
 
-Sections without a backing mart are surfaced as preview/awaiting-data sections
-and should not be filled with fake operational values.
+Sections without a backing gold indicator are surfaced as
+preview/awaiting-data sections and should not be filled with fake operational
+values.
 
 Some headline values in the current executive UI are interim hardcoded values
 while the corresponding marts/contracts are completed. Keep those visible as
@@ -306,7 +309,6 @@ work.
 - [Next.js](https://nextjs.org/) App Router
 - React
 - [Recharts](https://recharts.org/) for charts
-- ClickHouse client for live warehouse access
 - Plain CSS, no UI framework
 
 Requirements: Node.js 18.18+; Node 20+ recommended.
@@ -338,22 +340,19 @@ removed or changed, replace it with the current project lint command.
 
 ## Data Layer
 
-The UI reads data through API routes and `lib/datasource`, not directly from
-the warehouse.
+The UI reads analytics through the backend API, not directly from the
+warehouse. Dashboard-local routes must not open database connections.
 
 ```js
-export async function getDashboardData(diseaseKey) {
-  // Select adapter, query live sections safely, return DashboardData.
-}
+fetch("/api/analytics/metrics", { cache: "no-store" });
 ```
 
-The data-source layer must preserve these behaviors:
+The analytics API must preserve these behaviors:
 
 - Return a stable shape even when a mart is unavailable.
 - Mark unavailable sections as `pending` or `na` through provenance.
-- Avoid throwing one failed section query through the whole dashboard.
-- Keep live SQL isolated in `lib/datasource/live.js`.
-- Allow future replacement by a service/API without rewriting page components.
+- Keep SQL isolated in `server/src/modules/analytics`.
+- Query only the restored analytics `gold` schema for dashboard metrics.
 
 ---
 

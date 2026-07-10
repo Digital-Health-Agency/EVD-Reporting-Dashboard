@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import PoeBubbleMap, { POE_COUNT } from "@/components/PoeBubbleMap";
-import { DEFAULT_DISEASE } from "@/lib/diseases";
 import { fmt } from "@/lib/format";
 
 const POLL_MS = 60_000;
@@ -39,20 +38,19 @@ function PoeExecutiveView({ data }) {
 
   const totalScreened =
     poe.totalScreened || rankedPoes.reduce((sum, row) => sum + (row.screened || 0), 0);
-  const uniqueTravelers =
-    poe.uniqueTravelers || rankedPoes.reduce((sum, row) => sum + (row.uniqueTravelers || 0), 0);
+  const uniqueTravelers = Number.isFinite(poe.uniqueTravelers) ? poe.uniqueTravelers : null;
   const alerts = poe.alerts || rankedPoes.reduce((sum, row) => sum + (row.alerts || 0), 0);
   const reportingPoes = rankedPoes.filter((row) => (row.screened || 0) > 0).length;
   const highestVolume = rankedPoes[0];
   const alertRate = ratioPct(alerts, totalScreened);
-  const sourceLabel = prov.poe?.label || "marts.screenings_by_poe";
+  const sourceLabel = prov.poe?.label || "gold.report_screening_summary";
 
   return (
     <>
       <section className="brief-plain-grid poe-info-grid" aria-label="POE executive metrics">
         <PoeInfoMetric
           tone="green"
-          label="Travellers screened"
+          label="Screening records"
           value={fmt(totalScreened)}
           hint="All reporting points of entry"
         />
@@ -60,7 +58,7 @@ function PoeExecutiveView({ data }) {
           tone="blue"
           label="Unique travellers"
           value={fmt(uniqueTravelers)}
-          hint="Deduplicated traveller count"
+          hint="Not available in gold snapshot"
         />
         <PoeInfoMetric
           tone="amber"
@@ -105,7 +103,7 @@ function PoeExecutiveView({ data }) {
             <article className="card">
               <div className="card__head card__head--stack">
                 <h3 className="card__title">Top reporting points of entry</h3>
-                <p className="card__summary">Highest screening volumes for briefing and resource prioritisation.</p>
+                  <p className="card__summary">Highest screening record volumes for briefing and resource prioritisation.</p>
               </div>
               {rankedPoes.length ? (
                 <div className="table-wrap">
@@ -169,11 +167,11 @@ export default function DashboardShell() {
   const [refreshing, setRefreshing] = useState(false);
   const reqId = useRef(0);
 
-  const load = useCallback((disease, background = false) => {
+  const load = useCallback((background = false) => {
     const id = ++reqId.current;
     if (background) setRefreshing(true);
     else setStatus("loading");
-    fetch(`/api/metrics/${disease}`, { cache: "no-store" })
+    fetch("/api/analytics/metrics", { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -194,8 +192,8 @@ export default function DashboardShell() {
 
   // Load Ebola metrics, then poll.
   useEffect(() => {
-    load(DEFAULT_DISEASE);
-    const t = setInterval(() => load(DEFAULT_DISEASE, true), POLL_MS);
+    load();
+    const t = setInterval(() => load(true), POLL_MS);
     return () => clearInterval(t);
   }, [load]);
 
@@ -222,7 +220,7 @@ export default function DashboardShell() {
           <button
             className="btn btn--secondary"
             type="button"
-            onClick={() => load(DEFAULT_DISEASE, true)}
+            onClick={() => load(true)}
             disabled={refreshing}
           >
             {refreshing ? "Refreshing..." : "Refresh"}

@@ -71,7 +71,7 @@ export default function PoeBubbleMap({ byPoe = [] }) {
       return {
         ...poe,
         screened,
-        uniqueTravellers: d ? d.uniqueTravelers || 0 : 0,
+        uniqueTravellers: d ? d.uniqueTravelers ?? null : null,
         has,
         r: has ? R_MIN + Math.sqrt(frac) * (R_MAX - R_MIN) : 5.5,
         fill: has ? colorFor(frac) : "#ffffff",
@@ -147,7 +147,7 @@ export default function PoeBubbleMap({ byPoe = [] }) {
           <span className="poe-map__swatch"><i style={{ background: SCALE[0] }} />Low</span>
           <span className="poe-map__swatch"><i style={{ background: SCALE[2] }} />Medium</span>
           <span className="poe-map__swatch"><i style={{ background: SCALE[3] }} />High</span>
-          <span className="poe-map__legend-note">Bubble size = screening volume.</span>
+          <span className="poe-map__legend-note">Bubble size = screening records.</span>
           <span className="poe-map__swatch poe-map__swatch--empty">
             <i style={{ background: "#fff", borderStyle: "dashed", borderColor: "#9bb0aa" }} />
             Awaiting screening data
@@ -178,7 +178,7 @@ export default function PoeBubbleMap({ byPoe = [] }) {
 // SVG-native tooltip so it always aligns with the bubble regardless of scaling.
 function Tooltip({ p }) {
   const lines = p.has
-    ? [`Screened: ${fmt(p.screened)}`, `Unique travellers: ${fmt(p.uniqueTravellers)}`, p.type]
+    ? [`Screening records: ${fmt(p.screened)}`, `Unique travellers: ${fmt(p.uniqueTravellers)}`, p.type]
     : ["No screening data yet", p.type];
   const w = Math.max(p.name.length, ...lines.map((l) => l.length)) * 6.6 + 22;
   const h = 18 + lines.length * 15 + 8;

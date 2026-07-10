@@ -272,22 +272,22 @@ export default function Dashboard({ data }) {
           tone="alert"
           label="Confirmed cases"
           value={fmt(confirmed)}
-          delta={`Last 24h +${fmt(confirmed24h)}`}
+          delta={`Latest +${fmt(confirmed24h)}`}
           detail={`${fmt(cases.suspected)} suspected under surveillance`}
         />
         <PriorityMetric
           tone="navy"
           label="Currently admitted"
-          value={fmt(cases.admitted ?? 0)}
-          delta={`Last 24h +${fmt(cases.newAdmissions24h ?? 0)}`}
-          detail={`${fmt(cases.recoveries ?? 0)} cumulative recoveries`}
+          value={fmt(cases.admitted)}
+          delta={Number.isFinite(cases.newAdmissions24h) ? `Latest +${fmt(cases.newAdmissions24h)}` : null}
+          detail={`${fmt(cases.recoveries)} cumulative recoveries`}
         />
         <PriorityMetric
           tone="critical"
           label="Deaths"
           value={fmt(deaths)}
           delta={`CFR ${cfr}`}
-          detail={`Last 24h +${fmt(cases.newDeaths24h ?? 0)}`}
+          detail={`Latest +${fmt(cases.newDeaths24h ?? 0)}`}
         />
       </section>
 
@@ -295,24 +295,24 @@ export default function Dashboard({ data }) {
         <PlainMetric
           tone="green"
           label="Recoveries"
-          value={fmt(cases.recoveries ?? 0)}
-          hint={`Last 24h +${fmt(cases.newRecoveries24h ?? 0)}`}
+          value={fmt(cases.recoveries)}
+          hint={`Latest +${fmt(cases.newRecoveries24h ?? 0)}`}
         />
-        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Last 24h +${fmt(tested24h)}`} />
-        <PlainMetric tone="amber" label="Pending results" value={fmt(labs.pendingResults || 0)} hint="Lab result status" />
+        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Latest +${fmt(tested24h)}`} />
+        <PlainMetric tone="amber" label="Pending results" value={fmt(labs.pendingResults)} hint="Not available in gold snapshot" />
         <PlainMetric tone="blue" label="Positivity" value={pctNum(labs.positivityPct)} hint="Positive share of tests" />
-        <PlainMetric tone="green" label="Travellers screened" value={fmt(poe.totalScreened)} hint="All reporting POEs" />
+        <PlainMetric tone="green" label="Screening records" value={fmt(poe.totalScreened)} hint="All reporting POEs" />
         <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Secondary screening / alerts" />
-        <PlainMetric tone="blue" label="Contacts listed" value={fmt(cases.contactsListed || 0)} hint="Contacts listing form" />
-        <PlainMetric tone="green" label="Follow-up reached" value={`${contactFollowPct.toFixed(0)}%`} hint={`${fmt(cases.contactsFollowedUp || 0)} followed up`} />
+        <PlainMetric tone="blue" label="Contacts listed" value={fmt(cases.contactsListed)} hint="Awaiting gold contact indicators" />
+        <PlainMetric tone="green" label="Follow-up reached" value={Number.isFinite(cases.contactsFollowedUp) ? `${contactFollowPct.toFixed(0)}%` : "--"} hint="Awaiting gold contact indicators" />
       </section>
 
       <section className="section">
-        <SectionHead title="Laboratory Results" src="Source: marts.lab_by_disease / lab_daily" prov={prov.labs} />
+        <SectionHead title="Laboratory Results" src="Source: gold.report_laboratory_summary" prov={prov.labs} />
         <div className="charts-wide">
           <ChartCard
-            title={`Daily testing trend${asOfLab ? ` (${asOfLab})` : ""}`}
-            summary="Trend chart for tests, positives and negatives."
+            title={`Testing trend${asOfLab ? ` (${asOfLab})` : ""}`}
+            summary="Reporting-period trend for tests, positives and negatives."
           >
             {labTrend.length ? (
               <Chart minWidth={560}>
@@ -328,7 +328,7 @@ export default function Dashboard({ data }) {
                 </LineChart>
               </Chart>
             ) : (
-              <EmptyData>Daily laboratory trend appears once lab_daily is available.</EmptyData>
+              <EmptyData>Laboratory trend appears once gold laboratory rows are available.</EmptyData>
             )}
           </ChartCard>
           <ChartCard title="Result status" summary="Direct comparison of negative, positive, inconclusive and pending results.">
@@ -352,7 +352,7 @@ export default function Dashboard({ data }) {
       </section>
 
       <section className="section">
-        <SectionHead title="Screening at Points of Entry" src="Source: marts.screenings_by_poe" prov={prov.poe} />
+        <SectionHead title="Screening at Points of Entry" src="Source: gold.report_screening_summary" prov={prov.poe} />
         <div className="charts-wide">
           <ChartCard title="Screened by point of entry" summary="Top reporting points of entry by traveller screening volume.">
             {hasPoeBreakdown ? (
@@ -369,7 +369,7 @@ export default function Dashboard({ data }) {
               </Chart>
             ) : (
               <EmptyData>
-                Per-POE breakdown appears once marts.screenings_by_poe is published. The screening total remains visible above.
+                Per-POE breakdown appears once gold screening rows are available. The screening total remains visible above.
               </EmptyData>
             )}
           </ChartCard>

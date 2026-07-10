@@ -22,7 +22,7 @@ test("POE tab includes map plus executive information cards", async () => {
   assert.match(source, /function PoeExecutiveView/);
   assert.match(source, /<PoeBubbleMap byPoe=\{byPoe\}/);
   assert.match(source, /aria-label="POE executive metrics"/);
-  assert.match(source, /Travellers screened/);
+  assert.match(source, /Screening records/);
   assert.match(source, /Unique travellers/);
   assert.match(source, /Reporting POEs/);
   assert.match(source, /Top reporting points of entry/);

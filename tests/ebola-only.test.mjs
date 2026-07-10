@@ -3,7 +3,6 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { DEFAULT_DISEASE, DISEASES, diseaseByKey, normalizeDisease } from "../lib/diseases.js";
-import * as mock from "../lib/datasource/mock.js";
 
 test("Ebola is the only configured disease", async () => {
   assert.equal(DEFAULT_DISEASE, "ebola");
@@ -13,9 +12,6 @@ test("Ebola is the only configured disease", async () => {
   assert.equal(diseaseByKey("marburg"), undefined);
   assert.equal(normalizeDisease("MPOX"), "Other");
   assert.equal(normalizeDisease("MARBURG"), "Other");
-
-  const overview = await mock.testsByDisease();
-  assert.deepEqual(overview.map((row) => row.disease), ["Ebola"]);
 });
 
 test("executive and operational UI do not expose non-Ebola disease choices", async () => {
