@@ -17,8 +17,8 @@ export default function SiteFooter() {
         </nav>
 
         <div className="site-footer__contact">
-          <span>Dial 147</span>
-          <a href="mailto:helpdesk@dha.go.ke">helpdesk@dha.go.ke</a>
+          <span>Dial 719</span>
+          <a href="mailto:dg@nphi.go.ke">dg@nphi.go.ke</a>
           <span>Digital Health Agency</span>
         </div>
       </div>

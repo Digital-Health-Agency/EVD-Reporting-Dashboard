@@ -13,6 +13,6 @@ test("root layout renders the shared official footer", async () => {
   assert.match(footer, /<footer className="site-footer"/);
   assert.match(footer, /Ministry of Health, Kenya/);
   assert.match(footer, /Digital Health Agency/);
-  assert.match(footer, /Dial 147/);
-  assert.match(footer, /helpdesk@dha\.go\.ke/);
+  assert.match(footer, /Dial 719/);
+  assert.match(footer, /dg@nphi\.go\.ke/);
 });
