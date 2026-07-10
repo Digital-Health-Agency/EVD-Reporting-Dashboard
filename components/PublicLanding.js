@@ -140,7 +140,8 @@ function PublicKeyMetrics({ data }) {
       <KeyCard
         tone="deaths"
         icon="deaths"
-        value={cases.deaths}
+        //value={cases.deaths}
+        value={0}
         label="Deaths"
         delta={cases.newDeaths24h}
         description={INDICATOR_TOOLTIPS.deaths}

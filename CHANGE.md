@@ -56,3 +56,7 @@
 ## 4.1.0 (2026-07-10)
 - Require sign-in for the executive dashboard, matching the operational workspace session gate.
 
+
+## 4.1.1 (2026-07-10)
+- Show a zero placeholder for public Deaths while the deaths data pipeline is cleaned up.
+
