@@ -77,7 +77,7 @@ function PoeExecutiveView({ data }) {
           tone="blue"
           label="Unique travellers"
           value={fmt(uniqueTravelers)}
-          hint="Not available in gold snapshot"
+          hint="Not available yet"
           description={INDICATOR_TOOLTIPS.uniqueTravelers}
         />
         <PoeInfoMetric
@@ -92,7 +92,7 @@ function PoeExecutiveView({ data }) {
           label="Reporting POEs"
           value={`${reportingPoes}/${POE_COUNT}`}
           hint="Mapped POEs with screening data"
-          description="Mapped points of entry with Gold screening records."
+          description="Mapped points of entry with screening records."
         />
         <PoeInfoMetric
           tone="green"

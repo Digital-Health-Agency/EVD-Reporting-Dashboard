@@ -338,7 +338,7 @@ export default function Dashboard({ data }) {
           description={INDICATOR_TOOLTIPS.recoveries}
         />
         <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Latest +${fmt(tested24h)}`} description={INDICATOR_TOOLTIPS.testsDone} />
-        <PlainMetric tone="blue" label="Positive tests" value={fmt(labs.positive)} hint="Gold lab results" description={INDICATOR_TOOLTIPS.positiveTests} />
+        <PlainMetric tone="blue" label="Positive tests" value={fmt(labs.positive)} hint="Lab results" description={INDICATOR_TOOLTIPS.positiveTests} />
         <PlainMetric tone="blue" label="Positivity" value={pctNum(labs.positivityPct)} hint="Positive share of tests" description={INDICATOR_TOOLTIPS.positivity} />
         <PlainMetric tone="green" label="Screening records" value={fmt(poe.totalScreened)} hint="All reporting POEs" description={INDICATOR_TOOLTIPS.screeningRecords} />
         <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Suspected screening records" description={INDICATOR_TOOLTIPS.poeAlerts} />
@@ -450,7 +450,7 @@ export default function Dashboard({ data }) {
               <h3>Clinical management</h3>
               <p>Admissions, outcomes and case fatality from health facility and EMR indicators.</p>
             </div>
-            <PlainMetric tone="amber" label="Admissions" value={fmt(cases.admitted)} hint="Awaiting Gold source" description={INDICATOR_TOOLTIPS.admissions} />
+            <PlainMetric tone="amber" label="Admissions" value={fmt(cases.admitted)} hint="Awaiting source" description={INDICATOR_TOOLTIPS.admissions} />
           </article>
           <article className="pillar-card">
             <div>
@@ -470,7 +470,7 @@ export default function Dashboard({ data }) {
               <h3>Laboratory</h3>
               <p>Testing volume, pending results, positivity and turnaround readiness.</p>
             </div>
-            <PlainMetric tone="blue" label="Avg TAT" value={labs.avgTatDays == null ? "--" : `${labs.avgTatDays}d`} hint="Awaiting Gold source" description={INDICATOR_TOOLTIPS.avgTat} />
+            <PlainMetric tone="blue" label="Avg TAT" value={labs.avgTatDays == null ? "--" : `${labs.avgTatDays}d`} hint="Awaiting source" description={INDICATOR_TOOLTIPS.avgTat} />
           </article>
           <article className="pillar-card">
             <div>

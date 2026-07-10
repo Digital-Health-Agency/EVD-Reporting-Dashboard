@@ -15,6 +15,7 @@ test("dashboard indicators expose concise tooltip definitions", async () => {
   assert.match(tooltips, /totalCases: "All EVD case records/);
   assert.match(tooltips, /screeningRecords: "Screening records/);
   assert.match(tooltips, /contactsListed: "Contact listing is awaiting/);
+  assert.doesNotMatch(tooltips, /Gold/i);
 
   assert.match(`${dashboard}\n${publicLanding}\n${dashboardShell}\n${operational}`, /indicator-tooltip-host/);
   assert.match(`${dashboard}\n${publicLanding}\n${dashboardShell}`, /INDICATOR_TOOLTIPS/);
