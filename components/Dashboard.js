@@ -15,6 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { fmt } from "@/lib/format";
+import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 const C = {
   tests: "#1a9bd2",
@@ -109,23 +110,44 @@ function EmptyData({ children }) {
   return <div className="data-empty">{children}</div>;
 }
 
-function PriorityMetric({ tone, label, value, delta, detail }) {
+function MetricTooltip({ text }) {
+  return text ? <span className="indicator-tooltip__bubble" role="tooltip">{text}</span> : null;
+}
+
+function tooltipAttrs(description, label) {
+  if (!description) return {};
+  return {
+    tabIndex: 0,
+    title: description,
+    "aria-label": `${label}: ${description}`,
+  };
+}
+
+function PriorityMetric({ tone, label, value, delta, detail, description }) {
   return (
-    <article className={`brief-metric brief-metric--important brief-metric--${tone}`}>
+    <article
+      className={`brief-metric brief-metric--important brief-metric--${tone} indicator-tooltip-host`}
+      {...tooltipAttrs(description, label)}
+    >
       <span className="brief-metric__label">{label}</span>
       <strong className="brief-metric__value">{value}</strong>
       {delta ? <span className="brief-metric__delta">{delta}</span> : null}
       {detail ? <span className="brief-metric__detail">{detail}</span> : null}
+      <MetricTooltip text={description} />
     </article>
   );
 }
 
-function PlainMetric({ tone = "blue", label, value, hint }) {
+function PlainMetric({ tone = "blue", label, value, hint, description }) {
   return (
-    <article className="brief-metric brief-metric--plain">
+    <article
+      className="brief-metric brief-metric--plain indicator-tooltip-host"
+      {...tooltipAttrs(description, label)}
+    >
       <span className="brief-metric__label">{label}</span>
       <strong className={`brief-metric__value is-${tone}`}>{value}</strong>
       {hint ? <span className="brief-metric__detail">{hint}</span> : null}
+      <MetricTooltip text={description} />
     </article>
   );
 }
@@ -151,10 +173,13 @@ function FilterSummary({ disease, dateLabel, labRange, sourceMode }) {
   );
 }
 
-function ProgressLine({ label, value, total, tone = "blue" }) {
+function ProgressLine({ label, value, total, tone = "blue", description }) {
   const percent = ratioPct(value, total);
   return (
-    <div className="progress-line">
+    <div
+      className="progress-line indicator-tooltip-host indicator-tooltip-host--inline"
+      {...tooltipAttrs(description, label)}
+    >
       <div className="progress-line__row">
         <span>{label}</span>
         <strong>{percent.toFixed(0)}%</strong>
@@ -162,6 +187,7 @@ function ProgressLine({ label, value, total, tone = "blue" }) {
       <div className="progress-line__track" aria-label={`${percent.toFixed(0)} percent ${label}`}>
         <span className={`is-${tone}`} style={{ width: `${percent}%` }} />
       </div>
+      <MetricTooltip text={description} />
     </div>
   );
 }
@@ -248,9 +274,11 @@ export default function Dashboard({ data }) {
   const labRange = labs.firstTest && labs.lastTest ? `${labs.firstTest} to ${labs.lastTest}` : null;
   const asOfLab = labs.lastTest ? `as of ${labs.lastTest}` : null;
   const confirmed = cases.confirmed ?? 0;
+  const totalCases = cases.totalCases ?? 0;
   const deaths = cases.deaths ?? 0;
   const cfr = confirmed > 0 ? pctNum((deaths / confirmed) * 100) : "0%";
   const confirmed24h = cases.newConfirmed24h ?? 0;
+  const latestCases = cases.latestCases ?? 0;
   const tested24h = labs.newTested24h ?? 0;
   const alerts = poe.alerts ?? cases.suspected ?? 0;
   const contactFollowPct = ratioPct(cases.contactsFollowedUp || 0, cases.contactsListed || 0);
@@ -270,17 +298,19 @@ export default function Dashboard({ data }) {
       <section className="brief-priority-grid" aria-label="Executive priority metrics">
         <PriorityMetric
           tone="alert"
-          label="Confirmed cases"
-          value={fmt(confirmed)}
-          delta={`Latest +${fmt(confirmed24h)}`}
-          detail={`${fmt(cases.suspected)} suspected under surveillance`}
+          label="Total cases"
+          value={fmt(totalCases)}
+          delta={`Latest +${fmt(latestCases)}`}
+          detail={`${fmt(confirmed)} confirmed`}
+          description={INDICATOR_TOOLTIPS.totalCases}
         />
         <PriorityMetric
           tone="navy"
-          label="Currently admitted"
-          value={fmt(cases.admitted)}
-          delta={Number.isFinite(cases.newAdmissions24h) ? `Latest +${fmt(cases.newAdmissions24h)}` : null}
-          detail={`${fmt(cases.recoveries)} cumulative recoveries`}
+          label="Suspected cases"
+          value={fmt(cases.suspected)}
+          delta={`Samples ${fmt(cases.samplesCollected)}`}
+          detail={`${fmt(cases.testedCases)} tested case records`}
+          description={INDICATOR_TOOLTIPS.suspectedCases}
         />
         <PriorityMetric
           tone="critical"
@@ -288,23 +318,32 @@ export default function Dashboard({ data }) {
           value={fmt(deaths)}
           delta={`CFR ${cfr}`}
           detail={`Latest +${fmt(cases.newDeaths24h ?? 0)}`}
+          description={INDICATOR_TOOLTIPS.deaths}
         />
       </section>
 
       <section className="brief-plain-grid" aria-label="Supporting executive metrics">
         <PlainMetric
           tone="green"
+          label="Confirmed cases"
+          value={fmt(confirmed)}
+          hint={`Latest +${fmt(confirmed24h)}`}
+          description={INDICATOR_TOOLTIPS.confirmedCases}
+        />
+        <PlainMetric
+          tone="green"
           label="Recoveries"
           value={fmt(cases.recoveries)}
           hint={`Latest +${fmt(cases.newRecoveries24h ?? 0)}`}
+          description={INDICATOR_TOOLTIPS.recoveries}
         />
-        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Latest +${fmt(tested24h)}`} />
-        <PlainMetric tone="amber" label="Pending results" value={fmt(labs.pendingResults)} hint="Not available in gold snapshot" />
-        <PlainMetric tone="blue" label="Positivity" value={pctNum(labs.positivityPct)} hint="Positive share of tests" />
-        <PlainMetric tone="green" label="Screening records" value={fmt(poe.totalScreened)} hint="All reporting POEs" />
-        <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Secondary screening / alerts" />
-        <PlainMetric tone="blue" label="Contacts listed" value={fmt(cases.contactsListed)} hint="Awaiting gold contact indicators" />
-        <PlainMetric tone="green" label="Follow-up reached" value={Number.isFinite(cases.contactsFollowedUp) ? `${contactFollowPct.toFixed(0)}%` : "--"} hint="Awaiting gold contact indicators" />
+        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Latest +${fmt(tested24h)}`} description={INDICATOR_TOOLTIPS.testsDone} />
+        <PlainMetric tone="blue" label="Positive tests" value={fmt(labs.positive)} hint="Gold lab results" description={INDICATOR_TOOLTIPS.positiveTests} />
+        <PlainMetric tone="blue" label="Positivity" value={pctNum(labs.positivityPct)} hint="Positive share of tests" description={INDICATOR_TOOLTIPS.positivity} />
+        <PlainMetric tone="green" label="Screening records" value={fmt(poe.totalScreened)} hint="All reporting POEs" description={INDICATOR_TOOLTIPS.screeningRecords} />
+        <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Suspected screening records" description={INDICATOR_TOOLTIPS.poeAlerts} />
+        <PlainMetric tone="amber" label="Samples collected" value={fmt(cases.samplesCollected)} hint="Case investigation records" description={INDICATOR_TOOLTIPS.samplesCollected} />
+        <PlainMetric tone="blue" label="Tested cases" value={fmt(cases.testedCases)} hint="Case records marked tested" description={INDICATOR_TOOLTIPS.testedCases} />
       </section>
 
       <section className="section">
@@ -411,21 +450,27 @@ export default function Dashboard({ data }) {
               <h3>Clinical management</h3>
               <p>Admissions, outcomes and case fatality from health facility and EMR indicators.</p>
             </div>
-            <PlainMetric tone="amber" label="Admitted" value={fmt(cases.admitted ?? 0)} hint="Current treatment burden" />
+            <PlainMetric tone="amber" label="Admissions" value={fmt(cases.admitted)} hint="Awaiting Gold source" description={INDICATOR_TOOLTIPS.admissions} />
           </article>
           <article className="pillar-card">
             <div>
               <h3>Contacts</h3>
               <p>Contacts listed, reached and monitored through the 21-day follow-up window.</p>
             </div>
-            <ProgressLine label="Follow-up reached" value={cases.contactsFollowedUp || 0} total={cases.contactsListed || 0} tone="green" />
+            <ProgressLine
+              label="Follow-up reached"
+              value={cases.contactsFollowedUp || 0}
+              total={cases.contactsListed || 0}
+              tone="green"
+              description={INDICATOR_TOOLTIPS.followUpReached}
+            />
           </article>
           <article className="pillar-card">
             <div>
               <h3>Laboratory</h3>
               <p>Testing volume, pending results, positivity and turnaround readiness.</p>
             </div>
-            <PlainMetric tone="blue" label="Avg TAT" value={labs.avgTatDays == null ? "--" : `${labs.avgTatDays}d`} hint="Computed from lab dates" />
+            <PlainMetric tone="blue" label="Avg TAT" value={labs.avgTatDays == null ? "--" : `${labs.avgTatDays}d`} hint="Awaiting Gold source" description={INDICATOR_TOOLTIPS.avgTat} />
           </article>
           <article className="pillar-card">
             <div>

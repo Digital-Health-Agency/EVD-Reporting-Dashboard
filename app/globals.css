@@ -680,6 +680,56 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   font-size: 0.8rem;
   line-height: 1.5;
 }
+.indicator-tooltip-host {
+  position: relative;
+  overflow: visible;
+}
+.indicator-tooltip-host:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+.indicator-tooltip__bubble {
+  position: absolute;
+  z-index: 40;
+  left: 14px;
+  right: 14px;
+  bottom: calc(100% + 8px);
+  max-width: 320px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  background: #111827;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(15, 25, 35, 0.22);
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.indicator-tooltip__bubble::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 100%;
+  width: 10px;
+  height: 10px;
+  background: #111827;
+  transform: rotate(45deg) translateY(-6px);
+}
+.indicator-tooltip-host:hover .indicator-tooltip__bubble,
+.indicator-tooltip-host:focus-visible .indicator-tooltip__bubble,
+.indicator-tooltip-host:focus-within .indicator-tooltip__bubble {
+  opacity: 1;
+  transform: translateY(0);
+}
+.indicator-tooltip-host--inline .indicator-tooltip__bubble {
+  left: 0;
+  right: auto;
+  min-width: 220px;
+}
 .public-panel__sections {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
