@@ -298,15 +298,15 @@ export default function Dashboard({ data }) {
       <section className="brief-priority-grid" aria-label="Executive priority metrics">
         <PriorityMetric
           tone="alert"
-          label="Total cases"
+          label="Total flagged"
           value={fmt(totalCases)}
-          delta={`Last 24h +${fmt(cases24h)}`}
+          delta={`Last 24h flagged +${fmt(cases24h)}`}
           detail={`${fmt(confirmed)} confirmed`}
           description={INDICATOR_TOOLTIPS.totalCases}
         />
         <PriorityMetric
           tone="navy"
-          label="Suspected cases"
+          label="Alerts"
           value={fmt(cases.suspected)}
           delta={`Samples ${fmt(cases.samplesCollected)}`}
           detail={`${fmt(cases.testedCases)} tested case records`}
@@ -341,9 +341,8 @@ export default function Dashboard({ data }) {
         <PlainMetric tone="blue" label="Positive tests" value={fmt(labs.positive)} hint="Lab results" description={INDICATOR_TOOLTIPS.positiveTests} />
         <PlainMetric tone="blue" label="Positivity" value={pctNum(labs.positivityPct)} hint="Positive share of tests" description={INDICATOR_TOOLTIPS.positivity} />
         <PlainMetric tone="green" label="Screening records" value={fmt(poe.totalScreened)} hint="All reporting POEs" description={INDICATOR_TOOLTIPS.screeningRecords} />
-        <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Suspected screening records" description={INDICATOR_TOOLTIPS.poeAlerts} />
+        <PlainMetric tone="blue" label="POE alerts" value={fmt(alerts)} hint="Flagged screening records" description={INDICATOR_TOOLTIPS.poeAlerts} />
         <PlainMetric tone="amber" label="Samples collected" value={fmt(cases.samplesCollected)} hint="Case investigation records" description={INDICATOR_TOOLTIPS.samplesCollected} />
-        <PlainMetric tone="blue" label="Tested cases" value={fmt(cases.testedCases)} hint="Case records marked tested" description={INDICATOR_TOOLTIPS.testedCases} />
       </section>
 
       <section className="section">

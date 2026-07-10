@@ -116,7 +116,7 @@ function PublicKeyMetrics({ data }) {
     <div className="public-key-grid">
       <article
         className="public-key-card public-key-card--featured public-key-card--confirmed indicator-tooltip-host"
-        {...tooltipAttrs(INDICATOR_TOOLTIPS.totalCases, "Total cases")}
+        {...tooltipAttrs(INDICATOR_TOOLTIPS.totalCases, "Total flagged")}
       >
         <header className="public-key-card__head">
           <div className="public-key-card__icon" aria-hidden="true">
@@ -126,12 +126,12 @@ function PublicKeyMetrics({ data }) {
         </header>
         <div className="public-key-card__main">
           <strong>{fmt(cases.totalCases)}</strong>
-          <span>Total cases</span>
+          <span>Total flagged</span>
         </div>
         <div className="public-key-card__breakdown">
           <div>
             <strong>{fmt(cases.suspected)}</strong>
-            <span>Suspected</span>
+            <span>Alerts</span>
           </div>
           <div>
             <strong>{fmt(cases.confirmed)}</strong>
@@ -277,8 +277,8 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Last 24h cases", value: fmt(cases.newCases24h ?? cases.latestCases), description: INDICATOR_TOOLTIPS.latestCases },
-            { label: "Suspected cases", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Last 24h flagged", value: fmt(cases.newCases24h ?? cases.latestCases), description: INDICATOR_TOOLTIPS.latestCases },
+            { label: "Alerts", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
             { label: "Tests done", value: fmt(labs.testsDone), description: INDICATOR_TOOLTIPS.testsDone },
             { label: "Screening records", value: fmt(poe.totalScreened), description: INDICATOR_TOOLTIPS.screeningRecords },
           ]}
@@ -308,8 +308,8 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Total cases", value: fmt(cases.totalCases), description: INDICATOR_TOOLTIPS.totalCases },
-            { label: "Suspected", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Total flagged", value: fmt(cases.totalCases), description: INDICATOR_TOOLTIPS.totalCases },
+            { label: "Alerts", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
             { label: "Confirmed", value: fmt(cases.confirmed), description: INDICATOR_TOOLTIPS.confirmedCases },
             { label: "Probable", value: fmt(cases.probable), description: INDICATOR_TOOLTIPS.probableCases },
           ]}
@@ -404,7 +404,7 @@ function PublicTabPanel({ activeTab, data }) {
         <PanelStats
           items={[
             { label: "Screening alerts", value: fmt(poe.alerts), description: INDICATOR_TOOLTIPS.poeAlerts },
-            { label: "Suspected cases", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Alerts", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
             { label: "Last 24h confirmed", value: fmt(cases.newConfirmed24h), description: INDICATOR_TOOLTIPS.confirmedCases },
           ]}
         />
