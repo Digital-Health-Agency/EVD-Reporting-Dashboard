@@ -155,7 +155,7 @@ function PlainMetric({ tone = "blue", label, value, hint, description }) {
 function FilterSummary({ disease, dateLabel, labRange, sourceMode }) {
   const filters = [
     { label: "Disease", value: disease },
-    { label: "Period", value: labRange || "Latest available" },
+    { label: "Period", value: labRange || "Available range pending" },
     { label: "Geography", value: "National" },
     { label: "Sources", value: sourceMode },
     { label: "Updated", value: dateLabel },
@@ -278,7 +278,7 @@ export default function Dashboard({ data }) {
   const deaths = cases.deaths ?? 0;
   const cfr = confirmed > 0 ? pctNum((deaths / confirmed) * 100) : "0%";
   const confirmed24h = cases.newConfirmed24h ?? 0;
-  const latestCases = cases.latestCases ?? 0;
+  const cases24h = cases.newCases24h ?? cases.latestCases ?? 0;
   const tested24h = labs.newTested24h ?? 0;
   const alerts = poe.alerts ?? cases.suspected ?? 0;
   const contactFollowPct = ratioPct(cases.contactsFollowedUp || 0, cases.contactsListed || 0);
@@ -300,7 +300,7 @@ export default function Dashboard({ data }) {
           tone="alert"
           label="Total cases"
           value={fmt(totalCases)}
-          delta={`Latest +${fmt(latestCases)}`}
+          delta={`Last 24h +${fmt(cases24h)}`}
           detail={`${fmt(confirmed)} confirmed`}
           description={INDICATOR_TOOLTIPS.totalCases}
         />
@@ -317,7 +317,7 @@ export default function Dashboard({ data }) {
           label="Deaths"
           value={fmt(deaths)}
           delta={`CFR ${cfr}`}
-          detail={`Latest +${fmt(cases.newDeaths24h ?? 0)}`}
+          detail={`Last 24h +${fmt(cases.newDeaths24h ?? 0)}`}
           description={INDICATOR_TOOLTIPS.deaths}
         />
       </section>
@@ -327,17 +327,17 @@ export default function Dashboard({ data }) {
           tone="green"
           label="Confirmed cases"
           value={fmt(confirmed)}
-          hint={`Latest +${fmt(confirmed24h)}`}
+          hint={`Last 24h +${fmt(confirmed24h)}`}
           description={INDICATOR_TOOLTIPS.confirmedCases}
         />
         <PlainMetric
           tone="green"
           label="Recoveries"
           value={fmt(cases.recoveries)}
-          hint={`Latest +${fmt(cases.newRecoveries24h ?? 0)}`}
+          hint={`Last 24h +${fmt(cases.newRecoveries24h ?? 0)}`}
           description={INDICATOR_TOOLTIPS.recoveries}
         />
-        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Latest +${fmt(tested24h)}`} description={INDICATOR_TOOLTIPS.testsDone} />
+        <PlainMetric tone="blue" label="Tests done" value={fmt(labs.testsDone)} hint={`Last 24h +${fmt(tested24h)}`} description={INDICATOR_TOOLTIPS.testsDone} />
         <PlainMetric tone="blue" label="Positive tests" value={fmt(labs.positive)} hint="Lab results" description={INDICATOR_TOOLTIPS.positiveTests} />
         <PlainMetric tone="blue" label="Positivity" value={pctNum(labs.positivityPct)} hint="Positive share of tests" description={INDICATOR_TOOLTIPS.positivity} />
         <PlainMetric tone="green" label="Screening records" value={fmt(poe.totalScreened)} hint="All reporting POEs" description={INDICATOR_TOOLTIPS.screeningRecords} />

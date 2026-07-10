@@ -6,6 +6,8 @@ test("public landing includes key metrics and public tabs", async () => {
   const source = await readFile(new URL("../components/PublicLanding.js", import.meta.url), "utf8");
 
   assert.match(source, /Key metrics/);
+  assert.match(source, /Last 24h/);
+  assert.doesNotMatch(source, /Latest/);
   assert.match(source, /Detailed figures/);
   assert.match(source, /public-panel/);
   assert.match(source, /public-info/);

@@ -41,6 +41,7 @@ test("auth routes include login, forgot password, and reset password flows", asy
 
   assert.match(login, /AppHeader/);
   assert.match(login, /signIn\.email/);
+  assert.match(login, /refetch/);
   assert.match(login, /Forgot password/);
   assert.match(login, /next/);
   assert.match(forgot, /AppHeader/);

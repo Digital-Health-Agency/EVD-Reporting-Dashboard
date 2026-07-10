@@ -7,15 +7,15 @@ import { useAuth } from "@/hooks/use-auth";
 export default function OperationalAuthGate({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isPending } = useAuth();
+  const { isAuthenticated, isPending, isRefetching } = useAuth();
 
   useEffect(() => {
-    if (isPending || isAuthenticated) return;
+    if (isPending || isRefetching || isAuthenticated) return;
     const next = encodeURIComponent(pathname || "/operational");
     router.replace(`/login?next=${next}`);
-  }, [isAuthenticated, isPending, pathname, router]);
+  }, [isAuthenticated, isPending, isRefetching, pathname, router]);
 
-  if (isPending) {
+  if (isPending || isRefetching) {
     return (
       <main className="locked-page">
         <section className="locked-card">
