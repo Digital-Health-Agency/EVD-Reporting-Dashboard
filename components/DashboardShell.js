@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import PoeBubbleMap, { POE_COUNT } from "@/components/PoeBubbleMap";
 import { fmt } from "@/lib/format";
+import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 const POLL_MS = 60_000;
 const EXECUTIVE_TABS = [
@@ -13,12 +14,29 @@ const EXECUTIVE_TABS = [
 
 const ratioPct = (value, total) => (total > 0 ? Math.min(100, (value / total) * 100) : 0);
 
-function PoeInfoMetric({ tone = "blue", label, value, hint }) {
+function IndicatorBubble({ text }) {
+  return text ? <span className="indicator-tooltip__bubble" role="tooltip">{text}</span> : null;
+}
+
+function tooltipAttrs(description, label) {
+  if (!description) return {};
+  return {
+    tabIndex: 0,
+    title: description,
+    "aria-label": `${label}: ${description}`,
+  };
+}
+
+function PoeInfoMetric({ tone = "blue", label, value, hint, description }) {
   return (
-    <article className="brief-metric brief-metric--plain">
+    <article
+      className="brief-metric brief-metric--plain indicator-tooltip-host"
+      {...tooltipAttrs(description, label)}
+    >
       <span className="brief-metric__label">{label}</span>
       <strong className={`brief-metric__value is-${tone}`}>{value}</strong>
       {hint ? <span className="brief-metric__detail">{hint}</span> : null}
+      <IndicatorBubble text={description} />
     </article>
   );
 }
@@ -53,24 +71,28 @@ function PoeExecutiveView({ data }) {
           label="Screening records"
           value={fmt(totalScreened)}
           hint="All reporting points of entry"
+          description={INDICATOR_TOOLTIPS.screeningRecords}
         />
         <PoeInfoMetric
           tone="blue"
           label="Unique travellers"
           value={fmt(uniqueTravelers)}
-          hint="Not available in gold snapshot"
+          hint="Not available yet"
+          description={INDICATOR_TOOLTIPS.uniqueTravelers}
         />
         <PoeInfoMetric
           tone="amber"
           label="POE alerts"
           value={fmt(alerts)}
           hint={`${alertRate.toFixed(1)}% alert rate`}
+          description={INDICATOR_TOOLTIPS.poeAlerts}
         />
         <PoeInfoMetric
           tone="blue"
           label="Reporting POEs"
           value={`${reportingPoes}/${POE_COUNT}`}
           hint="Mapped POEs with screening data"
+          description="Mapped points of entry with screening records."
         />
         <PoeInfoMetric
           tone="green"

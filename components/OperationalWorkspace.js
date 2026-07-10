@@ -280,22 +280,43 @@ function Chart({ height = 300, children }) {
   );
 }
 
+function IndicatorBubble({ text }) {
+  return text ? <span className="indicator-tooltip__bubble" role="tooltip">{text}</span> : null;
+}
+
+function tooltipAttrs(description, label) {
+  if (!description) return {};
+  return {
+    tabIndex: 0,
+    title: description,
+    "aria-label": `${label}: ${description}`,
+  };
+}
+
 function ImportantMetric({ tone, label, value, detail }) {
   return (
-    <article className={`ops-metric ops-metric--important ops-metric--${tone}`}>
+    <article
+      className={`ops-metric ops-metric--important ops-metric--${tone} indicator-tooltip-host`}
+      {...tooltipAttrs(detail, label)}
+    >
       <span>{label}</span>
       <strong>{value}</strong>
       <small>{detail}</small>
+      <IndicatorBubble text={detail} />
     </article>
   );
 }
 
 function PlainMetric({ tone, label, value, detail }) {
   return (
-    <article className="ops-metric ops-metric--plain">
+    <article
+      className="ops-metric ops-metric--plain indicator-tooltip-host"
+      {...tooltipAttrs(detail, label)}
+    >
       <span>{label}</span>
       <strong className={`is-${tone}`}>{value}</strong>
       <small>{detail}</small>
+      <IndicatorBubble text={detail} />
     </article>
   );
 }

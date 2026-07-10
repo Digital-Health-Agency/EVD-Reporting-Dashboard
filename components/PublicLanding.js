@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fmt } from "@/lib/format";
+import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 const PUBLIC_TABS = [
   { key: "highlights", label: "Highlights" },
@@ -41,6 +42,20 @@ function MetricIcon({ name }) {
         <path d="M9 10h6M9 14h6" />
       </svg>
     ),
+    tests: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <path d="M10 2h4" />
+        <path d="M11 2v6l-5 9a3 3 0 0 0 2.6 4.5h6.8A3 3 0 0 0 18 17l-5-9V2" />
+        <path d="M8 16h8" />
+      </svg>
+    ),
+    screening: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <path d="M4 5h16v14H4z" />
+        <path d="M8 9h8M8 13h5" />
+        <path d="M17 13l1.4 1.4L21 11.8" />
+      </svg>
+    ),
   };
 
   return paths[name] || null;
@@ -57,9 +72,25 @@ function DeltaPill({ value }) {
   );
 }
 
-function KeyCard({ tone, icon, value, label, delta, children }) {
+function IndicatorBubble({ text }) {
+  return text ? <span className="indicator-tooltip__bubble" role="tooltip">{text}</span> : null;
+}
+
+function tooltipAttrs(description, label) {
+  if (!description) return {};
+  return {
+    tabIndex: 0,
+    title: description,
+    "aria-label": `${label}: ${description}`,
+  };
+}
+
+function KeyCard({ tone, icon, value, label, delta, description, children }) {
   return (
-    <article className={`public-key-card public-key-card--${tone}`}>
+    <article
+      className={`public-key-card public-key-card--${tone} indicator-tooltip-host`}
+      {...tooltipAttrs(description, label)}
+    >
       <header className="public-key-card__head">
         <div className="public-key-card__icon" aria-hidden="true">
           <MetricIcon name={icon} />
@@ -71,63 +102,68 @@ function KeyCard({ tone, icon, value, label, delta, children }) {
         <span>{label}</span>
       </div>
       {children}
+      <IndicatorBubble text={description} />
     </article>
   );
 }
 
-function PublicKeyMetrics({ cases }) {
-  const confirmed = cases?.confirmed ?? 0;
-  const imported = cases?.importedCases;
-  const local = cases?.localCases;
-  const showBreakdown = Number.isFinite(imported) && Number.isFinite(local);
+function PublicKeyMetrics({ data }) {
+  const cases = data?.cases || {};
+  const labs = data?.labs || {};
+  const poe = data?.poe || {};
 
   return (
     <div className="public-key-grid">
-      <article className="public-key-card public-key-card--featured public-key-card--confirmed">
+      <article
+        className="public-key-card public-key-card--featured public-key-card--confirmed indicator-tooltip-host"
+        {...tooltipAttrs(INDICATOR_TOOLTIPS.totalCases, "Total cases")}
+      >
         <header className="public-key-card__head">
           <div className="public-key-card__icon" aria-hidden="true">
             <MetricIcon name="confirmed" />
           </div>
-          <DeltaPill value={cases?.newConfirmed24h} />
+          <DeltaPill value={cases.latestCases} />
         </header>
         <div className="public-key-card__main">
-          <strong>{fmt(confirmed)}</strong>
-          <span>Cumulative confirmed cases</span>
+          <strong>{fmt(cases.totalCases)}</strong>
+          <span>Total cases</span>
         </div>
-        {showBreakdown ? (
-          <div className="public-key-card__breakdown">
-            <div>
-              <strong>{fmt(imported)}</strong>
-              <span>Imported</span>
-            </div>
-            <div>
-              <strong>{fmt(local)}</strong>
-              <span>Local</span>
-            </div>
+        <div className="public-key-card__breakdown">
+          <div>
+            <strong>{fmt(cases.suspected)}</strong>
+            <span>Suspected</span>
           </div>
-        ) : null}
+          <div>
+            <strong>{fmt(cases.confirmed)}</strong>
+            <span>Confirmed</span>
+          </div>
+        </div>
+        <IndicatorBubble text={INDICATOR_TOOLTIPS.totalCases} />
       </article>
 
       <KeyCard
         tone="admissions"
-        icon="admissions"
-        value={cases?.admitted}
-        label="Current admissions"
-        delta={cases?.newAdmissions24h}
+        icon="confirmed"
+        value={cases.confirmed}
+        label="Confirmed cases"
+        delta={cases.newConfirmed24h}
+        description={INDICATOR_TOOLTIPS.confirmedCases}
       />
       <KeyCard
         tone="recoveries"
-        icon="recoveries"
-        value={cases?.recoveries}
-        label="Recoveries"
-        delta={cases?.newRecoveries24h}
+        icon="tests"
+        value={labs.testsDone}
+        label="Tests done"
+        delta={labs.newTested24h}
+        description={INDICATOR_TOOLTIPS.testsDone}
       />
       <KeyCard
         tone="deaths"
-        icon="deaths"
-        value={cases?.deaths}
-        label="Cumulative deaths"
-        delta={cases?.newDeaths24h}
+        icon="screening"
+        value={poe.totalScreened}
+        label="Screening records"
+        delta={poe.latestScreened}
+        description={INDICATOR_TOOLTIPS.screeningRecords}
       />
     </div>
   );
@@ -137,10 +173,15 @@ function PanelStats({ items }) {
   return (
     <dl className="public-panel__stats">
       {items.map((item) => (
-        <div key={item.label} className="public-panel-stat">
+        <div
+          key={item.label}
+          className="public-panel-stat indicator-tooltip-host"
+          {...tooltipAttrs(item.description, item.label)}
+        >
           <dt>{item.label}</dt>
           <dd>{item.value}</dd>
           {item.hint ? <p>{item.hint}</p> : null}
+          <IndicatorBubble text={item.description} />
         </div>
       ))}
     </dl>
@@ -236,10 +277,10 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Latest confirmed", value: fmt(cases.newConfirmed24h) },
-            { label: "Suspected cases", value: fmt(cases.suspected) },
-            { label: "Tests done", value: fmt(labs.testsDone) },
-            { label: "Screening records", value: fmt(poe.totalScreened) },
+            { label: "Latest cases", value: fmt(cases.latestCases), description: INDICATOR_TOOLTIPS.latestCases },
+            { label: "Suspected cases", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Tests done", value: fmt(labs.testsDone), description: INDICATOR_TOOLTIPS.testsDone },
+            { label: "Screening records", value: fmt(poe.totalScreened), description: INDICATOR_TOOLTIPS.screeningRecords },
           ]}
         />
         <div className="public-panel__sections">
@@ -267,9 +308,10 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Total cases", value: fmt(cases.totalCases) },
-            { label: "Suspected", value: fmt(cases.suspected) },
-            { label: "Probable", value: fmt(cases.probable) },
+            { label: "Total cases", value: fmt(cases.totalCases), description: INDICATOR_TOOLTIPS.totalCases },
+            { label: "Suspected", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Confirmed", value: fmt(cases.confirmed), description: INDICATOR_TOOLTIPS.confirmedCases },
+            { label: "Probable", value: fmt(cases.probable), description: INDICATOR_TOOLTIPS.probableCases },
           ]}
         />
         <div className="public-panel__sections">
@@ -300,9 +342,10 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Total tested", value: fmt(labs.testsDone) },
-            { label: "Latest period tested", value: fmt(labs.newTested24h) },
-            { label: "Awaiting results", value: fmt(labs.pendingResults) },
+            { label: "Total tested", value: fmt(labs.testsDone), description: INDICATOR_TOOLTIPS.testsDone },
+            { label: "Latest period tested", value: fmt(labs.newTested24h), description: INDICATOR_TOOLTIPS.latestTests },
+            { label: "Positive tests", value: fmt(labs.positive), description: INDICATOR_TOOLTIPS.positiveTests },
+            { label: "Inconclusive", value: fmt(labs.inconclusive), description: INDICATOR_TOOLTIPS.inconclusiveTests },
           ]}
         />
         <div className="public-panel__sections">
@@ -332,8 +375,8 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Contacts listed", value: fmt(cases.contactsListed) },
-            { label: "Followed up", value: fmt(cases.contactsFollowedUp) },
+            { label: "Contacts listed", value: fmt(cases.contactsListed), description: INDICATOR_TOOLTIPS.contactsListed },
+            { label: "Followed up", value: fmt(cases.contactsFollowedUp), description: INDICATOR_TOOLTIPS.contactsFollowedUp },
           ]}
         />
         <div className="public-panel__sections">
@@ -360,9 +403,9 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "Screening alerts", value: fmt(poe.alerts) },
-            { label: "Suspected cases", value: fmt(cases.suspected) },
-            { label: "Latest confirmed", value: fmt(cases.newConfirmed24h) },
+            { label: "Screening alerts", value: fmt(poe.alerts), description: INDICATOR_TOOLTIPS.poeAlerts },
+            { label: "Suspected cases", value: fmt(cases.suspected), description: INDICATOR_TOOLTIPS.suspectedCases },
+            { label: "Latest confirmed", value: fmt(cases.newConfirmed24h), description: INDICATOR_TOOLTIPS.confirmedCases },
           ]}
         />
         <div className="public-panel__sections">
@@ -383,9 +426,9 @@ function PublicTabPanel({ activeTab, data }) {
     <div className="public-panel">
       <PanelStats
         items={[
-          { label: "Screening records", value: fmt(poe.totalScreened) },
-          { label: "Unique travellers", value: fmt(poe.uniqueTravelers) },
-          { label: "Screening alerts", value: fmt(poe.alerts) },
+          { label: "Screening records", value: fmt(poe.totalScreened), description: INDICATOR_TOOLTIPS.screeningRecords },
+          { label: "Unique travellers", value: fmt(poe.uniqueTravelers), description: INDICATOR_TOOLTIPS.uniqueTravelers },
+          { label: "Screening alerts", value: fmt(poe.alerts), description: INDICATOR_TOOLTIPS.poeAlerts },
         ]}
       />
       <div className="public-panel__sections">
@@ -475,7 +518,7 @@ export default function PublicLanding() {
           <p>Headline confirmed cases, admissions, recoveries, and deaths from the latest national update.</p>
         </div>
         {status === "ready" ? (
-          <PublicKeyMetrics cases={data.cases} />
+          <PublicKeyMetrics data={data} />
         ) : (
           <div className="public-loading public-loading--block">
             {status === "error" ? "Metrics unavailable" : "Loading metrics..."}
