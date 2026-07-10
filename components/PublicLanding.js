@@ -51,8 +51,8 @@ function DeltaPill({ value }) {
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
   const magnitude = Math.abs(value);
   return (
-    <span className="public-key-card__delta" aria-label={`Change in the last 24 hours: ${sign}${magnitude}`}>
-      Last 24h <strong>{sign}{fmt(magnitude)}</strong>
+    <span className="public-key-card__delta" aria-label={`Change in the latest reporting period: ${sign}${magnitude}`}>
+      Latest <strong>{sign}{fmt(magnitude)}</strong>
     </span>
   );
 }
@@ -236,10 +236,10 @@ function PublicTabPanel({ activeTab, data }) {
       <div className="public-panel">
         <PanelStats
           items={[
-            { label: "New confirmed (24h)", value: fmt(cases.newConfirmed24h) },
+            { label: "Latest confirmed", value: fmt(cases.newConfirmed24h) },
             { label: "Suspected cases", value: fmt(cases.suspected) },
             { label: "Tests done", value: fmt(labs.testsDone) },
-            { label: "Travellers screened", value: fmt(poe.totalScreened) },
+            { label: "Screening records", value: fmt(poe.totalScreened) },
           ]}
         />
         <div className="public-panel__sections">
@@ -301,7 +301,7 @@ function PublicTabPanel({ activeTab, data }) {
         <PanelStats
           items={[
             { label: "Total tested", value: fmt(labs.testsDone) },
-            { label: "Tested in last 24h", value: fmt(labs.newTested24h) },
+            { label: "Latest period tested", value: fmt(labs.newTested24h) },
             { label: "Awaiting results", value: fmt(labs.pendingResults) },
           ]}
         />
@@ -362,7 +362,7 @@ function PublicTabPanel({ activeTab, data }) {
           items={[
             { label: "Screening alerts", value: fmt(poe.alerts) },
             { label: "Suspected cases", value: fmt(cases.suspected) },
-            { label: "New confirmed (24h)", value: fmt(cases.newConfirmed24h) },
+            { label: "Latest confirmed", value: fmt(cases.newConfirmed24h) },
           ]}
         />
         <div className="public-panel__sections">
@@ -383,7 +383,7 @@ function PublicTabPanel({ activeTab, data }) {
     <div className="public-panel">
       <PanelStats
         items={[
-          { label: "Travellers screened", value: fmt(poe.totalScreened) },
+          { label: "Screening records", value: fmt(poe.totalScreened) },
           { label: "Unique travellers", value: fmt(poe.uniqueTravelers) },
           { label: "Screening alerts", value: fmt(poe.alerts) },
         ]}
@@ -410,7 +410,7 @@ export default function PublicLanding() {
     const id = ++reqId.current;
     if (background) setRefreshing(true);
     else setStatus("loading");
-    fetch("/api/metrics/ebola", { cache: "no-store" })
+    fetch("/api/analytics/metrics", { cache: "no-store" })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();
