@@ -36,3 +36,7 @@
 ## 2.3.0 (2026-07-10)
 - Add indicator tooltips across executive, operational, and public views, and align headline metrics with gold-backed analytics fields.
 
+
+## 2.4.0 (2026-07-10)
+- Coordinated minor release for production deployment.
+
