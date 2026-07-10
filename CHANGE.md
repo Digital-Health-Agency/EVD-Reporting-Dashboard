@@ -52,3 +52,7 @@
 ## 4.0.0 (2026-07-10)
 - Streamline the public dashboard around confirmed cases, total screened, recoveries, and deaths; remove legacy tabs and show laboratory testing figures directly.
 
+
+## 4.1.0 (2026-07-10)
+- Require sign-in for the executive dashboard, matching the operational workspace session gate.
+
