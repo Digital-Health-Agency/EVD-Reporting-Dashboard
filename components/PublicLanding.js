@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { fmt } from "@/lib/format";
+import { fmt, formatLastUpdatedLabel } from "@/lib/format";
 import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 function MetricIcon({ name }) {
@@ -224,10 +224,7 @@ export default function PublicLanding() {
 
   const updated = useMemo(() => {
     if (!data?.meta?.lastUpdated) return null;
-    return new Date(data.meta.lastUpdated).toLocaleString("en-KE", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    return formatLastUpdatedLabel(data.meta.lastUpdated);
   }, [data?.meta?.lastUpdated]);
 
   return (

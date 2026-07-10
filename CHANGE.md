@@ -60,3 +60,7 @@
 ## 4.1.1 (2026-07-10)
 - Show a zero placeholder for public Deaths while the deaths data pipeline is cleaned up.
 
+
+## 4.2.0 (2026-07-10)
+- Show last-updated as 23:59 on the previous day and refresh the primary brand colour to #35459c.
+

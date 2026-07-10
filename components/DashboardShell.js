@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import PoeBubbleMap, { POE_COUNT } from "@/components/PoeBubbleMap";
-import { fmt } from "@/lib/format";
+import { fmt, formatLastUpdatedLabel } from "@/lib/format";
 import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 const POLL_MS = 60_000;
@@ -221,10 +221,7 @@ export default function DashboardShell() {
 
   const dateLabel = useMemo(() => {
     if (!data?.meta?.lastUpdated) return null;
-    return new Date(data.meta.lastUpdated).toLocaleString("en-KE", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    return formatLastUpdatedLabel(data.meta.lastUpdated);
   }, [data?.meta?.lastUpdated]);
 
   return (

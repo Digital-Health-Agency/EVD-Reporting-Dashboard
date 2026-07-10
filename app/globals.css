@@ -7,14 +7,14 @@
   --color-text: #16202a;
   --color-muted: #64748b;
   --color-faint: #94a3b8;
-  --color-dha-cyan: #1a9bd2;
+  --color-dha-cyan: #35459c;
   --color-navy: #071225;
   --color-alert: #b42318;
   --color-warning: #b7791f;
   --color-success: #1f7a4d;
   --color-deaths: #2b3648;
   --color-info: #0369a1;
-  --focus-ring: #1a9bd2;
+  --focus-ring: #35459c;
 
   --bg: var(--color-bg);
   --surface: var(--color-surface);
@@ -533,7 +533,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   box-shadow: 0 4px 14px rgba(7, 18, 37, 0.05);
 }
 .public-key-card--confirmed {
-  --key-bg: #1a9bd2;
+  --key-bg: #35459c;
 }
 .public-key-card--admissions {
   --key-bg: #b7791f;
