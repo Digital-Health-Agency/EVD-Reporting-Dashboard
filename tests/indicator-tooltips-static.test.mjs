@@ -12,10 +12,14 @@ test("dashboard indicators expose concise tooltip definitions", async () => {
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(tooltips, /totalCases: "All EVD case records/);
+  assert.match(tooltips, /totalCases: "All EVD case investigations/);
   assert.match(tooltips, /last 24h/);
   assert.match(tooltips, /screeningRecords: "Screening records/);
-  assert.match(tooltips, /contactsListed: "Contact listing is awaiting/);
+  assert.match(tooltips, /contactsListed: "Contacts registered/);
+  assert.match(tooltips, /avgTat: "Average time from specimen collection/);
+  assert.doesNotMatch(tooltips, /Pending results are not in the current schema/);
+  assert.match(dashboard, /label="Contacts listed"/);
+  assert.match(dashboard, /hint="Collection to result"/);
   assert.doesNotMatch(tooltips, /Gold/i);
 
   assert.match(`${dashboard}\n${publicLanding}\n${dashboardShell}\n${operational}`, /indicator-tooltip-host/);

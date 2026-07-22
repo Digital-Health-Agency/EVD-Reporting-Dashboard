@@ -282,7 +282,6 @@ export default function Dashboard({ data }) {
   const cases24h = cases.newCases24h ?? cases.latestCases ?? 0;
   const tested24h = labs.newTested24h ?? 0;
   const alerts = poe.alerts ?? cases.suspected ?? 0;
-  const contactFollowPct = ratioPct(cases.contactsFollowedUp || 0, cases.contactsListed || 0);
   const sourceMode = Object.values(prov).some((p) => p?.source === "pending")
     ? "Mixed live and pending"
     : "Current sources";
@@ -478,14 +477,14 @@ export default function Dashboard({ data }) {
           <article className="pillar-card">
             <div>
               <h3>Contacts</h3>
-              <p>Contacts listed, reached and monitored through the 21-day follow-up window.</p>
+              <p>Contacts registered through the current contact-tracing pathway.</p>
             </div>
-            <ProgressLine
-              label="Follow-up reached"
-              value={cases.contactsFollowedUp || 0}
-              total={cases.contactsListed || 0}
+            <PlainMetric
               tone="green"
-              description={INDICATOR_TOOLTIPS.followUpReached}
+              label="Contacts listed"
+              value={fmt(cases.contactsListed)}
+              hint="Daily follow-up pending"
+              description={INDICATOR_TOOLTIPS.contactsListed}
             />
           </article>
           <article className="pillar-card">
@@ -493,7 +492,7 @@ export default function Dashboard({ data }) {
               <h3>Laboratory</h3>
               <p>Testing volume, pending results, positivity and turnaround readiness.</p>
             </div>
-            <PlainMetric tone="blue" label="Avg TAT" value={labs.avgTatDays == null ? "--" : `${labs.avgTatDays}d`} hint="Awaiting source" description={INDICATOR_TOOLTIPS.avgTat} />
+            <PlainMetric tone="blue" label="Avg TAT" value={labs.avgTatDays == null ? "--" : `${labs.avgTatDays}d`} hint="Collection to result" description={INDICATOR_TOOLTIPS.avgTat} />
           </article>
           <article className="pillar-card">
             <div>
