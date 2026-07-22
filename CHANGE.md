@@ -64,3 +64,7 @@
 ## 4.2.0 (2026-07-10)
 - Show last-updated as 23:59 on the previous day and refresh the primary brand colour to #35459c.
 
+
+## 4.3.0 (2026-07-22)
+- Align dashboard indicators with current gold reporting schema, refresh tooltips and contact metrics, remove deprecated jsconfig baseUrl, and add NDL warehouse mapping reference.
+
