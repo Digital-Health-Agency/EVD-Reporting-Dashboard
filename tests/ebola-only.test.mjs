@@ -14,15 +14,14 @@ test("Ebola is the only configured disease", async () => {
   assert.equal(normalizeDisease("MARBURG"), "Other");
 });
 
-test("executive and operational UI do not expose non-Ebola disease choices", async () => {
-  const [dashboardShell, operationalWorkspace, publicLanding, siteFooter] = await Promise.all([
-    readFile(new URL("../components/DashboardShell.js", import.meta.url), "utf8"),
+test("operational and public UI do not expose non-Ebola disease choices", async () => {
+  const [operationalWorkspace, publicLanding, siteFooter] = await Promise.all([
     readFile(new URL("../components/OperationalWorkspace.js", import.meta.url), "utf8"),
     readFile(new URL("../components/PublicLanding.js", import.meta.url), "utf8"),
     readFile(new URL("../components/SiteFooter.js", import.meta.url), "utf8"),
   ]);
 
-  assert.doesNotMatch(dashboardShell, /DISEASES\.map/);
-  assert.doesNotMatch(`${dashboardShell}\n${operationalWorkspace}`, /Mpox|Marburg|Bundibugyo/i);
+  assert.doesNotMatch(operationalWorkspace, /DISEASES\.map/);
+  assert.doesNotMatch(operationalWorkspace, /Mpox|Marburg|Bundibugyo/i);
   assert.doesNotMatch(`${publicLanding}\n${siteFooter}`, /EVD\/BVD|Bundibugyo/i);
 });

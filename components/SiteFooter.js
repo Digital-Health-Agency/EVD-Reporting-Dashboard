@@ -12,7 +12,6 @@ export default function SiteFooter() {
 
         <nav className="site-footer__nav" aria-label="Footer">
           <Link href="/">Public</Link>
-          <Link href="/executive">Executive</Link>
           <Link href="/operational">Operational</Link>
         </nav>
 

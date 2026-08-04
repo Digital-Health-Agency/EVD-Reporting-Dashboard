@@ -552,7 +552,7 @@ function getServiceContent(key, data) {
         ["Admitted", "admitted", "num"],
         ["Deaths", "deaths", "num"],
       ],
-      notes: ["Review admission and outcome reconciliation before executive briefings.", "Keep facility-level records restricted to authenticated users."],
+      notes: ["Review admission and outcome reconciliation before situation briefings.", "Keep facility-level records restricted to authenticated users."],
     },
     community: {
       metrics: [
