@@ -207,9 +207,10 @@ First viewport should include:
 
 - Official identity.
 - Disease/outbreak name.
-- Current status and as-of timestamp.
-- Latest aggregate update state.
-- Key metrics immediately after the first block.
+- General public subtitle in the hero (not the as-of timestamp).
+- Updates band above key metrics: KNPHI situation-room label, Ebola Updates
+  title with red underline, and live as-of timestamp.
+- Key metrics immediately after the updates band.
 
 Use content like:
 
@@ -496,7 +497,7 @@ Voice:
 Examples:
 
 - "Current status"
-- "Last updated"
+- "As of"
 - "Report an alert"
 - "View executive dashboard"
 - "Results pending"

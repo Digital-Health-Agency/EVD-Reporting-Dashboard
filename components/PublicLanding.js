@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DEFAULT_DISEASE, DISEASES, diseaseByKey } from "@/lib/diseases";
 import { fmt, formatLastUpdatedLabel } from "@/lib/format";
 import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
@@ -237,7 +238,9 @@ export default function PublicLanding() {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
   const [refreshing, setRefreshing] = useState(false);
+  const [eventKey, setEventKey] = useState(DEFAULT_DISEASE);
   const reqId = useRef(0);
+  const selectedEvent = diseaseByKey(eventKey) || DISEASES[0];
 
   const load = useCallback((background = false) => {
     const id = ++reqId.current;
@@ -282,12 +285,8 @@ export default function PublicLanding() {
               <br />
               Situation Update
             </h1>
-            <p className="public-hero__meta" aria-live="polite">
-              {status === "error"
-                ? "Unable to load the current update."
-                : updated
-                  ? `Last updated ${updated}.`
-                  : "Loading current figures..."}
+            <p className="public-hero__meta">
+              Official aggregate figures from Kenya&apos;s national public health surveillance and response systems.
             </p>
           </div>
           <div className="hero-tile__actions">
@@ -301,6 +300,44 @@ export default function PublicLanding() {
             </button>
           </div>
         </div>
+      </section>
+
+      <section className="public-event" aria-label="Public health event selection">
+        <div className="public-event__copy">
+          <label className="public-event__label" htmlFor="public-health-event">
+            <strong>Public Health Event</strong>
+          </label>
+          <p className="public-event__subtitle">
+            Choose the outbreak or health event you want to follow. The figures below show the current national update for that event.
+          </p>
+        </div>
+        <select
+          id="public-health-event"
+          className="public-event__select"
+          value={selectedEvent.key}
+          onChange={(event) => setEventKey(event.target.value)}
+        >
+          {DISEASES.map((disease) => (
+            <option key={disease.key} value={disease.key}>
+              {disease.name}
+            </option>
+          ))}
+        </select>
+      </section>
+
+      <section className="public-updates" aria-label={`${selectedEvent.name} updates`}>
+        <div className="public-updates__copy">
+          <p className="public-updates__label">KNPHI Live Situation Room</p>
+          <h2 className="public-updates__title">{selectedEvent.name} Updates</h2>
+        </div>
+        <p className="public-updates__asof" aria-live="polite">
+          <span className="public-updates__dot" aria-hidden="true" />
+          {status === "error"
+            ? "Unable to load the current update."
+            : updated
+              ? `As of ${updated}`
+              : "Loading current figures..."}
+        </p>
       </section>
 
       <section className="public-key-metrics" aria-label="Key public metrics">
