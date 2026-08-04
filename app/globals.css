@@ -1003,7 +1003,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 .auth-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.72fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
   min-height: min(520px, calc(100dvh - 160px));
   overflow: hidden;
   border: 1px solid var(--border);
@@ -1012,13 +1012,11 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   box-shadow: var(--shadow);
 }
 .auth-panel__identity {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 32px;
-  padding: clamp(24px, 4vw, 40px);
-  background: var(--color-navy);
-  color: #fff;
+  min-height: 100%;
+  background-color: var(--color-navy);
+  background-image: linear-gradient(rgba(7, 18, 37, 0.12), rgba(7, 18, 37, 0.3)), url("/images/evd-login-card.webp");
+  background-position: 48% center;
+  background-size: cover;
 }
 .auth-panel__copy span,
 .console-hero span,
@@ -1046,6 +1044,31 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   display: flex;
   align-items: center;
   padding: clamp(20px, 3vw, 36px);
+  background: var(--color-navy);
+  color: #fff;
+}
+.auth-card__content {
+  width: 100%;
+}
+.auth-card .auth-panel__copy {
+  margin-bottom: 32px;
+}
+.auth-card .auth-panel__copy span {
+  color: #a6ddf1;
+}
+.auth-card .form-field span {
+  color: #d8e4ee;
+}
+.auth-card .auth-form__row a,
+.auth-card .auth-link {
+  color: #a6ddf1;
+}
+.auth-card .form-field input {
+  border-color: rgba(255, 255, 255, 0.36);
+  background: #fff;
+}
+.auth-card .form-field input:focus-visible {
+  outline-color: #a6ddf1;
 }
 .auth-form,
 .console-form {
@@ -2255,6 +2278,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .auth-panel {
     min-height: 0;
   }
+  .auth-panel__identity {
+    min-height: 280px;
+    background-position: center 38%;
+  }
   .auth-card {
     padding: 24px 20px;
   }
@@ -2273,8 +2300,8 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 
 @media (max-width: 540px) {
   .auth-panel__identity {
-    padding: 24px 20px;
-    gap: 32px;
+    min-height: 220px;
+    background-position: 52% 38%;
   }
   .app-header__user-name {
     max-width: 112px;

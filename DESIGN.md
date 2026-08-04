@@ -471,6 +471,10 @@ Allowed:
 - Responsive `background-size: cover` crops with breakpoint-specific focal
   positioning. Treat hero backgrounds as decorative; all meaning stays in
   the page copy, and no patient identity or readable operational data appears.
+- On authentication pages, use a purpose-made documentary health-security
+  image as the decorative identity pane and keep the form pane solid navy.
+  Place the cyan eyebrow, white heading, and pale supporting text with the
+  form so the access action remains legible and visually connected.
 - Small illustrative icons for prevention/resource blocks.
 
 Avoid:

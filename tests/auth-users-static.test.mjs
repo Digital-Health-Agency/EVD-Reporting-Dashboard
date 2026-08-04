@@ -56,6 +56,23 @@ test("auth routes include login, forgot password, and reset password flows", asy
   assert.match(login, /PasswordField/);
 });
 
+test("auth shell uses the generated identity image and navy form treatment", async () => {
+  const [shell, styles, image] = await Promise.all([
+    source("../components/auth/AuthShell.js"),
+    source("../app/globals.css"),
+    readFile(new URL("../public/images/evd-login-card.webp", import.meta.url)),
+  ]);
+
+  assert.match(shell, /auth-panel__identity" aria-hidden="true"/);
+  assert.match(shell, /auth-card__content/);
+  assert.match(styles, /url\("\/images\/evd-login-card\.webp"\)/);
+  assert.match(styles, /\.auth-card \{[\s\S]*background: var\(--color-navy\)/);
+  assert.match(styles, /\.auth-card \.auth-panel__copy span \{[\s\S]*color: #a6ddf1/);
+  assert.match(styles, /@media \(max-width: 540px\) \{[\s\S]*\.auth-panel__identity/);
+  assert.equal(image.subarray(0, 4).toString("ascii"), "RIFF");
+  assert.equal(image.subarray(8, 12).toString("ascii"), "WEBP");
+});
+
 test("shared header exposes login when signed out and profile logout menu when signed in", async () => {
   const header = await source("../components/AppHeader.js");
 
