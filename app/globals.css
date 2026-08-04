@@ -449,10 +449,16 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   /* full-bleed: break out of the .public-page container, edge to edge */
   width: 100vw;
   margin-left: calc(50% - 50vw);
+  background: var(--color-navy);
 }
 .public-hero__copy {
-  background: var(--color-navy); color: #fff; border-radius: 0;
-  padding: clamp(32px, 5vw, 48px);
+  /* Match .public-page content column: background bleeds, copy stays centered */
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  color: #fff;
+  border-radius: 0;
+  padding: clamp(32px, 5vw, 48px) 24px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -925,7 +931,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 @media (max-width: 860px) {
   .public-page { padding: 24px 16px 48px; }
   .public-hero, .public-key-grid, .public-info { grid-template-columns: 1fr; }
-  .public-hero__copy { min-height: auto; }
+  .public-hero__copy {
+    min-height: auto;
+    padding-inline: 16px;
+  }
   .public-key-metrics { margin-top: 40px; }
   .public-section-head { margin-bottom: 20px; }
   .public-section-head h2 { font-size: 1.2rem; }
@@ -942,7 +951,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 
 @media (max-width: 540px) {
   .public-page { padding: 16px 16px 40px; }
-  .public-hero__copy { padding: 24px 20px; }
+  .public-hero__copy { padding: 24px 16px; }
   .public-hero__title { margin-bottom: 12px; }
   .public-label { margin-bottom: 12px; }
   .metric-banner { padding: 16px; }

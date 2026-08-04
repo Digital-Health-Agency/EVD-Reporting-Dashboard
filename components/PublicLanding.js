@@ -277,7 +277,7 @@ export default function PublicLanding() {
         <div className="public-hero__copy">
           <div>
             <p className="public-label">Kenya Surveillance System</p>
-            <h1 className="public-hero__title">Current Surveillance situation update</h1>
+            <h1 className="public-hero__title">Current Surveillance Situation Update</h1>
             <p className="public-hero__meta" aria-live="polite">
               {status === "error"
                 ? "Unable to load the current update."
