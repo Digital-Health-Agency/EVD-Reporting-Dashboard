@@ -1732,7 +1732,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .ops-page {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 32px 24px 64px;
+  padding: 0 24px 64px;
 }
 .ops-login-page {
   max-width: 760px;
@@ -1782,14 +1782,23 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   outline-offset: 2px;
 }
 .ops-hero {
+  /* full-bleed: break out of the .ops-page container, edge to edge */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background: var(--color-navy);
+  color: #fff;
+  border-radius: 0;
+}
+.ops-hero__copy {
+  /* Match .ops-page content column: background bleeds, copy stays centered */
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 48px) 24px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
-  padding: clamp(28px, 4vw, 48px) 30px;
-  border-radius: var(--radius);
-  background: var(--color-navy);
-  color: #fff;
 }
 .ops-kicker {
   display: block;
@@ -2112,7 +2121,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 
 @media (max-width: 860px) {
   .ops-page {
-    padding: 24px 16px 48px;
+    padding: 0 16px 48px;
+  }
+  .ops-hero__copy {
+    padding-inline: 16px;
   }
   .ops-tab-shell {
     margin-top: 40px;
@@ -2142,7 +2154,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
     grid-template-columns: 1fr;
   }
   .ops-page {
-    padding: 16px 16px 40px;
+    padding: 0 16px 40px;
   }
   .ops-tab-shell {
     margin-top: 32px;
@@ -2151,10 +2163,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .section {
     margin-top: 32px;
   }
-  .ops-hero {
+  .ops-hero__copy {
     align-items: flex-start;
     flex-direction: column;
-    padding: 24px 20px;
+    padding: 24px 16px;
   }
   .hero-tile__actions {
     align-items: flex-start;
