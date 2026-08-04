@@ -442,7 +442,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 
 /* ---------- Public landing ---------- */
-.public-page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 64px; }
+.public-page { max-width: 1240px; margin: 0 auto; padding: 0 24px 64px; }
 .public-hero {
   display: grid; grid-template-columns: 1fr;
   gap: 32px; align-items: stretch;
@@ -929,7 +929,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .public-loading--inline { border-radius: var(--radius); min-height: 120px; display: grid; place-items: center; }
 
 @media (max-width: 860px) {
-  .public-page { padding: 24px 16px 48px; }
+  .public-page { padding: 0 16px 48px; }
   .public-hero, .public-key-grid, .public-info { grid-template-columns: 1fr; }
   .public-hero__copy {
     min-height: auto;
@@ -950,7 +950,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 
 @media (max-width: 540px) {
-  .public-page { padding: 16px 16px 40px; }
+  .public-page { padding: 0 16px 40px; }
   .public-hero__copy { padding: 24px 16px; }
   .public-hero__title { margin-bottom: 12px; }
   .public-label { margin-bottom: 12px; }
