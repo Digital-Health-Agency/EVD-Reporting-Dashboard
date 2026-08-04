@@ -6,31 +6,12 @@ import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 function MetricIcon({ name }) {
   const paths = {
-    confirmed: (
+    cases: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <circle cx="12" cy="12" r="3.2" />
-        <path d="M12 2v3.2M12 18.8V22M2 12h3.2M18.8 12H22M4.9 4.9l2.3 2.3M16.8 16.8l2.3 2.3M19.1 4.9l-2.3 2.3M7.2 16.8l-2.3 2.3" />
-      </svg>
-    ),
-    admissions: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <path d="M3 14h18v5H3z" />
-        <path d="M5 14V9a2 2 0 0 1 2-2h3v7M14 7h3a2 2 0 0 1 2 2v5" />
-        <path d="M9 11h2" />
-      </svg>
-    ),
-    recoveries: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <circle cx="12" cy="8" r="3.2" />
-        <path d="M6.5 20c.8-3 2.4-4.8 5.5-4.8s4.7 1.8 5.5 4.8" />
-        <path d="M16.5 11.5l1.8 1.8 3.2-3.2" />
-      </svg>
-    ),
-    deaths: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <path d="M8 4h8l-1 16H9L8 4z" />
-        <path d="M10 4V2h4v2" />
-        <path d="M9 10h6M9 14h6" />
+        <path d="M6 3v5a4 4 0 0 0 8 0V3" />
+        <path d="M4 3h3M13 3h3" />
+        <path d="M10 12v3a4 4 0 0 0 8 0v-1.2" />
+        <circle cx="18" cy="10.5" r="2.2" />
       </svg>
     ),
     tests: (
@@ -42,9 +23,8 @@ function MetricIcon({ name }) {
     ),
     screening: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <path d="M4 5h16v14H4z" />
-        <path d="M8 9h8M8 13h5" />
-        <path d="M17 13l1.4 1.4L21 11.8" />
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="M15.5 15.5 21 21" />
       </svg>
     ),
   };
@@ -52,15 +32,10 @@ function MetricIcon({ name }) {
   return paths[name] || null;
 }
 
-function DeltaPill({ value }) {
+/** "+3", "−5", "+0" — the last-24h change as shown on a metric banner. */
+function deltaLabel(value) {
   if (!Number.isFinite(value)) return null;
-  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
-  const magnitude = Math.abs(value);
-  return (
-    <span className="public-key-card__delta" aria-label={`Change in the last 24 hours: ${sign}${magnitude}`}>
-      Last 24h <strong>{sign}{fmt(magnitude)}</strong>
-    </span>
-  );
+  return `${value < 0 ? "−" : "+"}${fmt(Math.abs(value))}`;
 }
 
 function IndicatorBubble({ text }) {
@@ -76,115 +51,184 @@ function tooltipAttrs(description, label) {
   };
 }
 
-function KeyCard({ tone, icon, value, label, delta, description, children }) {
+function MetricCard({ tone, icon, title, wide, children }) {
   return (
-    <article
-      className={`public-key-card public-key-card--${tone} indicator-tooltip-host`}
-      {...tooltipAttrs(description, label)}
-    >
-      <header className="public-key-card__head">
-        <div className="public-key-card__icon" aria-hidden="true">
+    <article className={`metric-card${wide ? " metric-card--wide" : ""}`} aria-label={title}>
+      <header className="metric-card__head">
+        <span className={`metric-card__icon metric-card__icon--${tone}`} aria-hidden="true">
           <MetricIcon name={icon} />
-        </div>
-        <DeltaPill value={delta} />
+        </span>
+        <h3>{title}</h3>
       </header>
-      <div className="public-key-card__main">
-        <strong>{fmt(value)}</strong>
-        <span>{label}</span>
-      </div>
       {children}
-      <IndicatorBubble text={description} />
     </article>
   );
 }
 
-function PublicKeyMetrics({ data }) {
-  const cases = data?.cases || {};
-  const poe = data?.poe || {};
-
+function MetricBanner({ tone, label, value, delta }) {
+  const change = deltaLabel(delta);
   return (
-    <div className="public-key-grid">
-      <article
-        className="public-key-card public-key-card--featured public-key-card--admissions indicator-tooltip-host"
-        {...tooltipAttrs(INDICATOR_TOOLTIPS.confirmedCases, "Confirmed cases")}
-      >
-        <header className="public-key-card__head">
-          <div className="public-key-card__icon" aria-hidden="true">
-            <MetricIcon name="confirmed" />
-          </div>
-          <DeltaPill value={cases.newConfirmed24h} />
-        </header>
-        <div className="public-key-card__main">
-          <strong>{fmt(cases.confirmed)}</strong>
-          <span>Confirmed cases</span>
-        </div>
-        <IndicatorBubble text={INDICATOR_TOOLTIPS.confirmedCases} />
-      </article>
-
-      <KeyCard
-        tone="confirmed"
-        icon="screening"
-        value={poe.totalScreened}
-        label="Total Screened"
-        delta={poe.newScreened24h}
-        description={INDICATOR_TOOLTIPS.screeningRecords}
-      />
-      <KeyCard
-        tone="recoveries"
-        icon="recoveries"
-        value={cases.recoveries}
-        label="Recoveries"
-        delta={cases.newRecoveries24h}
-        description={INDICATOR_TOOLTIPS.recoveries}
-      />
-      <KeyCard
-        tone="deaths"
-        icon="deaths"
-        //value={cases.deaths}
-        value={0}
-        label="Deaths"
-        delta={cases.newDeaths24h}
-        description={INDICATOR_TOOLTIPS.deaths}
-      />
+    <div className={`metric-banner metric-banner--${tone}`}>
+      <span className="metric-banner__label">{label}</span>
+      <strong className="metric-banner__value">{fmt(value)}</strong>
+      {change ? <span className="metric-banner__delta">Last 24h: {change}</span> : null}
     </div>
   );
 }
 
-function PanelStats({ items }) {
+function MetricStat({ label, value, tone, description, wide }) {
   return (
-    <dl className="public-panel__stats">
-      {items.map((item) => (
-        <div
-          key={item.label}
-          className="public-panel-stat indicator-tooltip-host"
-          {...tooltipAttrs(item.description, item.label)}
-        >
-          <dt>{item.label}</dt>
-          <dd>{item.value}</dd>
-          {item.hint ? <p>{item.hint}</p> : null}
-          <IndicatorBubble text={item.description} />
-        </div>
-      ))}
-    </dl>
+    <div
+      className={`metric-stat${wide ? " metric-stat--wide" : ""} indicator-tooltip-host`}
+      {...tooltipAttrs(description, label)}
+    >
+      <dt>{label}</dt>
+      <dd className={tone ? `metric-stat__value metric-stat__value--${tone}` : "metric-stat__value"}>
+        {value}
+      </dd>
+      <IndicatorBubble text={description} />
+    </div>
   );
 }
 
-function PublicTestFigures({ data }) {
-  if (!data) {
-    return <div className="public-loading public-loading--inline">Loading tab details...</div>;
-  }
+/** Whole numbers stay whole ("0%"), fractions keep one decimal ("2.4%"). */
+function formatRate(value) {
+  if (!Number.isFinite(value)) return "--";
+  return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
+}
 
-  const labs = data.labs || {};
+function ScreeningTrend({ points }) {
+  if (!points.length) return null;
+  const peak = Math.max(...points.map((point) => point.screened), 1);
+  const lastIndex = points.length - 1;
 
   return (
-    <div className="public-panel">
-      <PanelStats
-        items={[
-          { label: "Total tested", value: fmt(labs.testsDone), description: INDICATOR_TOOLTIPS.testsDone },
-          { label: "Last 24h tested", value: fmt(labs.newTested24h), description: INDICATOR_TOOLTIPS.latestTests },
-          { label: "Positive tests", value: fmt(labs.positive), description: INDICATOR_TOOLTIPS.positiveTests },
-        ]}
-      />
+    <figure className="metric-trend">
+      <figcaption>Daily Screening Trend</figcaption>
+      <div className="metric-trend__bars">
+        {points.map((point, index) => (
+          <div className="metric-trend__slot" key={point.date}>
+            <div className="metric-trend__track">
+              <div
+                className={`metric-trend__bar${index === lastIndex ? " metric-trend__bar--latest" : ""}`}
+                style={{ height: `${Math.max(8, Math.round((point.screened / peak) * 100))}%` }}
+                title={`${point.label}: ${fmt(point.screened)} screened`}
+              />
+            </div>
+            <span className="metric-trend__tick">{point.label}</span>
+          </div>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
+const WEEKDAY = { weekday: "short" };
+
+function screeningTrendPoints(poe) {
+  return (poe.trend || [])
+    .filter((point) => point && point.date)
+    .slice(-14)
+    .map((point) => {
+      const parsed = new Date(`${point.date}T00:00:00`);
+      return {
+        date: point.date,
+        screened: Number.isFinite(point.screened) ? point.screened : 0,
+        label: Number.isNaN(parsed.getTime())
+          ? point.date
+          : parsed.toLocaleDateString("en-KE", WEEKDAY),
+      };
+    });
+}
+
+function PublicKeyMetrics({ data }) {
+  const cases = data?.cases || {};
+  const labs = data?.labs || {};
+  const poe = data?.poe || {};
+
+  const confirmed = Number.isFinite(cases.confirmed) ? cases.confirmed : 0;
+  //const deaths = cases.deaths;
+  const deaths = 0;
+  const cfr = confirmed > 0 ? (deaths / confirmed) * 100 : 0;
+  const screeningPoints = (poe.byPoe || []).filter((point) => !point.unknown).length;
+
+  return (
+    <div className="public-key-grid">
+      <MetricCard tone="cases" icon="cases" title="Cases">
+        <MetricBanner
+          tone="cases"
+          label="Confirmed"
+          value={confirmed}
+          delta={cases.newConfirmed24h}
+        />
+        <dl className="metric-card__stats">
+          <MetricStat
+            label="Recoveries"
+            value={fmt(cases.recoveries)}
+            tone="positive"
+            description={INDICATOR_TOOLTIPS.recoveries}
+          />
+          <MetricStat
+            label="Deaths"
+            value={fmt(deaths)}
+            tone="negative"
+            description={INDICATOR_TOOLTIPS.deaths}
+          />
+          <MetricStat
+            label="Case Fatality Rate"
+            value={formatRate(cfr)}
+            tone="warning"
+            description={INDICATOR_TOOLTIPS.caseFatalityRate}
+            wide
+          />
+        </dl>
+      </MetricCard>
+
+      <MetricCard tone="tests" icon="tests" title="Samples Tested">
+        <MetricBanner
+          tone="tests"
+          label="Total Tested"
+          value={labs.testsDone}
+          delta={labs.newTested24h}
+        />
+        <dl className="metric-card__stats">
+          <MetricStat
+            label="Positive"
+            value={fmt(labs.positive)}
+            tone="negative"
+            description={INDICATOR_TOOLTIPS.positiveTests}
+          />
+          <MetricStat
+            label="Negative"
+            value={fmt(labs.negative)}
+            tone="positive"
+            description={INDICATOR_TOOLTIPS.negativeTests}
+          />
+        </dl>
+      </MetricCard>
+
+      <MetricCard tone="screening" icon="screening" title="Screening" wide>
+        <MetricBanner
+          tone="screening"
+          label="Total Screened"
+          value={poe.totalScreened}
+          delta={poe.newScreened24h}
+        />
+        <dl className="metric-card__stats metric-card__stats--split">
+          <MetricStat
+            label="Screening points"
+            value={fmt(screeningPoints)}
+            description={INDICATOR_TOOLTIPS.screeningRecords}
+          />
+          <MetricStat
+            label="Contacts follow-up"
+            value={fmt(cases.contactsFollowedUp ?? 0)}
+            tone="warning"
+            description={INDICATOR_TOOLTIPS.contactsFollowedUp}
+          />
+        </dl>
+        <ScreeningTrend points={screeningTrendPoints(poe)} />
+      </MetricCard>
     </div>
   );
 }
@@ -232,8 +276,8 @@ export default function PublicLanding() {
       <section className="public-hero">
         <div className="public-hero__copy">
           <div>
-            <p className="public-label">Kenya Ebola surveillance</p>
-            <h1 className="public-hero__title">Current Ebola situation update</h1>
+            <p className="public-label">Kenya Surveillance System</p>
+            <h1 className="public-hero__title">Current Surveillance situation update</h1>
             <p className="public-hero__meta" aria-live="polite">
               {status === "error"
                 ? "Unable to load the current update."
@@ -258,27 +302,13 @@ export default function PublicLanding() {
       <section className="public-key-metrics" aria-label="Key public metrics">
         <div className="public-section-head">
           <h2>Key metrics</h2>
-          <p>Headline confirmed cases, recoveries, deaths, and total screened from the current national update.</p>
+          <p>Headline cases, laboratory samples tested, and point-of-entry screening from the current national update.</p>
         </div>
         {status === "ready" ? (
           <PublicKeyMetrics data={data} />
         ) : (
           <div className="public-loading public-loading--block">
             {status === "error" ? "Metrics unavailable" : "Loading metrics..."}
-          </div>
-        )}
-      </section>
-
-      <section className="public-tabs-section" aria-label="Testing figures">
-        <div className="public-section-head">
-          <h2>Detailed figures</h2>
-          <p>Supporting laboratory testing indicators.</p>
-        </div>
-        {status === "ready" ? (
-          <PublicTestFigures data={data} />
-        ) : (
-          <div className="public-loading public-loading--inline">
-            {status === "error" ? "Sections unavailable" : "Loading sections..."}
           </div>
         )}
       </section>
