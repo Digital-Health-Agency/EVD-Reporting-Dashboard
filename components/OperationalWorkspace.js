@@ -775,12 +775,12 @@ export default function OperationalWorkspace() {
         <div className="ops-hero__copy">
           <div>
             <span className="ops-kicker">Restricted operational workspace</span>
-            <h1>
+            <h1 className="ops-hero__title">
               Operation Dashboard
               <br />
               Staff Workspace
             </h1>
-            <p>Service-point workspaces, data filters and aggregate response queues for EOC teams. No patient or contact line lists are shown.</p>
+            <p className="ops-hero__meta">Service-point workspaces, data filters and aggregate response queues for EOC teams. No patient or contact line lists are shown.</p>
           </div>
           <div className="hero-tile__actions">
             <button

@@ -448,10 +448,27 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   /* full-bleed: break out of the .public-page container, edge to edge */
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  background: var(--color-navy);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--color-navy);
+  background-image: url("/images/evd-public-hero.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.public-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(7, 18, 37, 0.52);
+  pointer-events: none;
 }
 .public-hero__copy {
   /* Match .public-page content column: background bleeds, copy stays centered */
+  position: relative;
+  z-index: 1;
   max-width: 1240px;
   width: 100%;
   margin: 0 auto;
@@ -950,9 +967,12 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 
 @media (max-width: 540px) {
   .public-page { padding: 0 16px 40px; }
-  .public-hero__copy { padding: 24px 16px; }
-  .public-hero__title { margin-bottom: 12px; }
-  .public-label { margin-bottom: 12px; }
+  .public-hero__copy,
+  .ops-hero__copy { padding: 24px 16px; }
+  .public-hero__title,
+  .ops-hero__title { margin-bottom: 12px; }
+  .public-label,
+  .ops-kicker { margin-bottom: 12px; }
   .metric-banner { padding: 16px; }
   .metric-card__stats { grid-template-columns: 1fr; }
   .metric-trend__bars { gap: 5px; }
@@ -1785,16 +1805,33 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   /* full-bleed: break out of the .ops-page container, edge to edge */
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  background: var(--color-navy);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--color-navy);
+  background-image: url("/images/evd-operational-hero.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   color: #fff;
   border-radius: 0;
 }
+.ops-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(7, 18, 37, 0.56);
+  pointer-events: none;
+}
 .ops-hero__copy {
-  /* Match .ops-page content column: background bleeds, copy stays centered */
+  /* Match .ops-page / .public-hero__copy content column */
+  position: relative;
+  z-index: 1;
   max-width: 1240px;
   width: 100%;
   margin: 0 auto;
-  padding: clamp(28px, 4vw, 48px) 24px;
+  padding: clamp(32px, 5vw, 48px) 24px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -1802,24 +1839,25 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 .ops-kicker {
   display: block;
-  margin-bottom: 16px;
+  margin: 0 0 16px;
   color: #a6ddf1;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.ops-hero h1 {
-  margin: 0;
-  font-size: clamp(1.7rem, 3vw, 2.6rem);
+.ops-hero__title {
+  margin: 0 0 16px;
+  max-width: 700px;
+  font-size: clamp(2rem, 5vw, 4rem);
   line-height: 1.08;
 }
-.ops-hero p {
-  max-width: 680px;
-  margin: 16px 0 0;
+.ops-hero__meta {
+  margin: 0;
+  max-width: 650px;
   color: #d8e4ee;
-  font-size: 0.94rem;
-  line-height: 1.55;
+  line-height: 1.65;
+  font-size: 1rem;
 }
 .hero-tile__actions {
   display: flex;
@@ -2144,6 +2182,16 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 
 @media (max-width: 760px) {
+  .public-hero {
+    background-position: 70% center;
+  }
+  .ops-hero {
+    background-position: 72% center;
+  }
+  .public-hero::before,
+  .ops-hero::before {
+    background: rgba(7, 18, 37, 0.7);
+  }
   .ops-critical-grid,
   .ops-plain-grid,
   .ops-service-metric-grid,

@@ -463,11 +463,19 @@ Allowed:
 - Official logos.
 - Carefully selected health/public-service images for the public landing if
   they improve trust and do not obscure content.
+- Purpose-made documentary hero images for public and operational surfaces
+  when each image matches its audience: civic surveillance for the public
+  page and controlled laboratory response for the operational workspace.
+- Hero images with intentional low-detail copy zones, a navy fallback, and a
+  solid navy scrim that keeps all text and controls at accessible contrast.
+- Responsive `background-size: cover` crops with breakpoint-specific focal
+  positioning. Treat hero backgrounds as decorative; all meaning stays in
+  the page copy, and no patient identity or readable operational data appears.
 - Small illustrative icons for prevention/resource blocks.
 
 Avoid:
 
-- Dark blurred stock imagery behind critical text.
+- Generic or heavily blurred stock imagery behind critical text.
 - Graphic disease imagery.
 - Generic tech illustrations.
 - Decorative blobs, orbs, and abstract gradients.
