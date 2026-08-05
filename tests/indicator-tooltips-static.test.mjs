@@ -3,11 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("dashboard indicators expose concise tooltip definitions", async () => {
-  const [tooltips, dashboard, publicLanding, dashboardShell, operational, styles] = await Promise.all([
+  const [tooltips, publicLanding, operational, styles] = await Promise.all([
     readFile(new URL("../lib/indicator-tooltips.js", import.meta.url), "utf8"),
-    readFile(new URL("../components/Dashboard.js", import.meta.url), "utf8"),
     readFile(new URL("../components/PublicLanding.js", import.meta.url), "utf8"),
-    readFile(new URL("../components/DashboardShell.js", import.meta.url), "utf8"),
     readFile(new URL("../components/OperationalWorkspace.js", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
@@ -18,12 +16,10 @@ test("dashboard indicators expose concise tooltip definitions", async () => {
   assert.match(tooltips, /contactsListed: "Contacts registered/);
   assert.match(tooltips, /avgTat: "Average time from specimen collection/);
   assert.doesNotMatch(tooltips, /Pending results are not in the current schema/);
-  assert.match(dashboard, /label="Contacts listed"/);
-  assert.match(dashboard, /hint="Collection to result"/);
   assert.doesNotMatch(tooltips, /Gold/i);
 
-  assert.match(`${dashboard}\n${publicLanding}\n${dashboardShell}\n${operational}`, /indicator-tooltip-host/);
-  assert.match(`${dashboard}\n${publicLanding}\n${dashboardShell}`, /INDICATOR_TOOLTIPS/);
+  assert.match(`${publicLanding}\n${operational}`, /indicator-tooltip-host/);
+  assert.match(publicLanding, /INDICATOR_TOOLTIPS/);
   assert.match(styles, /\.indicator-tooltip__bubble/);
   assert.match(styles, /\.indicator-tooltip-host:hover \.indicator-tooltip__bubble/);
 });

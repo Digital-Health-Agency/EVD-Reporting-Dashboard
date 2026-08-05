@@ -9,13 +9,11 @@ import { displayName, initialsFor } from "@/lib/auth-user";
 
 const VARIANT_LABEL = {
   public: "Situation update",
-  executive: "Situation dashboard",
   operational: "Restricted workspace",
 };
 
 const DASHBOARD_LINKS = [
   { href: "/", label: "Public", key: "public" },
-  { href: "/executive", label: "Executive", key: "executive" },
   { href: "/operational", label: "Operational", key: "operational" },
 ];
 

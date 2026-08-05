@@ -207,9 +207,10 @@ First viewport should include:
 
 - Official identity.
 - Disease/outbreak name.
-- Current status and as-of timestamp.
-- Latest aggregate update state.
-- Key metrics immediately after the first block.
+- General public subtitle in the hero (not the as-of timestamp).
+- Updates band above key metrics: KNPHI situation-room label, Ebola Updates
+  title with red underline, and live as-of timestamp.
+- Key metrics immediately after the updates band.
 
 Use content like:
 
@@ -463,11 +464,23 @@ Allowed:
 - Official logos.
 - Carefully selected health/public-service images for the public landing if
   they improve trust and do not obscure content.
+- Purpose-made documentary hero images for public and operational surfaces
+  when each image matches its audience: civic surveillance for the public
+  page and controlled laboratory response for the operational workspace.
+- Hero images with intentional low-detail copy zones, a navy fallback, and a
+  solid navy scrim that keeps all text and controls at accessible contrast.
+- Responsive `background-size: cover` crops with breakpoint-specific focal
+  positioning. Treat hero backgrounds as decorative; all meaning stays in
+  the page copy, and no patient identity or readable operational data appears.
+- On authentication pages, use a purpose-made documentary health-security
+  image as the decorative identity pane and keep the form pane solid navy.
+  Place the cyan eyebrow, white heading, and pale supporting text with the
+  form so the access action remains legible and visually connected.
 - Small illustrative icons for prevention/resource blocks.
 
 Avoid:
 
-- Dark blurred stock imagery behind critical text.
+- Generic or heavily blurred stock imagery behind critical text.
 - Graphic disease imagery.
 - Generic tech illustrations.
 - Decorative blobs, orbs, and abstract gradients.
@@ -484,7 +497,7 @@ Voice:
 Examples:
 
 - "Current status"
-- "Last updated"
+- "As of"
 - "Report an alert"
 - "View executive dashboard"
 - "Results pending"
