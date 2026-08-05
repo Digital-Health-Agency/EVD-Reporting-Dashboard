@@ -68,3 +68,7 @@
 ## 4.3.0 (2026-07-22)
 - Align dashboard indicators with current gold reporting schema, refresh tooltips and contact metrics, remove deprecated jsconfig baseUrl, and add NDL warehouse mapping reference.
 
+
+## 4.4.0 (2026-08-05)
+- Refresh public and operational UI: full-bleed heroes, remove executive surface, add public health event selector, multi-disease branding, and re-enable production deploy webhook.
+
