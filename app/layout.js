@@ -2,7 +2,7 @@ import "./globals.css";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = {
-  title: "Kenya EVD Dashboard",
+  title: "Kenya Public Health Surveillance",
   description:
     "Ministry of Health national Ebola surveillance dashboard for public and operational response surfaces.",
 };
