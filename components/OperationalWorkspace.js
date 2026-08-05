@@ -552,7 +552,7 @@ function getServiceContent(key, data) {
         ["Admitted", "admitted", "num"],
         ["Deaths", "deaths", "num"],
       ],
-      notes: ["Review admission and outcome reconciliation before executive briefings.", "Keep facility-level records restricted to authenticated users."],
+      notes: ["Review admission and outcome reconciliation before situation briefings.", "Keep facility-level records restricted to authenticated users."],
     },
     community: {
       metrics: [
@@ -772,20 +772,26 @@ export default function OperationalWorkspace() {
   return (
     <main className="ops-page">
       <section className="ops-hero">
-        <div>
-          <span className="ops-kicker">Restricted operational workspace</span>
-          <h1>Operational Response Workspace</h1>
-          <p>Service-point workspaces, data filters and aggregate response queues for EOC teams. No patient or contact line lists are shown.</p>
-        </div>
-        <div className="hero-tile__actions">
-          <button
-            className="btn btn--secondary"
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            {refreshing ? "Refreshing..." : "Refresh"}
-          </button>
+        <div className="ops-hero__copy">
+          <div>
+            <span className="ops-kicker">Restricted operational workspace</span>
+            <h1 className="ops-hero__title">
+              Operation Dashboard
+              <br />
+              Staff Workspace
+            </h1>
+            <p className="ops-hero__meta">Service-point workspaces, data filters and aggregate response queues for EOC teams. No patient or contact line lists are shown.</p>
+          </div>
+          <div className="hero-tile__actions">
+            <button
+              className="btn btn--secondary"
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
       </section>
 
