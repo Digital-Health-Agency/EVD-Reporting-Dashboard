@@ -445,6 +445,9 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   width: 100%;
   background: var(--surface);
 }
+.public-hero.resources-hero {
+  background-image: url("/images/evd-resources-hero.webp");
+}
 .resources-page__frame {
   display: block;
   width: 100%;
