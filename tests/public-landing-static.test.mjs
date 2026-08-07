@@ -1,6 +1,20 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
+import { relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
+
+const appRoot = fileURLToPath(new URL("../app/", import.meta.url));
+
+async function routeFiles(directory = appRoot) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const nested = await Promise.all(entries.map(async (entry) => {
+    const path = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) return routeFiles(path);
+    return /^(?:page|route)\.[cm]?[jt]sx?$/.test(entry.name) ? [path] : [];
+  }));
+  return nested.flat();
+}
 
 test("public landing includes key metrics and testing figures", async () => {
   const source = await readFile(new URL("../components/PublicLanding.js", import.meta.url), "utf8");
@@ -33,4 +47,21 @@ test("public landing includes key metrics and testing figures", async () => {
   assert.doesNotMatch(source, /label: "Cases"/);
   assert.doesNotMatch(source, /Alerts/);
   assert.doesNotMatch(source, /Points of entry/);
+
+  assert.match(source, /label="Contacts follow-up"/);
+  assert.doesNotMatch(source, /contact_registration_key|source_contact_name|source_contact_identifier/);
+  assert.doesNotMatch(source, /\/linelist/);
+  assert.doesNotMatch(source, /components\/operational/);
+  assert.doesNotMatch(source, /LinelistModal|LinelistTable|LinelistPager|ColumnChooser|linelist-export/);
+  assert.doesNotMatch(source, /operational\/linelist/);
+});
+
+test("only the authenticated operational app route may import operational components", async () => {
+  for (const file of await routeFiles()) {
+    const route = relative(appRoot, file);
+    if (route.startsWith("operational/")) continue;
+
+    const source = await readFile(file, "utf8");
+    assert.doesNotMatch(source, /components\/operational/, route);
+  }
 });

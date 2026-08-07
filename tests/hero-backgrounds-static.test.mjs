@@ -13,12 +13,13 @@ function assertWebpAsset(asset) {
 }
 
 function ruleBody(styles, selector) {
-  const marker = `${selector} {`;
+  const marker = `\n${selector} {`;
   const start = styles.indexOf(marker);
   assert.notEqual(start, -1, `Missing ${selector} rule`);
-  const end = styles.indexOf("}", start + marker.length);
+  const bodyStart = start + marker.length;
+  const end = styles.indexOf("}", bodyStart);
   assert.notEqual(end, -1, `Unclosed ${selector} rule`);
-  return styles.slice(start + marker.length, end);
+  return styles.slice(bodyStart, end);
 }
 
 test("dashboard heroes use distinct generated WebP backgrounds with accessible scrims", async () => {
@@ -30,8 +31,10 @@ test("dashboard heroes use distinct generated WebP backgrounds with accessible s
 
   const publicHero = ruleBody(styles, ".public-hero");
   const publicScrim = ruleBody(styles, ".public-hero::before");
+  const publicCopy = ruleBody(styles, ".public-hero__copy");
   const operationalHero = ruleBody(styles, ".ops-hero");
   const operationalScrim = ruleBody(styles, ".ops-hero::before");
+  const operationalCopy = ruleBody(styles, ".ops-hero__copy");
 
   assert.match(publicHero, /background-color: var\(--color-navy\);/);
   assert.match(publicHero, /background-image: url\("\/images\/evd-public-hero\.webp"\);/);
@@ -44,6 +47,25 @@ test("dashboard heroes use distinct generated WebP backgrounds with accessible s
   assert.match(operationalHero, /background-repeat: no-repeat;/);
   assert.match(operationalHero, /background-size: cover;/);
   assert.match(operationalScrim, /background: rgba\(/);
+
+  for (const [name, copy] of [
+    ["public", publicCopy],
+    ["operational", operationalCopy],
+  ]) {
+    assert.match(copy, /max-width: 1240px;/, `${name} hero copy keeps the shared maximum width`);
+    assert.match(copy, /width: 100%;/, `${name} hero copy fills the centered container`);
+    assert.match(copy, /margin: 0 auto;/, `${name} hero copy remains centered`);
+    assert.match(
+      copy,
+      /padding: clamp\(32px, 5vw, 48px\) 24px;/,
+      `${name} hero copy keeps the shared desktop gutter`,
+    );
+  }
+  assert.match(
+    styles,
+    /\.public-hero__copy,\s*\.ops-hero__copy\s*\{ padding: 24px 16px; \}/,
+    "both hero copy containers share the compact 16px gutter",
+  );
 
   assertWebpAsset(publicAsset);
   assertWebpAsset(operationalAsset);

@@ -33,7 +33,6 @@ function MetricIcon({ name }) {
   return paths[name] || null;
 }
 
-/** "+3", "−5", "+0" — the last-24h change as shown on a metric banner. */
 function deltaLabel(value) {
   if (!Number.isFinite(value)) return null;
   return `${value < 0 ? "−" : "+"}${fmt(Math.abs(value))}`;
@@ -92,7 +91,6 @@ function MetricStat({ label, value, tone, description, wide }) {
   );
 }
 
-/** Whole numbers stay whole ("0%"), fractions keep one decimal ("2.4%"). */
 function formatRate(value) {
   if (!Number.isFinite(value)) return "--";
   return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
@@ -148,7 +146,6 @@ function PublicKeyMetrics({ data }) {
   const poe = data?.poe || {};
 
   const confirmed = Number.isFinite(cases.confirmed) ? cases.confirmed : 0;
-  //const deaths = cases.deaths;
   const deaths = 0;
   const cfr = confirmed > 0 ? (deaths / confirmed) * 100 : 0;
   const screeningPoints = (poe.byPoe || []).filter((point) => !point.unknown).length;
