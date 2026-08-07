@@ -15,7 +15,7 @@ dashboard app:
   uses real Better Auth sign-in and aggregate operations preview; sensitive
   line-level data remains out of the UI.
 
-The app directory is now `dashboard/`.
+The app directory is `app/`.
 
 ---
 
@@ -148,8 +148,9 @@ backend data pipelines, not on the public page.
 The current app already contains the executive dashboard implementation and
 backend-owned analytics integration:
 
-- `app/page.js` currently renders `DashboardShell`; this should move to
-  `/executive` as the app gains a public landing page.
+- `app/page.js` renders the public landing page (`AppHeader` +
+  `PublicLanding`); `DashboardShell` now lives at `/executive` behind
+  `ExecutiveAuthGate`.
 - `components/DashboardShell.js` owns Ebola refresh/polling, POE map
   switching, and loading/error states.
 - `components/Dashboard.js` renders the current executive situation report.
@@ -161,8 +162,11 @@ backend-owned analytics integration:
   `/api/analytics/metrics`, which is proxied to the NestJS backend.
 - The NestJS backend owns all analytics SQL and reads the restored Postgres
   `gold` schema through `ANALYTICS_DATABASE_URL`.
-- `lib/contracts.js` defines the UI-facing dashboard payload shape and empty
-  section factories.
+- `lib/contracts.js` still defines JSDoc payload typedefs and empty section
+  factories, but nothing in `app/`, `components/`, `lib/`, or `tests/` imports
+  it. It is leftover from the removed `lib/datasource/` seam, and its typedefs
+  still name retired `gold` tables, so it is not the live data contract. Treat
+  the backend analytics payload as authoritative.
 
 ## API Proxy Configuration
 
@@ -180,12 +184,11 @@ builds, but new deployments should prefer `SERVER_URL`.
 Current live data comes from backend analytics endpoints backed by Postgres
 `gold` tables where available:
 
-- `gold.report_case_summary`
-- `gold.report_case_trend`
-- `gold.report_case_distribution`
-- `gold.report_laboratory_summary`
-- `gold.report_screening_summary`
-- `gold.report_geographic_summary`
+- `gold.report_case_investigation`
+- `gold.report_contact_registration`
+- `gold.report_treatment_outcome`
+- `gold.report_lab_result`
+- `gold.report_screening`
 
 Sections without a backing gold indicator are surfaced as
 preview/awaiting-data sections and should not be filled with fake operational
@@ -229,11 +232,6 @@ app/
 |   |   `-- page.js          # Create login user
 |   `-- [id]/
 |       `-- page.js          # Edit login user
-|-- api/
-|   `-- metrics/
-|       |-- route.js
-|       `-- [disease]/
-|           `-- route.js
 `-- layout.js
 ```
 
@@ -243,7 +241,6 @@ Recommended component direction:
 components/
 |-- AppHeader.js             # Shared MoH / NEOC / DHA chrome
 |-- PublicLanding.js         # Public aggregate update page
-|-- ExecutiveDashboard.js    # Wrapper around the current DashboardShell
 |-- OperationalWorkspace.js  # Authenticated aggregate operations preview
 |-- auth/                    # Auth/profile/admin route gates
 |-- users/                   # User management components
@@ -255,7 +252,8 @@ components/
 Guiding principles:
 
 - Keep public, executive, and operational audiences separate.
-- Reuse the data-source seam rather than letting components query the warehouse.
+- Read metrics from the backend `/api/analytics/metrics` endpoint rather than
+  letting components query the warehouse.
 - Show provenance for every metric family.
 - Use aggregate-only data on the public page.
 - Keep operational data behind authentication once implemented.
@@ -309,9 +307,10 @@ work.
 - [Next.js](https://nextjs.org/) App Router
 - React
 - [Recharts](https://recharts.org/) for charts
-- Plain CSS, no UI framework
+- [Tailwind CSS](https://tailwindcss.com/) v4 (via `@tailwindcss/postcss`) with
+  [shadcn/ui](https://ui.shadcn.com/) primitives under `components/ui/`
 
-Requirements: Node.js 18.18+; Node 20+ recommended.
+Requirements: Node.js 20.9+ (required by Next.js 16).
 
 ---
 
@@ -351,7 +350,7 @@ The analytics API must preserve these behaviors:
 
 - Return a stable shape even when a mart is unavailable.
 - Mark unavailable sections as `pending` or `na` through provenance.
-- Keep SQL isolated in `server/src/modules/analytics`.
+- Keep SQL isolated in `EVD-Dashboard-Backend/src/modules/analytics`.
 - Query only the restored analytics `gold` schema for dashboard metrics.
 
 ---
