@@ -441,7 +441,7 @@ test("filter options come from gold, not from hard-coded arrays", async () => {
   );
 });
 
-test("the period control offers five options including a working custom range", async () => {
+test("the period control offers six options including all time and a working custom range", async () => {
   const src = await source();
 
   for (const label of [
@@ -449,11 +449,13 @@ test("the period control offers five options including a working custom range", 
     "Last 7 days",
     "Last 21 days",
     "Last 42 days",
-    "Custom date/time range",
+    "All time",
+    "Custom",
   ]) {
     assert.match(src, new RegExp(`"${label.replace(/\//g, "\\/")}"`));
   }
   assert.doesNotMatch(src, /Last 14 days/);
+  assert.doesNotMatch(src, /Custom date\/time range/);
 
   assert.match(src, /function CustomRangeControl/);
   assert.match(src, /<CustomRangeControl/);
@@ -856,5 +858,71 @@ test("every scoped Summary tone keeps all cascade-card content readable", async 
     css,
     /\.ops-summary \.ops-metric__linelist:focus-visible,[\s\S]*?outline:\s*3px solid var\(--ops-summary-focus\)/,
     "the explicit View linelist action needs a visible tone-aware keyboard focus ring",
+  );
+});
+
+test("From and To are always on screen and are filled from the window the server used", async () => {
+  const src = await source();
+
+  const filtersStart = src.indexOf("function OperationalTabFilters(");
+  assert.notEqual(filtersStart, -1, "OperationalTabFilters is missing");
+  const filtersEnd = src.indexOf("\nfunction ", filtersStart + 1);
+  const filtersBody = src.slice(filtersStart, filtersEnd === -1 ? undefined : filtersEnd);
+
+  assert.doesNotMatch(
+    filtersBody,
+    /CUSTOM_PERIOD_LABEL/,
+    "the pickers must not be gated on the selected period; the constant stays live elsewhere, so scope this check to the row builder",
+  );
+  assert.match(
+    filtersBody,
+    /if \(fieldKey !== "period"\) return \[select\];/,
+    "the only escape from the row builder is a non-period field — a second condition would hide the pickers again",
+  );
+
+  const workspaceStart = src.indexOf("export default function OperationalWorkspace(");
+  assert.notEqual(workspaceStart, -1, "OperationalWorkspace is missing");
+  const workspaceBody = src.slice(workspaceStart);
+
+  assert.match(
+    workspaceBody,
+    /tab\.payload\?\.meta\?\.window/,
+    "the fill reads the window the server actually queried, off the response payload",
+  );
+  assert.match(
+    workspaceBody,
+    /const period = PERIOD_OPTIONS\[filters\.period\];\s*\n\s*const span = PERIOD_SPAN_DAYS\[period\];/,
+    "the span comes from the selected period, not from the served window's own width",
+  );
+  assert.match(
+    workspaceBody,
+    /period === "all" \? served\?\.from : shiftIsoDate\(latest, -span\)/,
+    "for a bounded period the lower bound is the newest data minus that period — the served window.from is an envelope across five independently-anchored marts on Summary and can run 25x the period; All time is the one period that envelope actually describes",
+  );
+  assert.match(
+    workspaceBody,
+    /filters\.period === CUSTOM_PERIOD_LABEL/,
+    "the echo must stand down while the custom period is selected, or a response clobbers bounds the user typed",
+  );
+  assert.match(
+    workspaceBody,
+    /T00:00/,
+    "the mart serialises its bounds date-only, so the lower bound needs a midnight suffix for datetime-local",
+  );
+  assert.match(
+    workspaceBody,
+    /T23:59/,
+    "the upper bound needs an end-of-day suffix, or an echoed same-day window selects nothing",
+  );
+  assert.match(
+    workspaceBody,
+    /function handleCustomRangeChange\([\s\S]*?period: CUSTOM_PERIOD_LABEL/,
+    "only a user edit moves the dropdown to the custom entry; the fill never touches the period",
+  );
+
+  assert.doesNotMatch(
+    src,
+    /Date\.now\(\)|new Date\(\)/,
+    "the window comes from the response, never from the browser clock — the warehouse anchor trails today by over a week",
   );
 });
