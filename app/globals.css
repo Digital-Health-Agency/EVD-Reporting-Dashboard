@@ -271,18 +271,36 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   max-height: 42px;
   object-fit: contain;
 }
-.app-header__eyebrow {
+.app-header__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.app-header__nav-link {
   display: inline-flex;
   align-items: center;
   padding: 6px 12px;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--color-dha-cyan);
+  color: var(--muted);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  text-decoration: none;
   white-space: nowrap;
+}
+.app-header__nav-link:hover {
+  background: var(--accent-soft);
+  color: var(--color-dha-cyan);
+}
+.app-header__nav-link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.app-header__nav-link[aria-current="page"] {
+  background: var(--accent-soft);
+  color: var(--color-dha-cyan);
 }
 .app-header__partner {
   display: inline-flex;
@@ -307,7 +325,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .app-header__main { padding: 12px 16px; gap: 14px; }
   .app-header__brand img { height: 36px; max-height: 36px; }
   .app-header__partner img { height: 28px; }
-  .app-header__eyebrow { padding: 5px 10px; font-size: 0.68rem; }
+  .app-header__nav-link { padding: 5px 10px; font-size: 0.68rem; }
 }
 
 @media (max-width: 640px) {
@@ -325,10 +343,12 @@ a:focus-visible, button:focus-visible, select:focus-visible {
     padding: 10px 14px;
     gap: 10px;
   }
-  .app-header__eyebrow {
+  .app-header__nav {
     order: 3;
     flex-basis: 100%;
     justify-content: center;
+  }
+  .app-header__nav-link {
     padding: 5px 10px;
   }
   .app-header__partner span { display: none; }
@@ -3219,6 +3239,11 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin-top: 24px;
+}
+/* Tabs with more than three indicators pin to three per row so the cards wrap
+   into even rows instead of stretching to whatever auto-fit allows. */
+.ops-service-metric-grid--three-up {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .ops-service-detail-grid {
   display: grid;

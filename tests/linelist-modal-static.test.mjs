@@ -299,3 +299,40 @@ test("linelist modal initiates native export with an honest preparation-only sta
   assert.doesNotMatch(source, /onProgress|rowsExported|EXPORT_PROGRESS_THROTTLE/);
   assert.doesNotMatch(source, /download (?:complete|completed|failed)/i);
 });
+
+test("an unavailable entry opens the modal without reaching for an endpoint", async () => {
+  const source = await readFile(modalUrl, "utf8");
+
+  assert.match(source, /const unavailable = Boolean\(entry\?\.unavailable\)/);
+  assert.match(
+    source,
+    /const path = entry && !unavailable \? DATASET_PATHS\[entry\.dataset\] : null/,
+  );
+  assert.match(source, /if \(!path \|\| !paramsKey\) return;/);
+  assert.match(source, /if \(!path \|\| !paramsKey \|\| preparingExport\) return;/);
+});
+
+test("an unavailable entry falls through to the standard empty state", async () => {
+  const source = await readFile(modalUrl, "utf8");
+
+  assert.doesNotMatch(source, /UnavailableState/);
+  assert.match(
+    source,
+    /\{error \? \(\s*<ErrorState[\s\S]*?\) : !loading && total === 0 \? \(\s*<EmptyState noun=\{entry\.noun\}/,
+  );
+  assert.match(source, /No records in this selection/);
+  assert.match(source, /No \{noun\} match the current filters\. Widen the period or clear a filter\./);
+});
+
+test("an unavailable entry hides every control that would need records", async () => {
+  const source = await readFile(modalUrl, "utf8");
+
+  assert.match(source, /\{unavailable \? null : exportError \? \(/);
+  assert.match(source, /\{unavailable \? null : \(\s*<button\s*className="btn btn--primary ops-linelist__export"/);
+  assert.match(source, /\{unavailable \? null : \(\s*<ColumnChooser/);
+
+  assert.doesNotMatch(
+    source,
+    /\{unavailable \? null : \([\s\S]{0,80}<div className="ops-linelist__search">/,
+  );
+});

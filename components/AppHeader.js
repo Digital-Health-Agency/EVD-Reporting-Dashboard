@@ -7,15 +7,20 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { displayName, initialsFor } from "@/lib/auth-user";
 
-const VARIANT_LABEL = {
-  public: "Situation update",
-  operational: "Restricted workspace",
-};
-
 const DASHBOARD_LINKS = [
   { href: "/", label: "Public", key: "public" },
   { href: "/operational", label: "Operational", key: "operational" },
 ];
+
+const NAV_LINKS = [
+  ...DASHBOARD_LINKS,
+  { href: "/resources", label: "Resources" },
+];
+
+function isCurrentNavLink(pathname, href) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname?.startsWith(`${href}/`);
+}
 
 function PhoneIcon() {
   return (
@@ -43,7 +48,6 @@ function ChevronDownIcon() {
 }
 
 export default function AppHeader({ variant = "public" }) {
-  const label = VARIANT_LABEL[variant] || VARIANT_LABEL.public;
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, isPending, logout } = useAuth();
@@ -130,9 +134,18 @@ export default function AppHeader({ variant = "public" }) {
           />
         </Link>
 
-        <span className="app-header__eyebrow" aria-label={`Current surface: ${label}`}>
-          {label}
-        </span>
+        <nav className="app-header__nav" aria-label="Primary">
+          {NAV_LINKS.map((item) => (
+            <Link
+              key={item.href}
+              className="app-header__nav-link"
+              href={item.href}
+              aria-current={isCurrentNavLink(pathname, item.href) ? "page" : undefined}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
         <div className="app-header__partner">
           <span>Powered by</span>
