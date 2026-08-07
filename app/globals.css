@@ -1155,6 +1155,24 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   }
 }
 
+/* ---------- Embedded resource library ---------- */
+.resources-page {
+  width: 100%;
+  background: var(--surface);
+}
+.public-hero.resources-hero {
+  background-image: url("/images/evd-resources-hero.webp");
+}
+.resources-page__frame {
+  display: block;
+  width: 100%;
+  height: 900px;
+  border: 0;
+}
+.resources-page + .site-footer {
+  margin-top: 0;
+}
+
 /* ---------- Public landing ---------- */
 .public-page { max-width: 1240px; margin: 0 auto; padding: 0 24px 64px; }
 .public-hero {
