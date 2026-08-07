@@ -12,7 +12,12 @@ const SHIPPING_KEYS = [
   "labs.positiveTests",
   "labs.negativeTests",
   "poe.travellersScreened",
+  "hf.screened",
   "hf.alerts",
+  "hf.confirmed",
+  "hf.currentAdmitted",
+  "hf.recovered",
+  "hf.deaths",
   "contacts.contactsListed",
   "community.signalsReported",
   "community.signalsVerified",
@@ -20,13 +25,10 @@ const SHIPPING_KEYS = [
   "summary.confirmedCases",
   "summary.deaths",
   "summary.recovered",
+  "summary.currentAdmitted",
 ];
 
 const WITHHELD_KEYS = [
-  "hf.confirmed",
-  "hf.currentAdmitted",
-  "hf.recovered",
-  "hf.deaths",
   "contacts.dueToday",
   "contacts.reached",
   "contacts.symptomatic",
@@ -57,15 +59,75 @@ test("the authored map contains exactly the live-reconciled shipping keys", () =
 
 test("every map entry names a valid dataset, predicate, label, and noun", () => {
   for (const [key, entry] of Object.entries(CARD_LINELIST_MAP)) {
-    assert.equal(DATASETS.has(entry.dataset), true, `${key} dataset`);
     assert.equal(Object.getPrototypeOf(entry.predicate), Object.prototype, `${key} predicate`);
     assert.equal(typeof entry.listLabel, "string", `${key} listLabel`);
     assert.notEqual(entry.listLabel.trim(), "", `${key} listLabel`);
     assert.equal(typeof entry.noun, "string", `${key} noun`);
     assert.notEqual(entry.noun.trim(), "", `${key} noun`);
+
+    if (entry.unavailable) {
+      assert.equal(entry.dataset, null, `${key} dataset`);
+      assert.equal(DATASET_PATHS[entry.dataset], undefined, `${key} path`);
+      continue;
+    }
+
+    assert.equal(DATASETS.has(entry.dataset), true, `${key} dataset`);
     assert.equal(typeof DATASET_PATHS[entry.dataset], "string", `${key} path`);
     assert.notEqual(DATASET_PATHS[entry.dataset].trim(), "", `${key} path`);
   }
+});
+
+test("the fixed-zero cards are exactly the entries with no dataset behind them", () => {
+  const unavailable = Object.entries(CARD_LINELIST_MAP)
+    .filter(([, entry]) => entry.unavailable)
+    .map(([key]) => key)
+    .sort();
+
+  assert.deepEqual(unavailable, [
+    "hf.confirmed",
+    "hf.currentAdmitted",
+    "hf.deaths",
+    "hf.recovered",
+    "summary.currentAdmitted",
+  ]);
+
+  assert.deepEqual(CARD_LINELIST_MAP["summary.currentAdmitted"], {
+    dataset: null,
+    predicate: {},
+    listLabel: "Current admitted",
+    noun: "cases",
+    unavailable: true,
+  });
+  assert.deepEqual(CARD_LINELIST_MAP["hf.deaths"], {
+    dataset: null,
+    predicate: {},
+    listLabel: "Deaths",
+    noun: "patients",
+    unavailable: true,
+  });
+});
+
+test("the card still offers the affordance once current admitted reports zero", () => {
+  const card = {
+    key: "currentAdmitted",
+    value: 0,
+    provenance: { source: "live" },
+    meta: { dataQualityStatus: "provisional" },
+  };
+
+  assert.equal(
+    linelistFor("summary", card),
+    CARD_LINELIST_MAP["summary.currentAdmitted"],
+  );
+});
+
+test("Health Facilities screened uses the facility scope without the flagged filter", () => {
+  assert.deepEqual(CARD_LINELIST_MAP["hf.screened"], {
+    dataset: "screenings",
+    predicate: { screeningScope: "facility" },
+    listLabel: "Facility screenings",
+    noun: "screenings",
+  });
 });
 
 test("Health Facilities alerts use the facility screening scope", () => {

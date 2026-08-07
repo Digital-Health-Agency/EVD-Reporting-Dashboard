@@ -23,11 +23,45 @@ export const CARD_LINELIST_MAP = Object.freeze({
     listLabel: "Traveller screenings",
     noun: "screenings",
   },
+  "hf.screened": {
+    dataset: "screenings",
+    predicate: { screeningScope: "facility" },
+    listLabel: "Facility screenings",
+    noun: "screenings",
+  },
   "hf.alerts": {
     dataset: "screenings",
     predicate: { screeningScope: "facility", screeningFlagged: "true" },
     listLabel: "Facility screening alerts",
     noun: "screenings",
+  },
+  "hf.confirmed": {
+    dataset: null,
+    predicate: {},
+    listLabel: "Confirmed",
+    noun: "cases",
+    unavailable: true,
+  },
+  "hf.currentAdmitted": {
+    dataset: null,
+    predicate: {},
+    listLabel: "Current admitted",
+    noun: "patients",
+    unavailable: true,
+  },
+  "hf.recovered": {
+    dataset: null,
+    predicate: {},
+    listLabel: "Recovered",
+    noun: "patients",
+    unavailable: true,
+  },
+  "hf.deaths": {
+    dataset: null,
+    predicate: {},
+    listLabel: "Deaths",
+    noun: "patients",
+    unavailable: true,
   },
   "contacts.contactsListed": {
     dataset: "contacts",
@@ -70,6 +104,13 @@ export const CARD_LINELIST_MAP = Object.freeze({
     predicate: { treatmentOutcome: "RECOVERED" },
     listLabel: "Recovered patients",
     noun: "treatment outcomes",
+  },
+  "summary.currentAdmitted": {
+    dataset: null,
+    predicate: {},
+    listLabel: "Current admitted",
+    noun: "cases",
+    unavailable: true,
   },
 });
 

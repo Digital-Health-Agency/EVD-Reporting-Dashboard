@@ -161,7 +161,8 @@ export default function LinelistModal({ open, onClose, entry, tabParams }) {
   const [exportError, setExportError] = useState(false);
   const requestRef = useRef(0);
 
-  const path = entry ? DATASET_PATHS[entry.dataset] : null;
+  const unavailable = Boolean(entry?.unavailable);
+  const path = entry && !unavailable ? DATASET_PATHS[entry.dataset] : null;
   const paramsKey = entry
     ? JSON.stringify(buildLinelistParams(entry, tabParams, {
       q: debouncedQ,
@@ -289,7 +290,7 @@ export default function LinelistModal({ open, onClose, entry, tabParams }) {
               ) : null}
             </div>
             <div className="ops-linelist__head-actions">
-              {exportError ? (
+              {unavailable ? null : exportError ? (
                 <div className="ops-linelist__export-error" role="alert">
                   <span>Export could not be started.</span>
                   <button className="btn btn--secondary" type="button" onClick={handleExport}>
@@ -297,16 +298,18 @@ export default function LinelistModal({ open, onClose, entry, tabParams }) {
                   </button>
                 </div>
               ) : null}
-              <button
-                className="btn btn--primary ops-linelist__export"
-                type="button"
-                disabled={preparingExport}
-                aria-busy={preparingExport}
-                onClick={handleExport}
-              >
-                <DownloadGlyph />
-                {preparingExport ? "Preparing download…" : "Export CSV"}
-              </button>
+              {unavailable ? null : (
+                <button
+                  className="btn btn--primary ops-linelist__export"
+                  type="button"
+                  disabled={preparingExport}
+                  aria-busy={preparingExport}
+                  onClick={handleExport}
+                >
+                  <DownloadGlyph />
+                  {preparingExport ? "Preparing download…" : "Export CSV"}
+                </button>
+              )}
               <Dialog.Close className="ops-linelist__head-close" aria-label="Close">×</Dialog.Close>
             </div>
           </header>
@@ -337,12 +340,14 @@ export default function LinelistModal({ open, onClose, entry, tabParams }) {
                 >×</button>
               ) : null}
             </div>
-            <ColumnChooser
-              allColumns={availableColumns}
-              chosen={chosen ?? columns.map((column) => column.name)}
-              defaults={defaults ?? columns.map((column) => column.name)}
-              onChange={setChosen}
-            />
+            {unavailable ? null : (
+              <ColumnChooser
+                allColumns={availableColumns}
+                chosen={chosen ?? columns.map((column) => column.name)}
+                defaults={defaults ?? columns.map((column) => column.name)}
+                onChange={setChosen}
+              />
+            )}
             <Dialog.Description aria-live="polite">{countText(payload)}</Dialog.Description>
           </div>
 
