@@ -80,10 +80,25 @@ const PERIOD_OPTIONS = {
   "Last 7 days": "7d",
   "Last 21 days": "21d",
   "Last 42 days": "42d",
-  "Custom date/time range": "custom",
+  "All time": "all",
+  "Custom": "custom",
 };
 
-const CUSTOM_PERIOD_LABEL = "Custom date/time range";
+const CUSTOM_PERIOD_LABEL = "Custom";
+
+const PERIOD_SPAN_DAYS = {
+  "24h": 1,
+  "7d": 7,
+  "21d": 21,
+  "42d": 42,
+};
+
+function shiftIsoDate(isoDate, deltaDays) {
+  const parsed = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  parsed.setUTCDate(parsed.getUTCDate() + deltaDays);
+  return parsed.toISOString().slice(0, 10);
+}
 
 const FILTER_VALUE_MAP = {
   period: PERIOD_OPTIONS,
@@ -123,42 +138,42 @@ const OPERATIONAL_TABS = [
     key: "summary",
     label: "Summary",
     title: "Operational summary",
-    description: "Cross-service workload, alerts, data quality and action status for the EOC.",
+    description: "Alerts, confirmed cases and treatment outcomes across services, with daily signal and sample flow.",
     emptyNoun: "records",
   },
   {
     key: "labs",
     label: "Laboratory",
     title: "Laboratory",
-    description: "Sample flow, result status, turnaround time and pending communication queues.",
+    description: "Tests done and their positive or negative result status, broken down by testing laboratory.",
     emptyNoun: "lab results",
   },
   {
     key: "poe",
     label: "POE",
     title: "Points of entry",
-    description: "Traveller screening, secondary-screening alerts, suspected cases and contacts listed at ports of entry.",
+    description: "Traveller screening volume at ports of entry, broken down by point of entry.",
     emptyNoun: "screenings",
   },
   {
     key: "hf",
     label: "Health facilities",
     title: "Health facilities",
-    description: "Facility screening alerts and confirmed assessments, with admission and outcome indicators.",
+    description: "Facility screening volume and alerts, with confirmed, admission and outcome indicators by facility.",
     emptyNoun: "facility screenings",
   },
   {
     key: "community",
     label: "Community",
     title: "Community",
-    description: "Community signals reported and verified across the community-based surveillance systems.",
+    description: "EVD community signals reported and verified through mDharura, broken down by county.",
     emptyNoun: "community signals",
   },
   {
     key: "contacts",
     label: "Contacts",
     title: "Contacts",
-    description: "Contacts listed and classified through the 21-day follow-up window.",
+    description: "Contacts registered from case investigations, broken down by county.",
     emptyNoun: "contacts",
   },
   {
@@ -368,7 +383,7 @@ function CardBreakdown({ entries }) {
           {entry.value === null || entry.value === undefined ? (
             <em aria-label="Not available">{EM_DASH}</em>
           ) : (
-            <em>{fmt(entry.value)}</em>
+            <em>{cardValue(entry)}</em>
           )}
         </span>
       ))}
@@ -445,9 +460,6 @@ function OperationalTabFilters({
   });
   if (fields.length === 0) return null;
 
-  const showCustomRange =
-    fields.includes("period") && filters.period === CUSTOM_PERIOD_LABEL;
-
   return (
     <section className="ops-tab-filter-panel" aria-label={`${activeTab.label} data filters`}>
       {fields.flatMap((fieldKey) => {
@@ -461,7 +473,7 @@ function OperationalTabFilters({
             loading={optionsLoading}
           />
         );
-        if (fieldKey !== "period" || !showCustomRange) return [select];
+        if (fieldKey !== "period") return [select];
         return [
           select,
           <CustomRangeControl
@@ -1048,7 +1060,12 @@ function ServiceDetailTab({ activeTab, payload, onViewLinelist }) {
     <section className="ops-service-detail" aria-label={`${activeTab.label} detail`}>
       <DetailHead activeTab={activeTab} />
 
-      <section className="ops-service-metric-grid" aria-label={`${activeTab.label} indicators`}>
+      <section
+        className={`ops-service-metric-grid${
+          payload.cards.length > 3 ? " ops-service-metric-grid--three-up" : ""
+        }`}
+        aria-label={`${activeTab.label} indicators`}
+      >
         {payload.cards.map((card) => (
           <MetricCard
             key={card.key}
@@ -1136,8 +1153,38 @@ export default function OperationalWorkspace() {
     setOpenLinelist(null);
   }, [activeTabKey, filters, customRange]);
 
+  useEffect(() => {
+    if (filters.period === CUSTOM_PERIOD_LABEL) return;
+    const served = tab.payload?.meta?.window;
+    const latest = served?.to;
+    if (typeof latest !== "string" || !latest) return;
+
+    const period = PERIOD_OPTIONS[filters.period];
+    const span = PERIOD_SPAN_DAYS[period];
+    // All time is the one period whose served lower bound is meaningful: it is
+    // the true start of the data, not an envelope over several report windows.
+    const earliest = period === "all" ? served?.from : shiftIsoDate(latest, -span);
+    if (typeof earliest !== "string" || !earliest) return;
+
+    const next = { from: `${earliest}T00:00`, to: `${latest}T23:59` };
+    setCustomRange((current) =>
+      current.from === next.from && current.to === next.to ? current : next,
+    );
+  }, [filters.period, tab.payload]);
+
   function updateFilter(key, value) {
     setFilters((current) => ({ ...current, [key]: value }));
+  }
+
+  function handleCustomRangeChange(next) {
+    setCustomRange((current) =>
+      current.from === next.from && current.to === next.to ? current : next,
+    );
+    setFilters((current) =>
+      current.period === CUSTOM_PERIOD_LABEL
+        ? current
+        : { ...current, period: CUSTOM_PERIOD_LABEL },
+    );
   }
 
   function clearFilters() {
@@ -1248,7 +1295,7 @@ export default function OperationalWorkspace() {
             filters={filters}
             onChange={updateFilter}
             customRange={customRange}
-            onCustomRangeChange={setCustomRange}
+            onCustomRangeChange={handleCustomRangeChange}
             options={filterOptions.options}
             optionsLoading={filterOptions.loading}
             filtersDirty={filtersDirty}
