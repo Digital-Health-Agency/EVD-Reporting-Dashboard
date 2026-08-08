@@ -3102,6 +3102,14 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   color: var(--muted);
   font-size: 0.875rem;
 }
+.ops-breakdown-pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+.ops-breakdown-pager .ops-linelist__pager {
+  margin-right: 0;
+}
 .ops-custom-range {
   display: contents;
 }

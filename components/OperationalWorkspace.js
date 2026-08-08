@@ -19,6 +19,7 @@ import { fmt } from "@/lib/format";
 import { api } from "@/lib/api-client";
 import { useAuth } from "@/hooks/use-auth";
 import LinelistModal from "@/components/operational/LinelistModal";
+import LinelistPager from "@/components/operational/LinelistPager";
 import {
   linelistFor,
   rowLinelistEntry,
@@ -27,6 +28,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import UsersManagement from "@/components/users/UsersManagement";
 
 const EM_DASH = "—";
+
+const BREAKDOWN_PAGE_SIZE = 10;
 
 const DISPLAY_TIME_ZONE = "Africa/Nairobi";
 
@@ -732,6 +735,20 @@ function ServiceChart({ chart, onViewLinelist }) {
 
 function ServiceTable({ breakdown, emptyNoun, onViewLinelist }) {
   const [firstColumn] = breakdown.columns;
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(breakdown.rows.length / BREAKDOWN_PAGE_SIZE),
+  );
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * BREAKDOWN_PAGE_SIZE;
+  const pageRows = breakdown.rows.slice(pageStart, pageStart + BREAKDOWN_PAGE_SIZE);
+  
+  useEffect(() => {
+    setPage(1);
+  }, [breakdown]);
+
   if (breakdown.rows.length === 0) return <TabEmpty noun={emptyNoun} />;
 
   return (
@@ -748,7 +765,7 @@ function ServiceTable({ breakdown, emptyNoun, onViewLinelist }) {
             </tr>
           </thead>
           <tbody>
-            {breakdown.rows.map((row, index) => {
+            {pageRows.map((row, index) => {
               const entry = rowLinelistEntry(breakdown, row);
 
               return (
@@ -806,6 +823,9 @@ function ServiceTable({ breakdown, emptyNoun, onViewLinelist }) {
             })}
           </tbody>
         </table>
+      </div>
+      <div className="ops-breakdown-pager">
+        <LinelistPager page={currentPage} totalPages={totalPages} onPage={setPage} />
       </div>
       {breakdown.shown < breakdown.total ? (
         <p className="ops-truncation-note">
@@ -1161,8 +1181,6 @@ export default function OperationalWorkspace() {
 
     const period = PERIOD_OPTIONS[filters.period];
     const span = PERIOD_SPAN_DAYS[period];
-    // All time is the one period whose served lower bound is meaningful: it is
-    // the true start of the data, not an envelope over several report windows.
     const earliest = period === "all" ? served?.from : shiftIsoDate(latest, -span);
     if (typeof earliest !== "string" || !earliest) return;
 
