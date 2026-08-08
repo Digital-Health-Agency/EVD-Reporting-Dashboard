@@ -207,6 +207,22 @@ function truncateCategory(value) {
   return `${text.slice(0, Y_AXIS_LABEL_MAX - 1)}…`;
 }
 
+const SHORT_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function categoryTick(value) {
+  const text = String(value ?? "");
+  const iso = ISO_DATE.exec(text);
+  if (!iso) return text;
+  const month = SHORT_MONTHS[Number(iso[2]) - 1];
+  if (!month) return text;
+  return `${Number(iso[3])} ${month}`;
+}
+
 function Chart({ height = 300, children }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -706,7 +722,15 @@ function ServiceChart({ chart, onViewLinelist }) {
         </>
       ) : (
         <>
-          <XAxis dataKey={chart.categoryKey} {...axisProps} />
+          <XAxis
+            dataKey={chart.categoryKey}
+            {...axisProps}
+            tickFormatter={categoryTick}
+            interval={0}
+            angle={-90}
+            textAnchor="end"
+            height={64}
+          />
           <YAxis {...axisProps} allowDecimals={false} />
         </>
       )}
@@ -1097,14 +1121,16 @@ function ServiceDetailTab({ activeTab, payload, onViewLinelist }) {
       </section>
 
       <div className="ops-service-detail-grid">
-        {payload.charts.map((chart) => (
-          <ChartPanel
-            key={chart.key}
-            chart={chart}
-            emptyNoun={activeTab.emptyNoun}
-            onViewLinelist={onViewLinelist}
-          />
-        ))}
+        {payload.charts
+          .filter((chart) => !chart.fullWidth)
+          .map((chart) => (
+            <ChartPanel
+              key={chart.key}
+              chart={chart}
+              emptyNoun={activeTab.emptyNoun}
+              onViewLinelist={onViewLinelist}
+            />
+          ))}
 
         {payload.breakdown ? (
           <div className="ops-panel">
@@ -1118,6 +1144,18 @@ function ServiceDetailTab({ activeTab, payload, onViewLinelist }) {
             />
           </div>
         ) : null}
+
+        {payload.charts
+          .filter((chart) => chart.fullWidth)
+          .map((chart) => (
+            <div className="ops-service-detail-grid__full" key={chart.key}>
+              <ChartPanel
+                chart={chart}
+                emptyNoun={activeTab.emptyNoun}
+                onViewLinelist={onViewLinelist}
+              />
+            </div>
+          ))}
       </div>
     </section>
   );

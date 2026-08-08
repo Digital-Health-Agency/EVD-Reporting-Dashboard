@@ -3259,6 +3259,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   gap: 16px;
   margin-top: 24px;
 }
+.ops-service-detail-grid__full {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
 .ops-drill-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
