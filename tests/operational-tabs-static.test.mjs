@@ -1136,3 +1136,41 @@ test("From and To are always on screen and are filled from the window the server
     "the window comes from the response, never from the browser clock — the warehouse anchor trails today by over a week",
   );
 });
+
+test("the custom range floor comes from the API, and is written down nowhere else", async () => {
+  const src = await source();
+
+  assert.doesNotMatch(
+    src,
+    /2026-05-15/,
+    "a second copy of the outbreak start date in the dashboard is exactly what serving it on the payload is meant to prevent",
+  );
+
+  const workspaceStart = src.indexOf("export default function OperationalWorkspace(");
+  assert.notEqual(workspaceStart, -1, "OperationalWorkspace is missing");
+  const workspaceBody = src.slice(workspaceStart);
+
+  assert.match(
+    workspaceBody,
+    /tab\.payload\?\.meta\?\.surveillanceEvent\?\.startDate/,
+    "the floor is read off the tab payload the workspace already fetches",
+  );
+  assert.match(
+    workspaceBody,
+    /customRangeMin=\{customRangeMin\}/,
+    "the derived floor reaches the filter row",
+  );
+
+  const controlStart = src.indexOf("function CustomRangeControl(");
+  assert.notEqual(controlStart, -1, "CustomRangeControl is missing");
+  const controlEnd = src.indexOf("\nfunction ", controlStart + 1);
+  const controlBody = src.slice(controlStart, controlEnd === -1 ? undefined : controlEnd);
+
+  const minAttributes = controlBody.match(/min=\{min \|\| undefined\}/g);
+  assert.ok(Array.isArray(minAttributes), "the min attribute is missing entirely");
+  assert.equal(
+    minAttributes.length,
+    2,
+    "both the From and the To picker carry the floor; one alone still offers a pre-outbreak date",
+  );
+});
