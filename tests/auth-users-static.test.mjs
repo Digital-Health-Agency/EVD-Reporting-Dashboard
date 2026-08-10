@@ -6,6 +6,9 @@ async function source(path) {
   return readFile(new URL(path, import.meta.url), "utf8");
 }
 
+const SINGULAR_ROLE_COMPARISON =
+  /(?:["'](?:user|admin|surveillance)["']\s*(?:===|!==)|(?:===|!==)\s*["'](?:user|admin|surveillance)["'])/;
+
 test("dashboard auth utilities use Better Auth with the EVD app id", async () => {
   const [authClient, apiClient, appId, nextConfig, apiProxyConfig] =
     await Promise.all([
@@ -30,6 +33,95 @@ test("dashboard auth utilities use Better Auth with the EVD app id", async () =>
   assert.match(nextConfig, /resolveApiProxyUrl/);
   assert.match(apiProxyConfig, /SERVER_URL/);
   assert.match(apiProxyConfig, /NEXT_PUBLIC_SERVER_URL/);
+});
+
+test("lib/auth-user reads the role as a set instead of collapsing it to two values", async () => {
+  const {
+    AUTH_ROLES,
+    AUTH_ROLE_LABELS,
+    parseRoles,
+    hasRole,
+    normalizeRoleString,
+    normalizeAuthUser,
+    roleLabel,
+  } = await import("../lib/auth-user.js");
+
+  assert.deepEqual([...AUTH_ROLES], ["user", "admin", "surveillance"]);
+  assert.equal(typeof parseRoles, "function");
+  assert.equal(typeof hasRole, "function");
+  assert.equal(typeof normalizeRoleString, "function");
+
+  assert.deepEqual(parseRoles("admin,surveillance"), ["admin", "surveillance"]);
+  assert.deepEqual(parseRoles("surveillance, admin"), ["admin", "surveillance"]);
+  assert.deepEqual(parseRoles("ADMIN"), ["admin"]);
+  assert.deepEqual(parseRoles("admin,admin"), ["admin"]);
+  assert.deepEqual(parseRoles("root"), []);
+  assert.deepEqual(parseRoles("surveillance-lead"), []);
+  assert.deepEqual(parseRoles(undefined), []);
+  assert.deepEqual(parseRoles(null), []);
+  assert.deepEqual(parseRoles(""), []);
+
+  assert.equal(normalizeRoleString("surveillance, admin"), "admin,surveillance");
+  assert.equal(normalizeRoleString("root"), "user");
+
+  assert.equal(normalizeAuthUser({ role: "admin,surveillance" }).role, "admin,surveillance");
+  assert.equal(normalizeAuthUser({ role: "surveillance, admin" }).role, "admin,surveillance");
+  assert.equal(normalizeAuthUser({ role: "surveillance, admin" }).role.includes(" "), false);
+  assert.equal(normalizeAuthUser({ role: "root" }).role, "user");
+  assert.equal(normalizeAuthUser({}).role, "user");
+
+  assert.equal(hasRole("admin,surveillance", "admin"), true);
+  assert.equal(hasRole("admin,surveillance", "surveillance"), true);
+  assert.equal(hasRole("surveillance", "admin"), false);
+
+  assert.equal(AUTH_ROLE_LABELS.user, "User");
+  assert.equal(AUTH_ROLE_LABELS.admin, "Admin");
+  assert.equal(AUTH_ROLE_LABELS.surveillance, "Surveillance");
+
+  const compound = roleLabel("admin,surveillance");
+  assert.match(compound, /Admin/);
+  assert.match(compound, /Surveillance/);
+  assert.equal(roleLabel("user"), "User");
+  assert.equal(roleLabel(undefined), "User");
+});
+
+test("the client derives every role right from the parsed set, never from a whole-string comparison", async () => {
+  const [authUser, useAuthHook] = await Promise.all([
+    source("../lib/auth-user.js"),
+    source("../hooks/use-auth.js"),
+  ]);
+
+  assert.match(useAuthHook, /isSurveillance/);
+  assert.match(useAuthHook, /hasRole\(role, "admin"\)/);
+  assert.match(useAuthHook, /hasRole\(role, "surveillance"\)/);
+  assert.doesNotMatch(authUser, SINGULAR_ROLE_COMPARISON);
+  assert.doesNotMatch(useAuthHook, SINGULAR_ROLE_COMPARISON);
+});
+
+test("the users table and the user form carry a compound role without losing a role name", async () => {
+  const [usersManagement, userForm, styles] = await Promise.all([
+    source("../components/users/UsersManagement.js"),
+    source("../components/users/UserForm.js"),
+    source("../app/globals.css"),
+  ]);
+
+  assert.match(usersManagement, /parseRoles/);
+  assert.match(usersManagement, /AUTH_ROLE_LABELS/);
+  assert.match(usersManagement, /account-pill-group/);
+  assert.doesNotMatch(usersManagement, SINGULAR_ROLE_COMPARISON);
+
+  assert.match(userForm, /type="checkbox"/);
+  assert.match(userForm, /checked=\{form\.surveillance\}/);
+  assert.match(userForm, /surveillance: event\.target\.checked/);
+  assert.match(userForm, /roles\.join\(","\)/);
+  assert.doesNotMatch(userForm, SINGULAR_ROLE_COMPARISON);
+
+  const SPACED_ROLE_PAIR = /["'][^"']*\b(?:user|admin|surveillance)\b, +\b(?:user|admin|surveillance)\b/;
+  assert.doesNotMatch(userForm, SPACED_ROLE_PAIR);
+  assert.doesNotMatch(usersManagement, SPACED_ROLE_PAIR);
+
+  assert.match(styles, /\.account-pill--surveillance \{/);
+  assert.match(styles, /\.account-pill--admin \{[\s\S]{0,200}\.account-pill--surveillance \{/);
 });
 
 test("auth routes include login, forgot password, and reset password flows", async () => {
@@ -84,7 +176,7 @@ test("shared header exposes login when signed out and profile logout menu when s
   assert.match(header, /app-header__user-menu/);
 });
 
-test("operational workspace is session gated and has admin-only Users as the final tab", async () => {
+test("operational workspace is session gated and carries an admin-only tab group", async () => {
   const [page, workspace] = await Promise.all([
     source("../app/operational/page.js"),
     source("../components/OperationalWorkspace.js"),
@@ -94,8 +186,18 @@ test("operational workspace is session gated and has admin-only Users as the fin
   assert.match(workspace, /useAuth/);
   assert.match(workspace, /key: "users"/);
   assert.match(workspace, /label: "Users"/);
+  assert.match(workspace, /key: "audit"/);
+  assert.match(workspace, /label: "Audit"/);
   assert.match(workspace, /isAdmin/);
   assert.match(workspace, /UsersManagement/);
+  assert.match(workspace, /AuditEvents/);
+
+  const set = /const ADMIN_ONLY_TAB_KEYS = new Set\(\[([^\]]*)\]\)/.exec(workspace);
+  assert.ok(set, "the admin-only tab keys must be declared once, as a set");
+  assert.match(set[1], /"users"/);
+  assert.match(set[1], /"audit"/);
+  assert.match(workspace, /ADMIN_ONLY_TAB_KEYS\.has\(tab\.key\) \|\| isAdmin/);
+
   assert.doesNotMatch(workspace, /Temporary preview gate/);
   assert.doesNotMatch(workspace, /Any email and password/);
 });

@@ -1989,6 +1989,32 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   padding: 0 12px;
   background: var(--surface);
 }
+.form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.form-check input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--color-dha-cyan);
+}
+.form-check__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-check__label {
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+.form-check__hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
 .password-field {
   position: relative;
   width: 100%;
@@ -2143,7 +2169,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .user-cell strong {
   color: var(--color-ink);
 }
-.user-cell span {
+.user-cell span:not(.account-pill):not(.account-pill-group) {
   color: var(--muted);
   font-size: 0.82rem;
 }
@@ -2165,9 +2191,34 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   background: #fdeeec;
   color: var(--color-alert);
 }
+.account-pill--warning {
+  background: #fdf3e2;
+  color: var(--color-warning);
+}
 .account-pill--admin {
   background: var(--accent-soft);
   color: var(--color-info);
+}
+.account-pill--surveillance {
+  background: var(--color-surface-muted);
+  color: var(--color-warning);
+}
+.account-pill-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.user-cell .account-pill-group {
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-self: flex-start;
+}
+.user-cell .account-pill {
+  min-height: 20px;
+  padding: 0 7px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 .table-actions {
   display: flex;

@@ -3,14 +3,22 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api-client";
-import { formatDate, normalizeAuthUser, roleLabel, statusLabel } from "@/lib/auth-user";
+import { AUTH_ROLE_LABELS, formatDate, normalizeAuthUser, parseRoles, statusLabel } from "@/lib/auth-user";
 
 function StatusPill({ status }) {
   return <span className={`account-pill account-pill--${status === "inactive" ? "inactive" : "active"}`}>{statusLabel(status)}</span>;
 }
 
 function RolePill({ role }) {
-  return <span className={`account-pill account-pill--${role === "admin" ? "admin" : "user"}`}>{roleLabel(role)}</span>;
+  const names = parseRoles(role);
+  const resolved = names.length > 0 ? names : ["user"];
+  return (
+    <span className="account-pill-group">
+      {resolved.map((name) => (
+        <span className={`account-pill account-pill--${name}`} key={name}>{AUTH_ROLE_LABELS[name]}</span>
+      ))}
+    </span>
+  );
 }
 
 export default function UsersManagement({ embedded = false }) {

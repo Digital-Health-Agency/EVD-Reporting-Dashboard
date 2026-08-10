@@ -324,6 +324,70 @@ test("an unavailable entry falls through to the standard empty state", async () 
   assert.match(source, /No \{noun\} match the current filters\. Widen the period or clear a filter\./);
 });
 
+const IDENTIFYING_COLUMNS = [
+  ["labResults", "subject_identifier"],
+  ["screenings", "person_name"],
+  ["screenings", "person_identifier"],
+  ["cases", "source_person_name"],
+  ["cases", "source_person_identifier"],
+  ["outcomes", "source_person_name"],
+  ["outcomes", "source_person_identifier"],
+  ["contacts", "source_contact_name"],
+  ["contacts", "source_contact_identifier"],
+  ["signals", "signal_description"],
+];
+
+const MASKING_PATTERNS = [
+  /[•●▪]/,
+  /\*{3,}/,
+  /\b(?:redact(?:ed|ion)?|masked|withheld|obscured)\b/i,
+  /\brestricted\b/i,
+];
+
+test("source inspection: the chooser derives its defaults from the server, so no client change is needed for opt-in identifiers", async () => {
+  const modal = await readFile(modalUrl, "utf8");
+  const chooser = await readFile(chooserUrl, "utf8");
+
+  assert.match(modal, /const \[defaults, setDefaults\] = useState\(null\)/);
+  assert.match(
+    modal,
+    /const nextChosen = Array\.isArray\(next\.columns\)\s*\?\s*next\.columns\.map\(\(column\) => column\.name\)/,
+  );
+  assert.match(modal, /setDefaults\(\(current\) => current \?\? nextChosen\)/);
+  assert.match(modal, /defaults=\{defaults \?\? columns\.map\(\(column\) => column\.name\)\}/);
+  assert.match(chooser, /const defaultSet = new Set\(Array\.isArray\(defaults\) \? defaults : \[\]\)/);
+  assert.match(chooser, /const shownByDefault = allColumns\.filter\(\(column\) => defaultSet\.has\(column\.name\)\)/);
+  assert.match(chooser, /const additional = allColumns\.filter\(\(column\) => !defaultSet\.has\(column\.name\)\)/);
+  assert.match(chooser, /function resetToDefault\(\)[\s\S]*?defaultSet\.size > 0 \? \[\.\.\.defaultSet\]/);
+});
+
+test("source inspection: no dashboard component names an identifying column or renders a mask for a withheld one", async () => {
+  const sources = [
+    ["LinelistModal.js", await readFile(modalUrl, "utf8")],
+    ["ColumnChooser.js", await readFile(chooserUrl, "utf8")],
+    ["LinelistTable.js", await readFile(tableUrl, "utf8")],
+  ];
+
+  assert.equal(IDENTIFYING_COLUMNS.length, 10);
+
+  for (const [file, source] of sources) {
+    for (const [dataset, column] of IDENTIFYING_COLUMNS) {
+      assert.ok(
+        !source.includes(column),
+        `${file} names the ${dataset} identifying column ${column}; the server decides which columns exist, the client holds no allowlist`,
+      );
+    }
+
+    for (const pattern of MASKING_PATTERNS) {
+      assert.doesNotMatch(
+        source,
+        pattern,
+        `${file} appears to render a masked or withheld value (${pattern}); a denied column must be absent, not obscured`,
+      );
+    }
+  }
+});
+
 test("an unavailable entry hides every control that would need records", async () => {
   const source = await readFile(modalUrl, "utf8");
 
