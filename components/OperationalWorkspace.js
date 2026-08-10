@@ -19,6 +19,7 @@ import { fmt } from "@/lib/format";
 import { api } from "@/lib/api-client";
 import { useAuth } from "@/hooks/use-auth";
 import LinelistModal from "@/components/operational/LinelistModal";
+import LinelistPager from "@/components/operational/LinelistPager";
 import {
   linelistFor,
   rowLinelistEntry,
@@ -27,6 +28,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import UsersManagement from "@/components/users/UsersManagement";
 
 const EM_DASH = "—";
+
+const BREAKDOWN_PAGE_SIZE = 10;
 
 const DISPLAY_TIME_ZONE = "Africa/Nairobi";
 
@@ -202,6 +205,22 @@ function truncateCategory(value) {
   const text = String(value ?? "");
   if (text.length <= Y_AXIS_LABEL_MAX) return text;
   return `${text.slice(0, Y_AXIS_LABEL_MAX - 1)}…`;
+}
+
+const SHORT_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function categoryTick(value) {
+  const text = String(value ?? "");
+  const iso = ISO_DATE.exec(text);
+  if (!iso) return text;
+  const month = SHORT_MONTHS[Number(iso[2]) - 1];
+  if (!month) return text;
+  return `${Number(iso[3])} ${month}`;
 }
 
 function Chart({ height = 300, children }) {
@@ -564,12 +583,13 @@ function buildTabParams(tabKey, filters, customRange) {
   return params;
 }
 
+const LOADING_RESULT = { tabKey: null, payload: null, status: "loading", error: null };
+
 function useOperationalTab(tabKey, filters, customRange) {
-  const [payload, setPayload] = useState(null);
-  const [status, setStatus] = useState("loading");
-  const [error, setError] = useState(null);
+  const [result, setResult] = useState(LOADING_RESULT);
   const [refreshing, setRefreshing] = useState(false);
   const requestRef = useRef(0);
+  const dispatchedEndpointRef = useRef(null);
 
   const endpoint = TAB_ENDPOINTS[tabKey] || null;
   const params = endpoint ? buildTabParams(tabKey, filters, customRange) : null;
@@ -582,34 +602,48 @@ function useOperationalTab(tabKey, filters, customRange) {
       const requestId = requestRef.current + 1;
       requestRef.current = requestId;
       if (isRefresh) setRefreshing(true);
-      else setStatus("loading");
+      else setResult({ ...LOADING_RESULT, tabKey });
 
       try {
         const next = await api.get(endpoint, JSON.parse(paramsKey));
         if (requestId !== requestRef.current) return;
-        setPayload(next);
-        setError(null);
-        setStatus("ready");
+        setResult({ tabKey, payload: next, status: "ready", error: null });
       } catch (caught) {
         if (requestId !== requestRef.current) return;
-        setError(caught);
-        setStatus("error");
+        setResult((current) => ({
+          tabKey,
+          payload: current.tabKey === tabKey ? current.payload : null,
+          status: "error",
+          error: caught,
+        }));
       } finally {
         if (requestId === requestRef.current) setRefreshing(false);
       }
     },
-    [endpoint, paramsKey],
+    [endpoint, paramsKey, tabKey],
   );
 
   useEffect(() => {
     if (!endpoint || !paramsKey) return undefined;
-    const timer = setTimeout(() => load(), FILTER_DEBOUNCE_MS);
+    const delay = dispatchedEndpointRef.current === endpoint ? FILTER_DEBOUNCE_MS : 0;
+    const timer = setTimeout(() => {
+      dispatchedEndpointRef.current = endpoint;
+      load();
+    }, delay);
     return () => clearTimeout(timer);
   }, [endpoint, paramsKey, load]);
 
   const refresh = useCallback(() => load({ isRefresh: true }), [load]);
 
-  return { payload, status, error, refreshing, refresh };
+  const current = result.tabKey === tabKey ? result : LOADING_RESULT;
+
+  return {
+    payload: current.payload,
+    status: current.status,
+    error: current.error,
+    refreshing: result.tabKey === tabKey && refreshing,
+    refresh,
+  };
 }
 
 function isUnsourcedIndicator(card) {
@@ -703,7 +737,15 @@ function ServiceChart({ chart, onViewLinelist }) {
         </>
       ) : (
         <>
-          <XAxis dataKey={chart.categoryKey} {...axisProps} />
+          <XAxis
+            dataKey={chart.categoryKey}
+            {...axisProps}
+            tickFormatter={categoryTick}
+            interval={0}
+            angle={-90}
+            textAnchor="end"
+            height={64}
+          />
           <YAxis {...axisProps} allowDecimals={false} />
         </>
       )}
@@ -732,6 +774,20 @@ function ServiceChart({ chart, onViewLinelist }) {
 
 function ServiceTable({ breakdown, emptyNoun, onViewLinelist }) {
   const [firstColumn] = breakdown.columns;
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(breakdown.rows.length / BREAKDOWN_PAGE_SIZE),
+  );
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * BREAKDOWN_PAGE_SIZE;
+  const pageRows = breakdown.rows.slice(pageStart, pageStart + BREAKDOWN_PAGE_SIZE);
+  
+  useEffect(() => {
+    setPage(1);
+  }, [breakdown]);
+
   if (breakdown.rows.length === 0) return <TabEmpty noun={emptyNoun} />;
 
   return (
@@ -748,7 +804,7 @@ function ServiceTable({ breakdown, emptyNoun, onViewLinelist }) {
             </tr>
           </thead>
           <tbody>
-            {breakdown.rows.map((row, index) => {
+            {pageRows.map((row, index) => {
               const entry = rowLinelistEntry(breakdown, row);
 
               return (
@@ -807,6 +863,9 @@ function ServiceTable({ breakdown, emptyNoun, onViewLinelist }) {
           </tbody>
         </table>
       </div>
+      <div className="ops-breakdown-pager">
+        <LinelistPager page={currentPage} totalPages={totalPages} onPage={setPage} />
+      </div>
       {breakdown.shown < breakdown.total ? (
         <p className="ops-truncation-note">
           Showing top {fmt(breakdown.shown)} of {fmt(breakdown.total)}.
@@ -855,19 +914,135 @@ function ChartPanel({ chart, emptyNoun, onViewLinelist }) {
   );
 }
 
-function MetricSkeleton({ emphasis }) {
+const BAR = "\u00a0";
+
+const PLAIN_CARD = { breakdown: false, detail: true };
+
+const TAB_SKELETON_SHAPES = {
+  summary: {
+    emphasis: "important",
+    cards: [PLAIN_CARD, PLAIN_CARD, PLAIN_CARD, PLAIN_CARD, { breakdown: true, detail: false }],
+    charts: [320, 280],
+    fullWidthCharts: [],
+    tableColumns: 6,
+  },
+  labs: {
+    emphasis: "plain",
+    cards: [PLAIN_CARD, PLAIN_CARD, PLAIN_CARD],
+    charts: [280],
+    fullWidthCharts: [],
+    tableColumns: 4,
+  },
+  poe: {
+    emphasis: "plain",
+    cards: [PLAIN_CARD],
+    charts: [300],
+    fullWidthCharts: [300],
+    tableColumns: 2,
+  },
+  hf: {
+    emphasis: "plain",
+    cards: [PLAIN_CARD, PLAIN_CARD, PLAIN_CARD, PLAIN_CARD, PLAIN_CARD, PLAIN_CARD],
+    charts: [300],
+    fullWidthCharts: [],
+    tableColumns: 7,
+  },
+  community: {
+    emphasis: "plain",
+    cards: [PLAIN_CARD, PLAIN_CARD],
+    charts: [300],
+    fullWidthCharts: [],
+    tableColumns: 3,
+  },
+  contacts: {
+    emphasis: "plain",
+    cards: [PLAIN_CARD],
+    charts: [300],
+    fullWidthCharts: [],
+    tableColumns: 2,
+  },
+};
+
+function MetricSkeleton({ emphasis, breakdown = false, detail = true }) {
   const important = emphasis === "important";
   return (
     <article className={`ops-metric ops-metric--${important ? "important ops-metric--navy" : "plain"}`}>
-      <Skeleton className="ops-skeleton ops-skeleton--label" />
-      <Skeleton
-        className={`ops-skeleton ${important ? "ops-skeleton--value" : "ops-skeleton--value-plain"}`}
-      />
+      <div className="ops-metric__content">
+        <span className="ops-metric__label ops-skeleton ops-skeleton--label">{BAR}</span>
+        <strong
+          className={`ops-skeleton ${important ? "ops-skeleton--value" : "ops-skeleton--value-plain"}`}
+        >
+          {BAR}
+        </strong>
+        {breakdown ? (
+          <span className="ops-card-breakdown" aria-hidden="true">
+            <span role="listitem">
+              <span className="ops-skeleton ops-skeleton--breakdown-label">{BAR}</span>
+              <em className="ops-skeleton ops-skeleton--breakdown-value">{BAR}</em>
+            </span>
+          </span>
+        ) : null}
+        {detail ? <small className="ops-skeleton ops-skeleton--detail">{BAR}</small> : <small />}
+        <span className="ops-metric__linelist ops-skeleton ops-skeleton--link">{BAR}</span>
+      </div>
     </article>
   );
 }
 
+function ChartPanelSkeleton({ title, height }) {
+  return (
+    <div className="ops-panel">
+      <div className="ops-panel__head">
+        <h2>{title}</h2>
+      </div>
+      <Skeleton className="ops-skeleton ops-skeleton--chart" style={{ height }} />
+    </div>
+  );
+}
+
+function SkeletonCell() {
+  return <span className="ops-skeleton ops-skeleton--cell">{BAR}</span>;
+}
+
+function TablePanelSkeleton({ title, columns }) {
+  const cells = Array.from({ length: columns }, (_, index) => index);
+
+  return (
+    <div className="ops-panel" aria-busy="true">
+      <div className="ops-panel__head">
+        <h2>{title}</h2>
+      </div>
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              {cells.map((index) => (
+                <th key={index}>
+                  <SkeletonCell />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: BREAKDOWN_PAGE_SIZE }, (_, row) => (
+              <tr key={row}>
+                {cells.map((index) => (
+                  <td key={index}>
+                    <SkeletonCell />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="ops-breakdown-pager" />
+    </div>
+  );
+}
+
 function TabSkeleton({ activeTab }) {
+  const shape = TAB_SKELETON_SHAPES[activeTab.key];
   const isSummary = activeTab.key === "summary";
 
   return (
@@ -884,47 +1059,46 @@ function TabSkeleton({ activeTab }) {
       {isSummary ? (
         <div className="ops-summary ops-summary--loading">
           <section className="ops-critical-grid" aria-busy="true" aria-label="Operational priorities loading">
-            {[0, 1, 2, 3, 4].map((index) => <MetricSkeleton key={index} emphasis="important" />)}
+            {shape.cards.map((card, index) => (
+              <MetricSkeleton key={index} emphasis={shape.emphasis} {...card} />
+            ))}
           </section>
           <div className="ops-main-grid">
-            {[0, 1].map((index) => (
-              <div className="ops-panel" key={index}>
-                <div className="ops-panel__head">
-                  <h2>Summary chart</h2>
-                </div>
-                <Skeleton className="ops-skeleton ops-skeleton--chart" style={{ height: 280 }} />
-              </div>
+            {shape.charts.map((height, index) => (
+              <ChartPanelSkeleton key={index} title="Summary chart" height={height} />
             ))}
           </div>
-          <div className="ops-panel" aria-busy="true">
-            <div className="ops-panel__head">
-              <h2>Cases by health facility</h2>
-            </div>
-            {[0, 1, 2, 3, 4].map((index) => (
-              <Skeleton key={index} className="ops-skeleton ops-skeleton--row" />
-            ))}
-          </div>
+          <TablePanelSkeleton title="Cases by health facility" columns={shape.tableColumns} />
         </div>
       ) : (
         <>
-          <section className="ops-service-metric-grid" aria-busy="true">
-            {[0, 1, 2].map((index) => <MetricSkeleton key={index} emphasis="plain" />)}
+          <section
+            className={`ops-service-metric-grid${
+              shape.cards.length > 3 ? " ops-service-metric-grid--three-up" : ""
+            }`}
+            aria-busy="true"
+          >
+            {shape.cards.map((card, index) => (
+              <MetricSkeleton key={index} emphasis={shape.emphasis} {...card} />
+            ))}
           </section>
           <div className="ops-service-detail-grid">
-            <div className="ops-panel">
-              <div className="ops-panel__head">
-                <h2>{activeTab.label} chart</h2>
+            {shape.charts.map((height, index) => (
+              <ChartPanelSkeleton
+                key={index}
+                title={`${activeTab.label} chart`}
+                height={height}
+              />
+            ))}
+            <TablePanelSkeleton
+              title={`${activeTab.label} detail table`}
+              columns={shape.tableColumns}
+            />
+            {shape.fullWidthCharts.map((height, index) => (
+              <div className="ops-service-detail-grid__full" key={index}>
+                <ChartPanelSkeleton title={`${activeTab.label} chart`} height={height} />
               </div>
-              <Skeleton className="ops-skeleton ops-skeleton--chart" style={{ height: 280 }} />
-            </div>
-            <div className="ops-panel" aria-busy="true">
-              <div className="ops-panel__head">
-                <h2>{activeTab.label} detail table</h2>
-              </div>
-              {[0, 1, 2, 3, 4].map((index) => (
-                <Skeleton key={index} className="ops-skeleton ops-skeleton--row" />
-              ))}
-            </div>
+            ))}
           </div>
         </>
       )}
@@ -1077,14 +1251,16 @@ function ServiceDetailTab({ activeTab, payload, onViewLinelist }) {
       </section>
 
       <div className="ops-service-detail-grid">
-        {payload.charts.map((chart) => (
-          <ChartPanel
-            key={chart.key}
-            chart={chart}
-            emptyNoun={activeTab.emptyNoun}
-            onViewLinelist={onViewLinelist}
-          />
-        ))}
+        {payload.charts
+          .filter((chart) => !chart.fullWidth)
+          .map((chart) => (
+            <ChartPanel
+              key={chart.key}
+              chart={chart}
+              emptyNoun={activeTab.emptyNoun}
+              onViewLinelist={onViewLinelist}
+            />
+          ))}
 
         {payload.breakdown ? (
           <div className="ops-panel">
@@ -1098,6 +1274,18 @@ function ServiceDetailTab({ activeTab, payload, onViewLinelist }) {
             />
           </div>
         ) : null}
+
+        {payload.charts
+          .filter((chart) => chart.fullWidth)
+          .map((chart) => (
+            <div className="ops-service-detail-grid__full" key={chart.key}>
+              <ChartPanel
+                chart={chart}
+                emptyNoun={activeTab.emptyNoun}
+                onViewLinelist={onViewLinelist}
+              />
+            </div>
+          ))}
       </div>
     </section>
   );
@@ -1161,8 +1349,6 @@ export default function OperationalWorkspace() {
 
     const period = PERIOD_OPTIONS[filters.period];
     const span = PERIOD_SPAN_DAYS[period];
-    // All time is the one period whose served lower bound is meaningful: it is
-    // the true start of the data, not an envelope over several report windows.
     const earliest = period === "all" ? served?.from : shiftIsoDate(latest, -span);
     if (typeof earliest !== "string" || !earliest) return;
 

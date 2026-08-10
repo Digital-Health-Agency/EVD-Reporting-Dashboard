@@ -149,13 +149,8 @@ test("the summary redesign is scoped around the existing shared renderers", asyn
   );
   assert.deepEqual(
     scopedCss.match(/^\s*min-height:/gm)?.length ?? 0,
-    1,
-    "only the Summary loading frame may declare a floor height",
-  );
-  assert.match(
-    scopedCss,
-    /\.ops-summary--loading \.ops-metric--important \{\s*min-height:/,
-    "the loading frame is where that floor height belongs",
+    0,
+    "a floor height is a second answer to how tall a card is — the loading card now carries the real card's own boxes and measures itself",
   );
   assert.doesNotMatch(
     scopedCss,
@@ -239,8 +234,8 @@ test("card vertical geometry comes from :root tokens, with no literal left at a 
 
   const root = (css.match(/^:root \{[\s\S]*?\n\}/m) || [""])[0];
   for (const token of [
-    "--card-pad-y-tile",
-    "--card-pad-y-plain",
+    "--card-pad-y",
+    "--card-pad-x",
     "--card-gap-value",
     "--card-gap-detail",
     "--card-gap-link",
@@ -257,14 +252,19 @@ test("card vertical geometry comes from :root tokens, with no literal left at a 
 
   const rule = (name) => (css.match(new RegExp(`\\n${name} \\{[^}]*\\}`)) || [""])[0];
 
-  const tilePad = rule("\\.ops-metric--important > \\.ops-metric__content");
+  const cardPad = rule("\\.ops-metric > \\.ops-metric__content");
   assert.match(
-    tilePad,
-    /padding:\s*var\(--card-pad-y-tile\) 24px/,
-    "the tile's vertical padding reads the token; its horizontal padding stays literal on purpose",
+    cardPad,
+    /padding:\s*var\(--card-pad-y\) var\(--card-pad-x\)/,
+    "every card's inset reads the same two tokens, whatever its emphasis",
   );
-  const plainPad = rule("\\.ops-metric--plain > \\.ops-metric__content");
-  assert.match(plainPad, /padding:\s*var\(--card-pad-y-plain\) 20px/);
+  for (const emphasis of ["important", "plain"]) {
+    assert.strictEqual(
+      rule(`\\.ops-metric--${emphasis} > \\.ops-metric__content`),
+      "",
+      `a per-emphasis padding rule is how the plain card drifted to 6px 20px against the tile's 16px 24px`,
+    );
+  }
 
   assert.match(rule("\\.ops-metric strong"), /margin-top:\s*var\(--card-gap-value\)/);
   assert.match(rule("\\.ops-metric small"), /margin-top:\s*var\(--card-gap-detail\)/);
@@ -344,10 +344,183 @@ test("the summary loading frame holds five cards, two charts, and the facility p
   const body = src.slice(start, end === -1 ? undefined : end);
 
   assert.match(body, /className="ops-summary ops-summary--loading"/);
-  assert.match(body, /\[0, 1, 2, 3, 4\]\.map[\s\S]*emphasis="important"/);
-  assert.match(body, /\[0, 1\]\.map[\s\S]*<h2>Summary chart<\/h2>/);
-  assert.match(body, /<h2>Cases by health facility<\/h2>/);
-  assert.doesNotMatch(body, /\[0, 1, 2, 3, 4, 5\][\s\S]*emphasis="plain"/);
+  assert.match(body, /const shape = TAB_SKELETON_SHAPES\[activeTab\.key\];/);
+  assert.match(body, /ops-critical-grid[\s\S]*shape\.cards\.map/);
+  assert.match(body, /ops-main-grid[\s\S]*shape\.charts\.map[\s\S]*title="Summary chart"/);
+  assert.match(
+    body,
+    /<TablePanelSkeleton title="Cases by health facility" columns=\{shape\.tableColumns\} \/>/,
+  );
+
+  const shapes = shapeTable(src);
+  assert.strictEqual(shapes.summary.cards, 5, "Summary shows five priority cards");
+  assert.deepEqual(shapes.summary.charts, [320, 280], "and the two chart panels at their own heights");
+});
+
+function shapeTable(src) {
+  const start = src.indexOf("const TAB_SKELETON_SHAPES = {");
+  assert.notEqual(start, -1, "TAB_SKELETON_SHAPES is declared");
+  const table = src.slice(start, src.indexOf("\n};", start));
+
+  const shapes = {};
+  for (const [, key, entry] of table.matchAll(/\n {2}(\w+): \{([\s\S]*?)\n {2}\},/g)) {
+    shapes[key] = {
+      emphasis: /emphasis: "(\w+)"/.exec(entry)?.[1] ?? null,
+      cards: (entry.match(/PLAIN_CARD|\{ breakdown:/g) || []).length,
+      charts: JSON.parse(/charts: (\[[\d, ]*\])/.exec(entry)?.[1] ?? "null"),
+      fullWidthCharts: JSON.parse(/fullWidthCharts: (\[[\d, ]*\])/.exec(entry)?.[1] ?? "null"),
+      tableColumns: Number(/tableColumns: (\d+)/.exec(entry)?.[1] ?? NaN),
+    };
+  }
+  return shapes;
+}
+
+test("every tab's loading frame is built to that tab's own shape, not one generic row", async () => {
+  const src = await source();
+  const shapes = shapeTable(src);
+
+  const endpoints = src.slice(
+    src.indexOf("const TAB_ENDPOINTS = {"),
+    src.indexOf("\n};", src.indexOf("const TAB_ENDPOINTS = {")),
+  );
+  for (const [, tabKey] of endpoints.matchAll(/\n {2}(\w+): "/g)) {
+    assert.ok(shapes[tabKey], `${tabKey} needs its own loading shape, or it falls back to nothing`);
+  }
+
+  // Mirrors the per-tab card and chart sets built in
+  // EVD-Dashboard-Backend/src/modules/operational/operational.service.ts.
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(shapes).map(([key, shape]) => [key, shape.cards])),
+    { summary: 5, labs: 3, poe: 1, hf: 6, community: 2, contacts: 1 },
+    "a shared card count is exactly what made POE and Contacts show three placeholders for one card",
+  );
+  // Mirrors the breakdown column lists in the same backend service.
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(shapes).map(([key, shape]) => [key, shape.tableColumns])),
+    { summary: 6, labs: 4, poe: 2, hf: 7, community: 3, contacts: 2 },
+    "the placeholder table's column count is that tab's own, not a shared guess",
+  );
+  assert.deepEqual(shapes.poe.fullWidthCharts, [300], "POE's daily chart spans the grid and must be placeheld too");
+  assert.deepEqual(shapes.labs.charts, [280]);
+  assert.deepEqual(shapes.hf.charts, [300]);
+  assert.strictEqual(shapes.summary.emphasis, "important");
+  assert.strictEqual(shapes.labs.emphasis, "plain");
+
+  const start = src.indexOf("function TabSkeleton(");
+  const body = src.slice(start, src.indexOf("\nfunction ", start + 1));
+  assert.match(
+    body,
+    /shape\.cards\.length > 3 \? " ops-service-metric-grid--three-up" : ""/,
+    "the loading grid must pin to three columns on the same threshold the loaded grid does",
+  );
+  assert.match(
+    body,
+    /shape\.fullWidthCharts\.map[\s\S]*ops-service-detail-grid__full/,
+    "a full-width chart placeholder must sit in the full-width track, not a half column",
+  );
+});
+
+test("a loading card is the real card's own boxes, so it cannot drift from the loaded one", async () => {
+  const src = await source();
+  const start = src.indexOf("function MetricSkeleton(");
+  assert.notEqual(start, -1, "MetricSkeleton is declared");
+  const body = src.slice(start, src.indexOf("\nfunction ", start + 1));
+
+  assert.match(
+    body,
+    /<div className="ops-metric__content">/,
+    "the content wrapper owns the card's padding — without it the placeholder collapses to a bare row of bars",
+  );
+  assert.match(body, /<span className="ops-metric__label ops-skeleton ops-skeleton--label">/);
+  assert.match(body, /<strong[\s\S]*?ops-skeleton--value/, "the value bar is the card's own strong");
+  assert.match(body, /<small className="ops-skeleton ops-skeleton--detail">/);
+  assert.match(
+    body,
+    /<span className="ops-metric__linelist ops-skeleton ops-skeleton--link">/,
+    "the linelist link occupies a tap target on every loaded card, so the placeholder must hold that space",
+  );
+  assert.match(
+    body,
+    /\{detail \? <small className="ops-skeleton ops-skeleton--detail">\{BAR\}<\/small> : <small \/>\}/,
+    "a card whose loaded detail is empty renders an empty small — the placeholder must match that too",
+  );
+  assert.match(body, /breakdown \?[\s\S]*ops-card-breakdown/, "and the one card carrying a breakdown row is taller");
+
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  for (const bar of ["label", "value", "value-plain", "detail", "breakdown-label", "breakdown-value"]) {
+    const rule = (css.match(new RegExp(`\\n\\.ops-skeleton--${bar} \\{[^}]*\\}`)) || [""])[0];
+    assert.ok(rule, `.ops-skeleton--${bar} must be declared`);
+    assert.doesNotMatch(
+      rule,
+      /height:/,
+      `a height on .ops-skeleton--${bar} overrides the typography that sizes the loaded element, which is how the bars became squat`,
+    );
+  }
+});
+
+test("the loading breakdown holds a full page of the real table's own rows", async () => {
+  const src = await source();
+  const start = src.indexOf("function TablePanelSkeleton(");
+  assert.notEqual(start, -1, "TablePanelSkeleton is declared");
+  const body = src.slice(start, src.indexOf("\nfunction ", start + 1));
+
+  assert.match(
+    body,
+    /Array\.from\(\{ length: BREAKDOWN_PAGE_SIZE \}/,
+    "the placeholder row count reads the pager's own page size — a literal here is free to drift from it",
+  );
+  assert.doesNotMatch(
+    src,
+    /SKELETON_TABLE_ROWS/,
+    "a second row-count constant is the drift this replaces",
+  );
+
+  assert.match(body, /<div className="table-wrap">/);
+  assert.match(body, /<table className="data-table">/);
+  assert.match(body, /<thead>[\s\S]*<th key=\{index\}>/, "the loaded table's head row occupies space too");
+  assert.match(body, /<tbody>[\s\S]*<tr key=\{row\}>[\s\S]*<td key=\{index\}>/);
+  assert.match(
+    body,
+    /<div className="ops-breakdown-pager" \/>/,
+    "ServiceTable always renders the pager slot, so the placeholder must hold it",
+  );
+  assert.doesNotMatch(
+    body,
+    /ops-skeleton--row/,
+    "bare bars are sized by a literal height, not by the row padding that sizes the loaded row",
+  );
+
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const cell = (css.match(/\n\.ops-skeleton--cell \{[^}]*\}/) || [""])[0];
+  assert.ok(cell, ".ops-skeleton--cell must be declared");
+  assert.doesNotMatch(
+    cell,
+    /height:/,
+    "a height on the cell bar overrides the cell padding that sizes the loaded row",
+  );
+});
+
+test("a tab change fetches at once; only a filter change waits out the debounce", async () => {
+  const src = await source();
+  const start = src.indexOf("function useOperationalTab(");
+  const hook = src.slice(start, src.indexOf("\nfunction ", start + 1));
+
+  assert.match(hook, /const dispatchedEndpointRef = useRef\(null\);/);
+  assert.match(
+    hook,
+    /const delay = dispatchedEndpointRef\.current === endpoint \? FILTER_DEBOUNCE_MS : 0;/,
+    "the debounce belongs to the filter, not to the tab",
+  );
+  assert.match(
+    hook,
+    /setTimeout\(\(\) => \{\s*dispatchedEndpointRef\.current = endpoint;\s*load\(\);\s*\}, delay\);/,
+    "the ref must be stamped when the request actually leaves, not when the effect runs — otherwise a remount debounces a tab change",
+  );
+  assert.doesNotMatch(
+    hook,
+    /setTimeout\(\(\) => load\(\), FILTER_DEBOUNCE_MS\)/,
+    "the unconditional debounce is what put 250ms in front of every tab click",
+  );
 });
 
 test("the complete hero row is centered with its exact operational identity", async () => {
@@ -663,6 +836,43 @@ test("loading, pending, unavailable, empty and error are distinct states", async
   assert.match(src, /Clear filters/);
   assert.doesNotMatch(src, /window\.location\.reload/);
   assert.doesNotMatch(src, /ApiError\.message/);
+});
+
+test("a tab never renders the payload another tab was fetched for", async () => {
+  const src = await source();
+
+  const start = src.indexOf("function useOperationalTab(");
+  assert.notEqual(start, -1, "useOperationalTab is declared");
+  const next = src.indexOf("\nfunction ", start + 1);
+  const hook = src.slice(start, next === -1 ? undefined : next);
+
+  assert.match(
+    src,
+    /const LOADING_RESULT = \{ tabKey: null, payload: null, status: "loading", error: null \};/,
+  );
+
+  const writes = hook.split("setResult(").slice(1);
+  assert.ok(writes.length >= 3, "the hook writes loading, ready and error results");
+  for (const write of writes) {
+    assert.match(
+      write.slice(0, 200),
+      /tabKey/,
+      "every stored result is stamped with the tab it was fetched for",
+    );
+  }
+
+  assert.match(hook, /const current = result\.tabKey === tabKey \? result : LOADING_RESULT;/);
+  assert.match(hook, /payload: current\.payload/);
+  assert.match(hook, /status: current\.status/);
+  assert.match(hook, /error: current\.error/);
+  assert.match(hook, /refreshing: result\.tabKey === tabKey && refreshing/);
+
+  assert.doesNotMatch(hook, /^\s*payload,$/m);
+  assert.doesNotMatch(hook, /payload: result\.payload/);
+  assert.doesNotMatch(hook, /status: result\.status/);
+
+  assert.match(hook, /\[endpoint, paramsKey, tabKey\]/);
+  assert.match(hook, /if \(requestId !== requestRef\.current\) return;/);
 });
 
 test("a non-numeric cell in a live numeric column dashes, it never renders 0", async () => {
