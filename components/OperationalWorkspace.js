@@ -441,9 +441,10 @@ function FilterSelect({ fieldKey, value, onChange, options = [], loading = false
   );
 }
 
-function CustomRangeControl({ range, onChange }) {
+function CustomRangeControl({ range, onChange, min = "" }) {
   const incomplete = !range.from || !range.to;
   const inverted = !incomplete && range.from > range.to;
+  const beforeStart = Boolean(min) && Boolean(range.from) && range.from < min;
 
   return (
     <div className="ops-custom-range">
@@ -451,6 +452,7 @@ function CustomRangeControl({ range, onChange }) {
         <span>From</span>
         <input
           type="datetime-local"
+          min={min || undefined}
           value={range.from}
           onChange={(event) => onChange({ ...range, from: event.target.value })}
         />
@@ -459,12 +461,18 @@ function CustomRangeControl({ range, onChange }) {
         <span>To</span>
         <input
           type="datetime-local"
+          min={min || undefined}
           value={range.to}
           onChange={(event) => onChange({ ...range, to: event.target.value })}
         />
       </label>
       {inverted ? (
         <p className="ops-custom-range__hint">The end must be on or after the start.</p>
+      ) : null}
+      {beforeStart ? (
+        <p className="ops-custom-range__hint">
+          Data starts on {min.slice(0, 10)}; earlier dates are read from that day.
+        </p>
       ) : null}
     </div>
   );
@@ -476,6 +484,7 @@ function OperationalTabFilters({
   onChange,
   customRange,
   onCustomRangeChange,
+  customRangeMin = "",
   options = EMPTY_FILTER_OPTIONS,
   optionsLoading = false,
   filtersDirty = false,
@@ -509,6 +518,7 @@ function OperationalTabFilters({
             key={`${activeTab.key}-custom-range`}
             range={customRange}
             onChange={onCustomRangeChange}
+            min={customRangeMin}
           />,
         ];
       })}
@@ -1329,6 +1339,11 @@ export default function OperationalWorkspace() {
   const filterOptions = useFilterOptions(activeTab.key);
   const isDataTab = Boolean(TAB_ENDPOINTS[activeTab.key]);
   const refreshing = tab.refreshing;
+  const surveillanceStart = tab.payload?.meta?.surveillanceEvent?.startDate;
+  const customRangeMin =
+    typeof surveillanceStart === "string" && surveillanceStart
+      ? `${surveillanceStart}T00:00`
+      : "";
 
   const filtersDirty = useMemo(() => {
     const defaults = defaultFilterState();
@@ -1493,6 +1508,7 @@ export default function OperationalWorkspace() {
             onChange={updateFilter}
             customRange={customRange}
             onCustomRangeChange={handleCustomRangeChange}
+            customRangeMin={customRangeMin}
             options={filterOptions.options}
             optionsLoading={filterOptions.loading}
             filtersDirty={filtersDirty}
