@@ -59,8 +59,8 @@
 
   --card-tap-target: 24px;
 
-  --card-pad-y-tile: 16px;
-  --card-pad-y-plain: 6px;
+  --card-pad-y: 16px;
+  --card-pad-x: 24px;
   --card-gap-value: 4px;
   --card-gap-detail: 2px;
   --card-gap-link: 6px;
@@ -3007,11 +3007,8 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.ops-metric--important > .ops-metric__content {
-  padding: var(--card-pad-y-tile) 24px;
-}
-.ops-metric--plain > .ops-metric__content {
-  padding: var(--card-pad-y-plain) 20px;
+.ops-metric > .ops-metric__content {
+  padding: var(--card-pad-y) var(--card-pad-x);
 }
 .ops-metric--important .ops-metric__linelist {
   color: var(--ops-tone);
@@ -3034,22 +3031,33 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 .ops-skeleton--label {
   width: 60%;
-  height: 12px;
 }
 .ops-skeleton--value {
   width: 45%;
-  height: 32px;
-  margin-top: var(--card-gap-value);
 }
 .ops-skeleton--value-plain {
   width: 45%;
-  height: 20px;
-  margin-top: var(--card-gap-value);
+}
+.ops-skeleton--detail {
+  width: 80%;
+}
+.ops-skeleton--breakdown-label {
+  width: 88px;
+}
+.ops-skeleton--breakdown-value {
+  width: 28px;
+}
+.ops-skeleton--link {
+  width: 104px;
+  background-clip: content-box;
 }
 .ops-skeleton--row {
   width: 100%;
   height: 16px;
   margin-top: 12px;
+}
+.ops-skeleton--cell {
+  width: 72%;
 }
 .ops-skeleton--chart {
   width: 100%;
@@ -3445,9 +3453,6 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .ops-summary .ops-metric--important strong.ops-pending {
   color: var(--ops-summary-muted);
 }
-.ops-summary .ops-skeleton--value {
-  height: 44px;
-}
 .ops-summary .ops-metric__linelist {
   color: var(--ops-summary-muted);
 }
@@ -3525,8 +3530,6 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 
 .ops-summary--loading .ops-metric--important {
-  min-height: 145px;
-  padding: var(--card-pad-y-tile) 24px;
   border-color: var(--color-border);
   background: var(--color-surface);
   box-shadow: none;
