@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn, signOut, useSession } from "@/lib/auth-client";
-import { normalizeAuthUser } from "@/lib/auth-user";
+import { hasRole, normalizeAuthUser } from "@/lib/auth-user";
 
 export function useAuth() {
   const session = useSession();
@@ -16,7 +16,8 @@ export function useAuth() {
     isRefetching: Boolean(session.isRefetching),
     error: session.error,
     role,
-    isAdmin: role === "admin",
+    isAdmin: hasRole(role, "admin"),
+    isSurveillance: hasRole(role, "surveillance"),
     login: (email, password) => signIn.email({ email, password }),
     logout: () => signOut(),
     refetch: session.refetch,

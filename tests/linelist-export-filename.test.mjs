@@ -15,7 +15,7 @@ test("linelistExportFilename accepts only the D-15 attachment filename shape", a
   const { linelistExportFilename } = await loadExportModule();
   assert.equal(typeof linelistExportFilename, "function");
 
-  const expected = "evd-lab-results_2026-07-07_to_2026-07-28_exported-2026-08-05.csv";
+  const expected = "evd-lab-results_2026-07-07_to_2026-07-28_exported-2026-08-05_by-u-1.csv";
   assert.equal(
     linelistExportFilename(`attachment; filename="${expected}"`),
     expected,
@@ -25,19 +25,29 @@ test("linelistExportFilename accepts only the D-15 attachment filename shape", a
     expected,
   );
 
+  const unknownActor = "evd-signals_2026-07-07_to_2026-07-28_exported-2026-08-05_by-unknown.csv";
+  assert.equal(
+    linelistExportFilename(`attachment; filename="${unknownActor}"`),
+    unknownActor,
+  );
+
   for (const disposition of [
     undefined,
     null,
     "",
-    "inline; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05.csv",
+    "inline; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-u-1.csv",
     "attachment",
     "attachment; filename=",
     "attachment; filename=evd-screenings_exported-2026-08-05.csv",
-    "attachment; filename=evd-screenings_2026-02-30_to_2026-07-28_exported-2026-08-05.csv",
-    "attachment; filename=../evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05.csv",
-    "attachment; filename=folder\\evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05.csv",
-    "attachment; filename=\"evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05.csv\"junk",
-    "attachment; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05.csv\r\nX-Fake: yes",
+    "attachment; filename=evd-screenings_2026-02-30_to_2026-07-28_exported-2026-08-05_by-u-1.csv",
+    "attachment; filename=../evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-u-1.csv",
+    "attachment; filename=folder\\evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-u-1.csv",
+    "attachment; filename=\"evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-u-1.csv\"junk",
+    "attachment; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-u-1.csv\r\nX-Fake: yes",
+    "attachment; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05.csv",
+    "attachment; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-Wanjiku.csv",
+    "attachment; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-u@example.com.csv",
+    "attachment; filename=evd-screenings_2026-07-07_to_2026-07-28_exported-2026-08-05_by-.csv",
   ]) {
     assert.equal(linelistExportFilename(disposition), null, String(disposition));
   }

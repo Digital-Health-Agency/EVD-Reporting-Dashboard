@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PasswordField from "@/components/PasswordField";
+import { parseRoles } from "@/lib/auth-user";
 
 export default function UserForm({
   initialUser,
@@ -14,6 +15,7 @@ export default function UserForm({
     name: "",
     email: "",
     role: "user",
+    surveillance: false,
     password: "",
   });
   const [busy, setBusy] = useState(false);
@@ -25,7 +27,8 @@ export default function UserForm({
       ...current,
       name: initialUser.name || "",
       email: initialUser.email || "",
-      role: initialUser.role || "user",
+      role: parseRoles(initialUser.role).includes("admin") ? "admin" : "user",
+      surveillance: parseRoles(initialUser.role).includes("surveillance"),
     }));
   }, [initialUser]);
 
@@ -37,11 +40,13 @@ export default function UserForm({
     }
     setBusy(true);
     setError("");
+
+    const roles = form.surveillance ? [form.role, "surveillance"] : [form.role];
     try {
       await onSubmit({
         name: form.name.trim(),
         email: form.email.trim(),
-        role: form.role,
+        role: roles.join(","),
         password: form.password.trim(),
       });
     } catch (caught) {
@@ -96,6 +101,20 @@ export default function UserForm({
           />
         ) : null}
       </div>
+      <label className="form-check" htmlFor="user-surveillance">
+        <input
+          id="user-surveillance"
+          type="checkbox"
+          checked={form.surveillance}
+          onChange={(event) => setForm((current) => ({ ...current, surveillance: event.target.checked }))}
+        />
+        <span className="form-check__copy">
+          <span className="form-check__label">Can view identifiers</span>
+          <span className="form-check__hint">
+            Allows this account to see identifying details on linelists and exports.
+          </span>
+        </span>
+      </label>
       <div className="form-actions">
         {onCancel ? <button className="btn btn--secondary" type="button" onClick={onCancel}>Cancel</button> : null}
         <button className="btn btn--primary" type="submit" disabled={busy}>

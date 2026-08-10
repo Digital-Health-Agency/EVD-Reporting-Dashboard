@@ -26,6 +26,7 @@ import {
 } from "@/components/operational/card-linelist-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import UsersManagement from "@/components/users/UsersManagement";
+import AuditEvents from "@/components/audit/AuditEvents";
 
 const EM_DASH = "—";
 
@@ -186,7 +187,16 @@ const OPERATIONAL_TABS = [
     description: "Admin-only account, role, status and password actions.",
     emptyNoun: "accounts",
   },
+  {
+    key: "audit",
+    label: "Audit",
+    title: "Identifiable data access",
+    description: "Admin-only record of who opened or exported patient identifiers, and when.",
+    emptyNoun: "audit events",
+  },
 ];
+
+const ADMIN_ONLY_TAB_KEYS = new Set(["users", "audit"]);
 
 const tooltipStyle = { fontSize: 12, borderRadius: 8, border: "1px solid #e7ebef" };
 const axisProps = {
@@ -1310,7 +1320,7 @@ export default function OperationalWorkspace() {
   const [openLinelist, setOpenLinelist] = useState(null);
 
   const visibleTabs = useMemo(
-    () => OPERATIONAL_TABS.filter((tab) => tab.key !== "users" || isAdmin),
+    () => OPERATIONAL_TABS.filter((tab) => !ADMIN_ONLY_TAB_KEYS.has(tab.key) || isAdmin),
     [isAdmin],
   );
   const activeTab = visibleTabs.find((tab) => tab.key === activeTabKey) || visibleTabs[0];
@@ -1397,6 +1407,7 @@ export default function OperationalWorkspace() {
 
   function renderActiveTab() {
     if (activeTab.key === "users") return <UsersManagement embedded />;
+    if (activeTab.key === "audit") return <AuditEvents embedded />;
     if (tab.status === "error") {
       return <TabError activeTab={activeTab} error={tab.error} onRetry={tab.refresh} />;
     }
