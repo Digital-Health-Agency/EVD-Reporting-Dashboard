@@ -3287,6 +3287,39 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .ops-panel--wide {
   grid-column: 1 / -1;
 }
+.ops-panel--chart {
+  display: flex;
+  flex-direction: column;
+}
+.ops-chart {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+.ops-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-ink);
+  font-size: 12px;
+}
+.ops-chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ops-chart-legend__empty {
+  color: var(--muted);
+}
+.ops-chart-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
 .ops-panel__head {
   display: flex;
   align-items: flex-start;
