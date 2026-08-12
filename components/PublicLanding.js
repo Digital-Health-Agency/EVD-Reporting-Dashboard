@@ -106,12 +106,20 @@ function ScreeningTrend({ points }) {
       <figcaption>Daily Screening Trend</figcaption>
       <div className="metric-trend__bars">
         {points.map((point, index) => (
-          <div className="metric-trend__slot" key={point.date}>
+          <div
+            className="metric-trend__slot indicator-tooltip-host"
+            key={point.date}
+            tabIndex={0}
+            aria-label={`${point.full}: ${fmt(point.screened)} screened`}
+          >
+            <span className="indicator-tooltip__bubble indicator-tooltip__bubble--chart" role="tooltip">
+              <strong>{fmt(point.screened)}</strong> screened
+              <span className="metric-trend__bubble-date">{point.full}</span>
+            </span>
             <div className="metric-trend__track">
               <div
                 className={`metric-trend__bar${index === lastIndex ? " metric-trend__bar--latest" : ""}`}
                 style={{ height: `${Math.max(8, Math.round((point.screened / peak) * 100))}%` }}
-                title={`${point.label}: ${fmt(point.screened)} screened`}
               />
             </div>
             <span className="metric-trend__tick">{point.label}</span>
@@ -123,6 +131,7 @@ function ScreeningTrend({ points }) {
 }
 
 const WEEKDAY = { weekday: "short" };
+const FULL_DAY = { weekday: "short", day: "numeric", month: "short" };
 
 function screeningTrendPoints(poe) {
   return (poe.trend || [])
@@ -130,12 +139,12 @@ function screeningTrendPoints(poe) {
     .slice(-14)
     .map((point) => {
       const parsed = new Date(`${point.date}T00:00:00`);
+      const valid = !Number.isNaN(parsed.getTime());
       return {
         date: point.date,
         screened: Number.isFinite(point.screened) ? point.screened : 0,
-        label: Number.isNaN(parsed.getTime())
-          ? point.date
-          : parsed.toLocaleDateString("en-KE", WEEKDAY),
+        label: valid ? parsed.toLocaleDateString("en-KE", WEEKDAY) : point.date,
+        full: valid ? parsed.toLocaleDateString("en-KE", FULL_DAY) : point.date,
       };
     });
 }
@@ -219,10 +228,9 @@ function PublicKeyMetrics({ data }) {
             description={INDICATOR_TOOLTIPS.screeningRecords}
           />
           <MetricStat
-            label="Contacts follow-up"
-            value={fmt(cases.contactsFollowedUp ?? 0)}
-            tone="warning"
-            description={INDICATOR_TOOLTIPS.contactsFollowedUp}
+            label="Contacts listed"
+            value={fmt(cases.contactsListed)}
+            description={INDICATOR_TOOLTIPS.contactsListed}
           />
         </dl>
         <ScreeningTrend points={screeningTrendPoints(poe)} />
@@ -331,9 +339,11 @@ export default function PublicLanding() {
           <span className="public-updates__dot" aria-hidden="true" />
           {status === "error"
             ? "Unable to load the current update."
-            : updated
-              ? `As of ${updated}`
-              : "Loading current figures..."}
+            : status !== "ready"
+              ? "Loading current figures..."
+              : updated
+                ? `As of ${updated}`
+                : "No surveillance data reported yet."}
         </p>
       </section>
 

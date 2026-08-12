@@ -1471,27 +1471,32 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 }
 
 .metric-card__stats {
+  --stat-col-gap: 32px;
   margin: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 32px;
+  gap: 12px var(--stat-col-gap);
 }
-.metric-card__stats--split { gap: 12px 48px; }
+.metric-card__stats--split { --stat-col-gap: 48px; }
 .metric-stat {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
   min-width: 0;
+  max-width: 16rem;
 }
-.metric-stat--wide { grid-column: 1 / -1; }
+.metric-stat--wide {
+  grid-column: 1 / -1;
+  max-width: min(calc(50% - var(--stat-col-gap) / 2), 16rem);
+}
 .metric-stat dt {
   margin: 0;
   color: var(--muted);
   font-size: 0.95rem;
   font-weight: 600;
 }
-.metric-stat dd {
+.metric-stat__value {
   margin: 0;
   color: var(--color-ink);
   font-size: 1rem;
@@ -1533,8 +1538,20 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   width: 100%;
   border-radius: 4px 4px 0 0;
   background: #5aa363;
+  transition: background 0.14s ease;
 }
 .metric-trend__bar--latest { background: #1c6b2a; }
+.metric-trend__slot:hover .metric-trend__bar,
+.metric-trend__slot:focus-visible .metric-trend__bar { background: #3f8c4c; }
+.metric-trend__slot:hover .metric-trend__bar--latest,
+.metric-trend__slot:focus-visible .metric-trend__bar--latest { background: #145021; }
+.metric-trend__bubble-date {
+  display: block;
+  margin-top: 2px;
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
 .metric-trend__tick {
   color: var(--muted);
   font-size: 0.72rem;
@@ -1614,6 +1631,38 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   left: 0;
   right: auto;
   min-width: 220px;
+}
+.indicator-tooltip__bubble--chart {
+  left: 50%;
+  right: auto;
+  width: max-content;
+  max-width: none;
+  padding: 7px 10px;
+  text-align: center;
+  transform: translate(-50%, 4px);
+}
+.indicator-tooltip__bubble--chart::after { left: calc(50% - 5px); }
+.indicator-tooltip-host:hover .indicator-tooltip__bubble--chart,
+.indicator-tooltip-host:focus-visible .indicator-tooltip__bubble--chart,
+.indicator-tooltip-host:focus-within .indicator-tooltip__bubble--chart {
+  transform: translate(-50%, 0);
+}
+.metric-trend__slot:first-child .indicator-tooltip__bubble--chart {
+  left: 0;
+  transform: translate(0, 4px);
+}
+.metric-trend__slot:last-child .indicator-tooltip__bubble--chart {
+  left: auto;
+  right: 0;
+  transform: translate(0, 4px);
+}
+.metric-trend__slot:first-child .indicator-tooltip__bubble--chart::after { left: 12px; }
+.metric-trend__slot:last-child .indicator-tooltip__bubble--chart::after { left: auto; right: 12px; }
+.metric-trend__slot:first-child:hover .indicator-tooltip__bubble--chart,
+.metric-trend__slot:first-child:focus-within .indicator-tooltip__bubble--chart,
+.metric-trend__slot:last-child:hover .indicator-tooltip__bubble--chart,
+.metric-trend__slot:last-child:focus-within .indicator-tooltip__bubble--chart {
+  transform: translate(0, 0);
 }
 .public-panel__sections {
   display: grid;
@@ -1825,7 +1874,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
     gap: 16px;
   }
   .metric-card__stats,
-  .metric-card__stats--split { gap: 12px 24px; }
+  .metric-card__stats--split { --stat-col-gap: 24px; }
   .metric-trend__bars { gap: 8px; }
   .metric-trend__track { height: 90px; }
   .public-info { gap: 24px; margin-top: 40px; padding-top: 24px; }
@@ -1841,6 +1890,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   .ops-kicker { margin-bottom: 12px; }
   .metric-banner { padding: 16px; }
   .metric-card__stats { grid-template-columns: 1fr; }
+  .metric-stat--wide { max-width: 16rem; }
   .metric-trend__bars { gap: 5px; }
   .metric-trend__tick { font-size: 0.62rem; }
   .public-panel__sections { grid-template-columns: 1fr; }
