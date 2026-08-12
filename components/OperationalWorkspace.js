@@ -204,17 +204,105 @@ const axisProps = {
   axisLine: false,
   tickLine: false,
 };
-const gridProps = { strokeDasharray: "3 3", vertical: false, stroke: "#eef1f4" };
+const gridProps = { strokeDasharray: "3 3", stroke: "#eef1f4" };
 const DEFAULT_FILTERS = {
   period: "Last 21 days",
 };
 
-const Y_AXIS_LABEL_MAX = 16;
+const CATEGORY_AXIS_MIN_WIDTH = 96;
+const CATEGORY_AXIS_MAX_WIDTH = 180;
+const CATEGORY_CHAR_WIDTH = 5.9;
+const CATEGORY_AXIS_PADDING = 14;
 
-function truncateCategory(value) {
+const BAR_GAP = 3;
+const COLUMN_BAR_MAX_WIDTH = 48;
+const EMPTY_SERIES_COLOR = "#c2cad2";
+const BAND_PADDING = 16;
+const CHART_CHROME = 56;
+const LEGEND_HEIGHT = 26;
+const CHART_MIN_HEIGHT = 180;
+const CHART_MAX_HEIGHT = 640;
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function barThickness(seriesCount) {
+  if (seriesCount <= 1) return 18;
+  if (seriesCount === 2) return 15;
+  return 12;
+}
+
+function categoryAxisWidth(data, categoryKey) {
+  const longest = data.reduce(
+    (max, row) => Math.max(max, String(row?.[categoryKey] ?? "").length),
+    0,
+  );
+  return clamp(
+    Math.ceil(longest * CATEGORY_CHAR_WIDTH) + CATEGORY_AXIS_PADDING,
+    CATEGORY_AXIS_MIN_WIDTH,
+    CATEGORY_AXIS_MAX_WIDTH,
+  );
+}
+
+function drawableSeries(chart) {
+  if (chart.series.length < 2) return chart.series;
+  const drawn = chart.series.filter((series) =>
+    chart.data.some((row) => {
+      const value = Number(row[series.key]);
+      return Number.isFinite(value) && value !== 0;
+    }),
+  );
+  return drawn.length > 0 ? drawn : chart.series;
+}
+
+function SeriesLegend({ series, drawn }) {
+  const drawnKeys = new Set(drawn.map((entry) => entry.key));
+  return (
+    <ul className="ops-chart-legend">
+      {series.map((entry) => {
+        const shown = drawnKeys.has(entry.key);
+        return (
+          <li key={entry.key} className={shown ? undefined : "ops-chart-legend__empty"}>
+            <span
+              className="ops-chart-legend__swatch"
+              style={{ background: shown ? entry.color : EMPTY_SERIES_COLOR }}
+            />
+            {shown ? entry.label : `${entry.label} (none)`}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function chartHeight(chart) {
+  if (chart.kind !== "bar" || chart.orientation !== "vertical") return chart.height;
+
+  const seriesCount = Math.max(1, drawableSeries(chart).length);
+  const band =
+    seriesCount * barThickness(seriesCount) + (seriesCount - 1) * BAR_GAP + BAND_PADDING;
+  const legend = chart.series.length > 1 ? LEGEND_HEIGHT : 0;
+  const natural = chart.data.length * band + CHART_CHROME + legend;
+
+  return clamp(Math.max(natural, CHART_MIN_HEIGHT), CHART_MIN_HEIGHT, CHART_MAX_HEIGHT);
+}
+
+function truncateCategory(value, maxChars) {
   const text = String(value ?? "");
-  if (text.length <= Y_AXIS_LABEL_MAX) return text;
-  return `${text.slice(0, Y_AXIS_LABEL_MAX - 1)}…`;
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, Math.max(1, maxChars - 1)).trimEnd()}…`;
+}
+
+function CategoryTick({ x, y, payload, maxChars }) {
+  const label = String(payload?.value ?? "");
+  const shown = truncateCategory(label, maxChars);
+  return (
+    <text x={x} y={y} dy={4} textAnchor="end" fontSize={11} fill="#69757f">
+      {shown !== label ? <title>{label}</title> : null}
+      {shown}
+    </text>
+  );
 }
 
 const SHORT_MONTHS = [
@@ -238,7 +326,7 @@ function Chart({ height = 300, children }) {
   useEffect(() => setMounted(true), []);
 
   return (
-    <div style={{ width: "100%", height }}>
+    <div className="ops-chart" style={{ height, minHeight: height }}>
       {mounted ? (
         <ResponsiveContainer
           width="100%"
@@ -715,7 +803,7 @@ function ServiceChart({ chart, onViewLinelist }) {
   if (chart.kind === "line") {
     return (
       <LineChart data={chart.data} margin={{ top: 8, right: 18, left: -8, bottom: 0 }}>
-        <CartesianGrid {...gridProps} />
+        <CartesianGrid {...gridProps} vertical={false} />
         <XAxis dataKey={chart.categoryKey} {...axisProps} />
         <YAxis {...axisProps} allowDecimals={false} />
         <Tooltip contentStyle={tooltipStyle} formatter={(value) => fmt(value)} />
@@ -737,22 +825,38 @@ function ServiceChart({ chart, onViewLinelist }) {
   }
 
   const vertical = chart.orientation === "vertical";
+  const axisWidth = vertical ? categoryAxisWidth(chart.data, chart.categoryKey) : 0;
+  const maxChars = Math.floor((axisWidth - CATEGORY_AXIS_PADDING) / CATEGORY_CHAR_WIDTH);
+  const drawnSeries = drawableSeries(chart);
+
   return (
     <BarChart
       data={chart.data}
       layout={chart.orientation}
-      margin={{ top: 8, right: 26, left: 12, bottom: 8 }}
+      margin={
+        vertical
+          ? { top: 4, right: 28, left: 0, bottom: 0 }
+          : { top: 8, right: 26, left: 12, bottom: 8 }
+      }
+      barCategoryGap={vertical ? "18%" : "22%"}
+      barGap={BAR_GAP}
     >
-      <CartesianGrid {...gridProps} />
+      <CartesianGrid {...gridProps} horizontal={!vertical} vertical={vertical} />
       {vertical ? (
         <>
-          <XAxis type="number" {...axisProps} allowDecimals={false} />
+          <XAxis
+            type="number"
+            {...axisProps}
+            allowDecimals={false}
+            tickFormatter={(value) => fmt(value)}
+          />
           <YAxis
             type="category"
             dataKey={chart.categoryKey}
-            width={110}
-            tickFormatter={truncateCategory}
             {...axisProps}
+            width={axisWidth}
+            interval={0}
+            tick={<CategoryTick maxChars={maxChars} />}
           />
         </>
       ) : (
@@ -766,18 +870,24 @@ function ServiceChart({ chart, onViewLinelist }) {
             textAnchor="end"
             height={64}
           />
-          <YAxis {...axisProps} allowDecimals={false} />
+          <YAxis {...axisProps} allowDecimals={false} tickFormatter={(value) => fmt(value)} />
         </>
       )}
       <Tooltip contentStyle={tooltipStyle} formatter={(value) => fmt(value)} />
-      {chart.series.length > 1 ? <Legend wrapperStyle={{ fontSize: 12 }} /> : null}
-      {chart.series.map((series) => (
+      {chart.series.length > 1 ? (
+        <Legend
+          wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+          content={<SeriesLegend series={chart.series} drawn={drawnSeries} />}
+        />
+      ) : null}
+      {drawnSeries.map((series) => (
         <Bar
           key={series.key}
           dataKey={series.key}
           name={series.label}
           fill={series.color}
-          radius={vertical ? [0, 4, 4, 0] : [4, 4, 0, 0]}
+          maxBarSize={vertical ? barThickness(drawnSeries.length) : COLUMN_BAR_MAX_WIDTH}
+          radius={vertical ? [0, 3, 3, 0] : [3, 3, 0, 0]}
           onClick={handleBarClick}
           cursor={drillable ? "pointer" : undefined}
         >
@@ -897,11 +1007,11 @@ function ServiceTable({ breakdown, emptyNoun, onViewLinelist }) {
 
 function DataQualityPanel({ chart }) {
   return (
-    <div className="ops-panel">
+    <div className="ops-panel ops-panel--chart">
       <div className="ops-panel__head">
         <h2>{chart.title}</h2>
       </div>
-      <div className="data-empty ops-panel-empty" style={{ minHeight: chart.height }}>
+      <div className="data-empty ops-panel-empty ops-chart" style={{ minHeight: chart.height }}>
         <span className="ops-pending" aria-label="Not available">
           {EM_DASH}
         </span>
@@ -916,17 +1026,17 @@ function ChartPanel({ chart, emptyNoun, onViewLinelist }) {
   }
 
   return (
-    <div className="ops-panel">
+    <div className="ops-panel ops-panel--chart">
       <div className="ops-panel__head">
         <h2>{chart.title}</h2>
         {chart.subtitle ? <span>{chart.subtitle}</span> : null}
       </div>
       {chart.data.length === 0 ? (
-        <div className="data-empty" style={{ minHeight: chart.height }}>
+        <div className="data-empty ops-chart" style={{ minHeight: chart.height }}>
           <EmptyBody noun={emptyNoun} />
         </div>
       ) : (
-        <Chart height={chart.height}>
+        <Chart height={chartHeight(chart)}>
           <ServiceChart chart={chart} onViewLinelist={onViewLinelist} />
         </Chart>
       )}
