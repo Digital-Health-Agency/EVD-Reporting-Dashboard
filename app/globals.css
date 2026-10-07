@@ -1264,6 +1264,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   color: var(--color-ink);
   font-size: 0.76rem;
 }
+.btn--table.btn--danger { background: var(--color-alert); color: #fff; }
 .btn:disabled {
   cursor: not-allowed;
   opacity: 0.58;
@@ -2253,6 +2254,10 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   background: var(--color-surface-muted);
   color: var(--color-warning);
 }
+.account-pill--reconciliation {
+  background: var(--color-surface-muted);
+  color: var(--color-info);
+}
 .account-pill-group {
   display: inline-flex;
   flex-wrap: wrap;
@@ -2518,6 +2523,23 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .data-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
 .data-table tbody tr:hover { background: #f7f9fb; }
 .data-table td.num, .data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- Reconciliation ---------- */
+.reconciliation-card > * + * { margin-top: 16px; }
+.reconciliation-list__date { white-space: nowrap; }
+.reconciliation-list__source { width: 100%; max-width: 128px; }
+.reconciliation-list .table-actions { flex-wrap: nowrap; white-space: nowrap; }
+.reconciliation-list__confirm { display: grid; gap: 8px; }
+.reconciliation-table th[scope="row"] { font-size: 0.875rem; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--color-ink); }
+.reconciliation-table .reconciliation-table__group th { padding-top: 16px; }
+.reconciliation-table input {
+  min-height: 44px; width: 100%; max-width: 160px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--color-ink);
+  font: inherit; font-size: 0.875rem; font-variant-numeric: tabular-nums; text-align: right;
+}
+.reconciliation-table input:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.console-form input[aria-invalid="true"] { border-color: var(--color-alert); }
 
 .footer { padding: 38px 0 48px; font-size: 0.78rem; color: var(--faint); line-height: 1.6; }
 
@@ -3839,3 +3861,35 @@ a:focus-visible, button:focus-visible, select:focus-visible {
     justify-content: flex-start;
   }
 }
+
+/* Reconciliation and audit tables share readable, wrapping value cells. */
+.reconciliation-switch { display: flex; align-items: flex-start; gap: 12px; padding: 20px 0; border-block: 1px solid var(--color-border); cursor: pointer; }
+.reconciliation-switch input { appearance: none; position: relative; width: 42px; height: 24px; margin-top: 2px; border: 1px solid var(--color-muted); border-radius: 12px; background: var(--color-surface-muted); flex-shrink: 0; cursor: pointer; }
+.reconciliation-switch input::before { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--color-muted); }
+.reconciliation-switch input:checked { background: var(--accent); border-color: var(--accent); }
+.reconciliation-switch input:checked::before { left: 21px; background: var(--color-surface); }
+.reconciliation-switch input:hover { border-color: var(--color-ink); }
+.reconciliation-switch > span { display: grid; gap: 6px; }
+.reconciliation-switch span span { max-width: 70ch; font-size: .875rem; line-height: 1.5; }
+.reconciliation-switch input:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.record-audit { margin-top: 28px; }
+.record-audit-table { min-width: 760px; }
+.record-audit-table > tbody > tr > td { vertical-align: top; }
+.record-audit-table > tbody > tr > td:last-child { width: 58%; }
+.audit-values { width: 100%; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.audit-values th, .audit-values td { overflow-wrap: anywhere; vertical-align: top; }
+.audit-values th[scope="row"] { font-size: .875rem; font-weight: 500; text-transform: none; letter-spacing: normal; }
+.audit-values thead th { font-size: .75rem; }
+.audit-time { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.audit-time span { display: block; margin-top: 4px; font-size: .8125rem; }
+.users-table td:nth-child(5), .users-table td:nth-child(6) { overflow-wrap: anywhere; }
+.users-table .account-pill { white-space: nowrap; }
+@media (max-width: 640px) { .record-audit { padding: 16px; } .reconciliation-switch { padding: 16px 0; } }
+
+.audit-request { min-width: 200px; }
+.audit-request summary { cursor: pointer; color: var(--color-ink); padding-block: 4px; }
+.audit-request summary:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.audit-request[open] summary { margin-bottom: 12px; }
+.audit-request .audit-values { min-width: 260px; }
+
+.audit-values caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

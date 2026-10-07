@@ -50,7 +50,7 @@ function ChevronDownIcon() {
 export default function AppHeader({ variant = "public" }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isAuthenticated, isPending, logout } = useAuth();
+  const { user, isAuthenticated, isReconciliation, isPending, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const isProfileRoute = pathname?.startsWith("/profile");
 
@@ -99,12 +99,15 @@ export default function AppHeader({ variant = "public" }) {
                           key={item.href}
                           role="menuitem"
                           href={item.href}
-                          aria-current={!isProfileRoute && variant === item.key ? "page" : undefined}
+                          aria-current={!isProfileRoute && !pathname?.startsWith("/reconciliation") && variant === item.key ? "page" : undefined}
                           onClick={() => setMenuOpen(false)}
                         >
                           {item.label}
                         </Link>
                       ))}
+                      {isReconciliation ? (
+                        <Link role="menuitem" href="/reconciliation" aria-current={pathname?.startsWith("/reconciliation") ? "page" : undefined} onClick={() => setMenuOpen(false)}>Reconciliation</Link>
+                      ) : null}
                     </div>
                     <div className="app-header__menu-divider" role="separator" />
                     <Link

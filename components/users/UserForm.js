@@ -16,6 +16,7 @@ export default function UserForm({
     email: "",
     role: "user",
     surveillance: false,
+    reconciliation: false,
     password: "",
   });
   const [busy, setBusy] = useState(false);
@@ -29,6 +30,7 @@ export default function UserForm({
       email: initialUser.email || "",
       role: parseRoles(initialUser.role).includes("admin") ? "admin" : "user",
       surveillance: parseRoles(initialUser.role).includes("surveillance"),
+      reconciliation: parseRoles(initialUser.role).includes("reconciliation"),
     }));
   }, [initialUser]);
 
@@ -41,7 +43,11 @@ export default function UserForm({
     setBusy(true);
     setError("");
 
-    const roles = form.surveillance ? [form.role, "surveillance"] : [form.role];
+    const roles = [
+      form.role,
+      form.surveillance && "surveillance",
+      form.reconciliation && "reconciliation",
+    ].filter(Boolean);
     try {
       await onSubmit({
         name: form.name.trim(),
@@ -112,6 +118,20 @@ export default function UserForm({
           <span className="form-check__label">Can view identifiers</span>
           <span className="form-check__hint">
             Allows this account to see identifying details on linelists and exports.
+          </span>
+        </span>
+      </label>
+      <label className="form-check" htmlFor="user-reconciliation">
+        <input
+          id="user-reconciliation"
+          type="checkbox"
+          checked={form.reconciliation}
+          onChange={(event) => setForm((current) => ({ ...current, reconciliation: event.target.checked }))}
+        />
+        <span className="form-check__copy">
+          <span className="form-check__label">Can enter official figures</span>
+          <span className="form-check__hint">
+            Allows this account to enter and edit the official headline figures that override dashboard numbers.
           </span>
         </span>
       </label>
