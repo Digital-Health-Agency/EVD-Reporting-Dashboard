@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api-client";
 import { AUTH_ROLE_LABELS, formatDate, parseRoles } from "@/lib/auth-user";
-import { baseFilterKey, humanizeToken } from "@/lib/format";
+import { humanizeToken } from "@/lib/format";
+
+import { auditFilterEntries } from "@/lib/audit-values";
 
 const EM_DASH = "—";
 
@@ -26,9 +28,6 @@ const OUTCOME_TONES = {
   aborted: "warning",
 };
 
-const SEARCH_LENGTH_KEY = "qLength";
-const SEARCH_DIGEST_KEY = "qSha256";
-
 function NotAvailable() {
   return <span aria-label="Not available">{EM_DASH}</span>;
 }
@@ -47,17 +46,12 @@ function columnSummary(columns) {
   return labels.length > 0 ? labels.join(", ") : null;
 }
 
-function filterSummary(filters) {
-  if (!filters || typeof filters !== "object") return null;
-  const named = Object.keys(filters)
-    .filter((key) => key !== SEARCH_LENGTH_KEY && key !== SEARCH_DIGEST_KEY)
-    .map(baseFilterKey)
-    .map(humanizeToken)
-    .filter(Boolean);
-  const parts = [...new Set(named)].sort();
-  const length = filters[SEARCH_LENGTH_KEY];
-  if (typeof length === "number") parts.push(`Search (${length} characters)`);
-  return parts.length > 0 ? parts.join(", ") : null;
+function FilterValues({ filters }) {
+  const entries = auditFilterEntries(filters);
+  if (!entries.length) return <NotAvailable />;
+  return <details className="audit-request"><summary>{entries.length} {entries.length === 1 ? "filter" : "filters"} · View values</summary>
+    <table className="data-table audit-values"><caption className="sr-only">Recorded request filter values</caption><thead><tr><th scope="col">Filter</th><th scope="col">Value</th></tr></thead><tbody>{entries.map(([label, value], index) => <tr key={index}><th scope="row">{label}</th><td>{value}</td></tr>)}</tbody></table>
+  </details>;
 }
 
 function OutcomePill({ outcome }) {
@@ -127,9 +121,9 @@ export default function AuditEvents({ embedded = false }) {
     <section className={embedded ? "users-section users-section--embedded" : "users-section"}>
       <div className="console-section-head">
         <div>
-          <span>Admin</span>
+
           <h2>Identifiable data access</h2>
-          <p>Who opened or exported patient identifiers, when, and which columns were involved.</p>
+          <p>Who opened or exported patient identifiers, when, and which columns and filter values were involved. Access events record the request; patient values are not stored.</p>
         </div>
       </div>
 
@@ -178,7 +172,7 @@ export default function AuditEvents({ embedded = false }) {
                 <th>Event</th>
                 <th>Dataset</th>
                 <th>Columns</th>
-                <th>Filters</th>
+                <th>Filter values</th>
                 <th className="num">Rows</th>
                 <th>Outcome</th>
               </tr>
@@ -194,7 +188,7 @@ export default function AuditEvents({ embedded = false }) {
                 </tr>
               ) : events.map((event) => (
                 <tr key={event.id}>
-                  <td>{formatDate(event.createdAt)}</td>
+                  <td className="audit-time">{formatDate(event.createdAt)}<span>{new Date(event.createdAt).toLocaleTimeString("en-KE", { timeZone: "Africa/Nairobi", hour: "2-digit", minute: "2-digit" })} EAT</span></td>
                   <td>
                     <div className="user-cell">
                       <strong>{event.actorName || event.actorId || EM_DASH}</strong>
@@ -204,7 +198,7 @@ export default function AuditEvents({ embedded = false }) {
                   <td>{eventLabel(event.eventType)}</td>
                   <td>{humanizeToken(event.dataset) || EM_DASH}</td>
                   <td>{columnSummary(event.columns) || <NotAvailable />}</td>
-                  <td>{filterSummary(event.filters) || <NotAvailable />}</td>
+                  <td><FilterValues filters={event.filters} /></td>
                   <td className="num">
                     {typeof event.rowCount === "number" ? event.rowCount.toLocaleString() : <NotAvailable />}
                   </td>

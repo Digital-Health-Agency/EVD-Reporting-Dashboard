@@ -7,7 +7,7 @@ async function source(path) {
 }
 
 const SINGULAR_ROLE_COMPARISON =
-  /(?:["'](?:user|admin|surveillance)["']\s*(?:===|!==)|(?:===|!==)\s*["'](?:user|admin|surveillance)["'])/;
+  /(?:["'](?:user|admin|surveillance|reconciliation)["']\s*(?:===|!==)|(?:===|!==)\s*["'](?:user|admin|surveillance|reconciliation)["'])/;
 
 test("dashboard auth utilities use Better Auth with the EVD app id", async () => {
   const [authClient, apiClient, appId, nextConfig, apiProxyConfig] =
@@ -46,7 +46,7 @@ test("lib/auth-user reads the role as a set instead of collapsing it to two valu
     roleLabel,
   } = await import("../lib/auth-user.js");
 
-  assert.deepEqual([...AUTH_ROLES], ["user", "admin", "surveillance"]);
+  assert.deepEqual([...AUTH_ROLES], ["user", "admin", "surveillance", "reconciliation"]);
   assert.equal(typeof parseRoles, "function");
   assert.equal(typeof hasRole, "function");
   assert.equal(typeof normalizeRoleString, "function");
@@ -77,6 +77,7 @@ test("lib/auth-user reads the role as a set instead of collapsing it to two valu
   assert.equal(AUTH_ROLE_LABELS.user, "User");
   assert.equal(AUTH_ROLE_LABELS.admin, "Admin");
   assert.equal(AUTH_ROLE_LABELS.surveillance, "Surveillance");
+  assert.equal(AUTH_ROLE_LABELS.reconciliation, "Reconciliation");
 
   const compound = roleLabel("admin,surveillance");
   assert.match(compound, /Admin/);
@@ -94,6 +95,8 @@ test("the client derives every role right from the parsed set, never from a whol
   assert.match(useAuthHook, /isSurveillance/);
   assert.match(useAuthHook, /hasRole\(role, "admin"\)/);
   assert.match(useAuthHook, /hasRole\(role, "surveillance"\)/);
+  assert.match(useAuthHook, /isReconciliation/);
+  assert.match(useAuthHook, /hasRole\(role, "reconciliation"\)/);
   assert.doesNotMatch(authUser, SINGULAR_ROLE_COMPARISON);
   assert.doesNotMatch(useAuthHook, SINGULAR_ROLE_COMPARISON);
 });
@@ -113,15 +116,21 @@ test("the users table and the user form carry a compound role without losing a r
   assert.match(userForm, /type="checkbox"/);
   assert.match(userForm, /checked=\{form\.surveillance\}/);
   assert.match(userForm, /surveillance: event\.target\.checked/);
+  assert.match(userForm, /checked=\{form\.reconciliation\}/);
+  assert.match(userForm, /reconciliation: event\.target\.checked/);
+  assert.match(userForm, /id="user-reconciliation"/);
+  assert.match(userForm, /Can enter official figures/);
   assert.match(userForm, /roles\.join\(","\)/);
   assert.doesNotMatch(userForm, SINGULAR_ROLE_COMPARISON);
 
-  const SPACED_ROLE_PAIR = /["'][^"']*\b(?:user|admin|surveillance)\b, +\b(?:user|admin|surveillance)\b/;
+  const SPACED_ROLE_PAIR = /["'][^"']*\b(?:user|admin|surveillance|reconciliation)\b, +\b(?:user|admin|surveillance|reconciliation)\b/;
   assert.doesNotMatch(userForm, SPACED_ROLE_PAIR);
   assert.doesNotMatch(usersManagement, SPACED_ROLE_PAIR);
 
   assert.match(styles, /\.account-pill--surveillance \{/);
   assert.match(styles, /\.account-pill--admin \{[\s\S]{0,200}\.account-pill--surveillance \{/);
+  assert.match(styles, /\.account-pill--reconciliation \{/);
+  assert.match(styles, /\.account-pill--surveillance \{[\s\S]{0,200}\.account-pill--reconciliation \{/);
 });
 
 test("auth routes include login, forgot password, and reset password flows", async () => {
@@ -174,6 +183,20 @@ test("shared header exposes login when signed out and profile logout menu when s
   assert.match(header, /Profile/);
   assert.match(header, /Logout/);
   assert.match(header, /app-header__user-menu/);
+  assert.match(header, /isReconciliation/);
+  assert.match(header, /href="\/reconciliation"/);
+  assert.match(header, />Reconciliation</);
+  assert.doesNotMatch(header, /\{ href: "\/reconciliation"/);
+
+  assert.match(
+    header,
+    /aria-current=\{!isProfileRoute && !pathname\?\.startsWith\("\/reconciliation"\) && variant === item\.key \? "page" : undefined\}/,
+    "on /reconciliation the pages pass variant=operational; only the Reconciliation item may read as current",
+  );
+  assert.match(
+    header,
+    /href="\/reconciliation" aria-current=\{pathname\?\.startsWith\("\/reconciliation"\) \? "page" : undefined\}/,
+  );
 });
 
 test("operational workspace is session gated and carries an admin-only tab group", async () => {

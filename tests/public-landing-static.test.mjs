@@ -37,6 +37,9 @@ test("public landing includes key metrics and testing figures", async () => {
   assert.match(source, /label="Total Screened"/);
   assert.match(source, /label="Recoveries"/);
   assert.match(source, /label="Deaths"/);
+  assert.match(source, /Number\.isFinite\(cases\.deaths\)/);
+  assert.match(source, /Number\.isFinite\(poe\.screeningPoints\)/);
+  assert.doesNotMatch(source, /const deaths = 0\b/);
   assert.match(source, /label="Total Tested"/);
   assert.match(source, /label="Positive"/);
   assert.doesNotMatch(source, /label="Tests done"/);

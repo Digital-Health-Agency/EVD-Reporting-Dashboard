@@ -32,8 +32,8 @@ test("source inspection: the audit route reuses AdminGate rather than authoring 
 
   assert.deepEqual(
     gates.sort(),
-    ["AdminGate.js", "AuthShell.js", "OperationalAuthGate.js", "ProfileGate.js"],
-    "the audit screen reuses AdminGate; a fifth file here means a fourth gate was authored",
+    ["AdminGate.js", "AuthShell.js", "OperationalAuthGate.js", "ProfileGate.js", "ReconciliationGate.js"],
+    "the audit screen reuses AdminGate; a sixth file here means another gate was authored",
   );
 
   assert.strictEqual(
@@ -61,6 +61,7 @@ test("source inspection: the audit screen reads one endpoint and writes nothing"
   assert.match(component, /catch \(caught\)/);
   assert.match(component, /setError\(caught instanceof Error \? caught\.message :/);
   assert.match(component, /embedded = false/, "the workspace mounts the same component");
+  assert.doesNotMatch(component, /headline_override: "Headline figure override"/);
 });
 
 test("source inspection: no free-text search over the stored filters payload is offered", async () => {
@@ -69,17 +70,7 @@ test("source inspection: no free-text search over the stored filters payload is 
   assert.match(component, /params\.actorId/);
   assert.doesNotMatch(component, /params\.(q|search)\b/);
   assert.doesNotMatch(component, /type="search"/);
-  assert.match(
-    component,
-    /key !== SEARCH_LENGTH_KEY && key !== SEARCH_DIGEST_KEY/,
-    "both search-shape keys must be excluded from the summarised key list",
-  );
-  assert.match(component, /`Search \(\$\{length\} characters\)`/, "a search shows its shape, not its term");
-  assert.doesNotMatch(
-    component,
-    /JSON\.stringify\(/,
-    "a raw dump of the filters payload invites a future reader to assume it is safe to widen",
-  );
+  assert.match(component, /auditFilterEntries/);
 });
 
 function outcomeTones(component) {
@@ -183,7 +174,7 @@ test("source inspection: a role pill per held role, and an unparseable role is s
     /names\.length > 0 \? names : \["user"\]/,
     "an unparseable recorded role must not be rewritten to 'User' on an audit surface",
   );
-  for (const role of ["user", "admin", "surveillance"]) {
+  for (const role of ["user", "admin", "surveillance", "reconciliation"]) {
     assert.ok(css.includes(`.account-pill--${role}`), `globals.css has no .account-pill--${role} rule`);
   }
 
@@ -218,26 +209,11 @@ test("source inspection: labels are derived from the token, not looked up per co
   );
 });
 
-test("source inspection: the filters cell summarises keys and never a value", async () => {
-  const component = await source("../components/audit/AuditEvents.js");
-
-  assert.match(component, /Object\.keys\(filters\)/);
-  assert.doesNotMatch(
-    component,
-    /Object\.(values|entries)\(filters\)/,
-    "a filter value can carry a typed search term or a patient identifier",
-  );
-
-  const reads = component.match(/filters\[[^\]]+\]/g) || [];
-  assert.deepEqual(
-    [...new Set(reads)],
-    ["filters[SEARCH_LENGTH_KEY]"],
-    "no other key may be read out of the stored filters payload",
-  );
-
-  assert.match(component, /\.map\(baseFilterKey\)/);
-  assert.match(component, /@\/lib\/format/, "the key helper is shared, not a second copy here");
-  assert.match(component, /\[\.\.\.new Set\(named\)\]/, "one label per filter, not one per shape key");
+test("audit filter values show retained values and keep search text redacted", async () => {
+  const { auditFilterEntries } = await import("../lib/audit-values.js");
+  assert.deepEqual(auditFilterEntries({ period: "7d", qLength: 12, qSha256: "secret-digest", q: "patient name", from: "2026-10-01" }), [
+    ["Period", "7d"], ["Search", "Redacted (12 characters)"], ["Q", "Value not retained"], ["From", "2026-10-01"],
+  ]);
 });
 
 test("source inspection: nothing on the audit screen can render an identifiable value", async () => {
