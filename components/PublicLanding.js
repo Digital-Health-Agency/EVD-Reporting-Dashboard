@@ -155,7 +155,7 @@ function PublicKeyMetrics({ data }) {
   const poe = data?.poe || {};
 
   const confirmed = Number.isFinite(cases.confirmed) ? cases.confirmed : 0;
-  const deaths = 0;
+  const deaths = Number.isFinite(cases.deaths) ? cases.deaths : 0;
   const cfr = confirmed > 0 ? (deaths / confirmed) * 100 : 0;
   const screeningPoints = (poe.byPoe || []).filter((point) => !point.unknown).length;
 
