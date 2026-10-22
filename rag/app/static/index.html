@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kenya PH Surveillance Assistant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --blue:#1565c0; --bg:#f4f6f5; }
+  * { box-sizing:border-box; font-family:system-ui,Segoe UI,Arial,sans-serif; }
+  body { margin:0; background:var(--bg); }
+  header { background:var(--blue); color:#fff; padding:14px 20px; }
+  header h1 { margin:0; font-size:18px; }
+  header p { margin:4px 0 0; font-size:12px; opacity:.85; }
+  #chat { max-width:860px; margin:20px auto; padding:0 16px 90px; }
+  .msg { margin:12px 0; padding:12px 14px; border-radius:10px; white-space:pre-wrap; }
+  .user { background:#dcede3; margin-left:15%; }
+  .bot { background:#fff; margin-right:15%; border:1px solid #dde3df; }
+  .disc { font-size:11px; color:#888; margin-top:8px; font-style:italic; }
+  #bar { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #dde3df; padding:10px; }
+  #bar form { max-width:860px; margin:auto; display:flex; gap:8px; }
+  #q { flex:1; padding:12px; border:1px solid #bcd; border-radius:8px; font-size:14px; }
+  button { background:var(--blue); color:#fff; border:0; border-radius:8px; padding:0 22px; font-size:14px; cursor:pointer; }
+  .sugg { font-size:12px; margin:8px 0; }
+  .sugg a { color:var(--blue); cursor:pointer; margin-right:12px; text-decoration:underline; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kenya Public Health Surveillance Assistant</h1>
+  <p>Grounded in IDSR Technical Guidelines (3rd ed.), DMT-PHE 2025 &amp; Digital PH Surveillance Roadmap — prototype</p>
+</header>
+<div id="chat">
+  <div class="msg bot">Hello! I'm your public health surveillance assistant. How can I help you today?
+    <div class="sugg">Try:
+      <a onclick="ask('What is the suspected case definition for Ebola?')">Ebola suspected case definition</a>
+      <a onclick="ask('What are the signs and symptoms of cholera?')">Cholera signs &amp; symptoms</a>
+      <a onclick="ask('When should a public health event be escalated to the national level?')">Escalation to national level</a>
+    </div>
+  </div>
+</div>
+<div id="bar"><form onsubmit="send();return false;">
+  <input id="q" placeholder="e.g. How is a suspected measles case identified and reported?" autofocus>
+  <button>Send</button>
+</form></div>
+<script>
+const chat = document.getElementById('chat');
+function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; chat.appendChild(d); d.scrollIntoView({behavior:'smooth'}); return d; }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ask(q){ document.getElementById('q').value=q; send(); }
+async function send(){
+  const q=document.getElementById('q').value.trim(); if(!q)return;
+  document.getElementById('q').value='';
+  add('user',esc(q));
+  const thinking=add('bot','…');
+  try{
+    const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    const j=await r.json();
+    let h=esc(j.answer);
+    h+='<div class="disc">'+esc(j.disclaimer)+'</div>';
+    thinking.innerHTML=h;
+  }catch(e){ thinking.innerHTML='Error: '+esc(String(e)); }
+}
+</script>
+</body>
+</html>
