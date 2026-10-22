@@ -51,7 +51,8 @@ that needs Node 21 or later.
 | `src/modules/operational/operational.service.ts`, `indicator-catalog.ts` | Text only: the Summary "Confirmed cases" card detail and catalog definition now describe lab-anchored confirmation. The count logic is unchanged and still `sum(final_confirmed_count)`. |
 | `src/modules/operational/operational.service.ts` | Summary tab: the "Current admitted" card and the "Current admitted" column of the "Cases by health facility" table are removed (no gold mart records admissions; it was a fixed zero). The Health facilities tab is unchanged. The dashboard's `card-linelist-map.js` still has an unused `summary.currentAdmitted` entry, left in place. |
 | `src/modules/operational/column-registry.ts`, `column-labels.ts` | Lab linelists (Tests completed, Positive, Negative) and their CSV exports show **Requesting facility** (`reporting_requesting_facility_name`, searchable) by default instead of the MFL code. "Requesting facility MFL" is still available under Columns. This was the only place the MFL code was shown. |
-| `src/modules/operational/column-registry.spec.ts`, `operational.service.spec.ts` | Label count 77 → 80; Summary tests updated for four cards and a five-column facility table. |
+| `src/modules/operational/column-registry.ts`, `column-labels.ts` (screenings) | Screening linelists (POE and facility) gain **Health facility** (`reporting_facility_name`, shown by default, searchable) and **County** (`reporting_county`, optional). Both are filled for facility screenings (Taifa Care) and empty for point-of-entry screenings. Sex and age group are not in `gold.report_screening`, so showing them needs an ETL change first. |
+| `src/modules/operational/column-registry.spec.ts`, `operational.service.spec.ts` | Label count 77 → 81; Summary tests updated for four cards and a five-column facility table. |
 | `src/modules/analytics/analytics.service.ts` (24h rule) | Public "Last 24h" figures (cases, confirmed, deaths, recoveries, contacts, tests, people tested, screening, alerts) count back 24 hours **from now**, passed in as a parameter, instead of from each source's newest record. A quiet source now shows +0 instead of its last busy day. The operational period filters follow the same rule (next row). |
 | `src/modules/analytics/analytics.service.ts` (screening) | Public screening figures (`poe` summary, trend, by-POE) count point-of-entry traveller screenings only (`surveillance_pathway = 'TRAVELLER'`). They previously also included 202 Taifa Care facility screenings. Total screened: 412,639 → 412,437, matching the operational POE tab. |
 | `src/modules/operational/operational.service.ts`, `linelist.service.ts`, `linelist-export.service.ts`, `src/common/analytics-helpers.ts` | **Operational period filters count back from today.** "Last 24 hours / 7 / 21 / 42 days" on every tab, linelist and CSV export now end **now**, not at each source's newest record. The existing `bounds` CTEs keep their `max_event_at` name, but it is now `now()` (constant `PERIOD_ANCHOR`), so query parameters and SQL shapes are unchanged. Tabs report the preset window as today back the period in Nairobi dates (`servedWindow` / `presetWindowDates`). A tab with no data in the window reports no window, so its empty state still shows. Preset exports no longer look up the newest record to date the file. "All time" and custom ranges are unchanged. Verified on all 6 tabs: windows end 22 Oct; "Last 24 hours" is 0 everywhere (no data loaded since 21 Oct); linelist totals equal the tab cards; 7-day figures match direct database counts. |
@@ -102,6 +103,21 @@ uncommitted so the local warehouse keeps building.
 | `transform/evd_transform/models/silver/slv_mdharura.sql` | Bug fix: the m-Dharura extractor renamed `community_unit` to `unit_name`/`unit_type` (scripts commit `eaa08ce`, 8 Jul). The model now selects `community_unit` only if the bronze column exists, and otherwise outputs `null::text`. Production, whose bronze table still has the old column, is unaffected; fresh environments no longer fail. |
 | *(local database only)* | The new `slv_nphiis_cases` / `slv_nphiis_contacts` models select columns that bronze only creates once a field has had a value (e.g. `preliminary_result`; on contacts `epid`, `county`, `facility`). The local NPHIIS sample has none, so those columns were added locally as empty `text` columns, the same thing bronze ingestion does when a field first appears. No data changed. **For the ETL team:** like the m-Dharura fix above, these models break on any bronze table that has never seen a value for a column. A small macro that selects a column only if it exists (else `null`) would make them safe. |
 | `pyproject.toml` | Adds `dbt-core<1.12` to `constraint-dependencies`. dbt-core 1.12 depends on an alpha Rust parser that downloads at install time and hangs; the team runs 1.11. `uv.lock` is gitignored, so without this pin every fresh install resolves 1.12. |
+
+## 4. Sex and age group on screening linelists (two stacked branches)
+
+| Repo | Branch | Change |
+|---|---|---|
+| EVD-Warehouse-ETL | `feat/screening-sex-age-group` (from `main`) | `gold.report_screening` gains `source_person_sex` and `reporting_age_group` (same names and bands as the contact report), plus `age_at_screening`. Sex comes from ADaM, UHAI and Taifa Care. Age comes from date of birth (ADaM, Taifa Care) or UHAI's reported age. New macro `normalise_sex`; UHAI silver gains `age_years`. Write-up: `docs/screening-demographics.md` in that repo. |
+| EVD-Dashboard-Backend | `feature/screening-sex-age-group` (stacked on `feature/landing-metrics-and-reporting-windows`) | Screening linelists show **Sex** and **Age group** by default. |
+
+**Deploy order:** the ETL branch first, then the backend branch. Until the
+columns exist in production, a backend that selects them fails on
+screening linelists.
+
+Coverage on 22 Oct data: sex 99.7% UHAI / 70.6% ADaM / 100% Taifa Care; age
+group 98.7% / 68.7% / 100%. About 2,000 UHAI "ages" are birth years or typos
+and are banded UNKNOWN (documented for UHAI to confirm).
 
 ## Local environment used for testing (not in any repo)
 
