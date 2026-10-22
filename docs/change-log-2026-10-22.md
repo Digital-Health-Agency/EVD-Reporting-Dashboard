@@ -104,6 +104,21 @@ uncommitted so the local warehouse keeps building.
 | *(local database only)* | The new `slv_nphiis_cases` / `slv_nphiis_contacts` models select columns that bronze only creates once a field has had a value (e.g. `preliminary_result`; on contacts `epid`, `county`, `facility`). The local NPHIIS sample has none, so those columns were added locally as empty `text` columns, the same thing bronze ingestion does when a field first appears. No data changed. **For the ETL team:** like the m-Dharura fix above, these models break on any bronze table that has never seen a value for a column. A small macro that selects a column only if it exists (else `null`) would make them safe. |
 | `pyproject.toml` | Adds `dbt-core<1.12` to `constraint-dependencies`. dbt-core 1.12 depends on an alpha Rust parser that downloads at install time and hangs; the team runs 1.11. `uv.lock` is gitignored, so without this pin every fresh install resolves 1.12. |
 
+## 4. Sex and age group on screening linelists (two stacked branches)
+
+| Repo | Branch | Change |
+|---|---|---|
+| EVD-Warehouse-ETL | `feat/screening-sex-age-group` (from `main`) | `gold.report_screening` gains `source_person_sex` and `reporting_age_group` (same names and bands as the contact report), plus `age_at_screening`. Sex comes from ADaM, UHAI and Taifa Care. Age comes from date of birth (ADaM, Taifa Care) or UHAI's reported age. New macro `normalise_sex`; UHAI silver gains `age_years`. Write-up: `docs/screening-demographics.md` in that repo. |
+| EVD-Dashboard-Backend | `feature/screening-sex-age-group` (stacked on `feature/landing-metrics-and-reporting-windows`) | Screening linelists show **Sex** and **Age group** by default. |
+
+**Deploy order:** the ETL branch first, then the backend branch. Until the
+columns exist in production, a backend that selects them fails on
+screening linelists.
+
+Coverage on 22 Oct data: sex 99.7% UHAI / 70.6% ADaM / 100% Taifa Care; age
+group 98.7% / 68.7% / 100%. About 2,000 UHAI "ages" are birth years or typos
+and are banded UNKNOWN (documented for UHAI to confirm).
+
 ## Local environment used for testing (not in any repo)
 
 - Postgres (Homebrew, :5432): `evd` (backend auth) and `evd_dwh` (warehouse).
