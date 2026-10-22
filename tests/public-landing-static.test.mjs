@@ -35,13 +35,16 @@ test("public landing includes key metrics and testing figures", async () => {
   assert.doesNotMatch(source, /Latest/);
   assert.match(source, /label="Confirmed"/);
   assert.match(source, /label="Total Screened"/);
-  assert.match(source, /label="Recoveries"/);
+  assert.doesNotMatch(source, /label="Recoveries"/);
   assert.match(source, /label="Deaths"/);
   assert.match(source, /Number\.isFinite\(cases\.deaths\)/);
   assert.match(source, /Number\.isFinite\(poe\.screeningPoints\)/);
   assert.doesNotMatch(source, /const deaths = 0\b/);
-  assert.match(source, /label="Total Tested"/);
+  assert.match(source, /label="People Tested"/);
+  assert.match(source, /value=\{labs\.patientsTested\}/);
   assert.match(source, /label="Positive"/);
+  assert.match(source, /value=\{fmt\(labs\.patientsPositive\)\}/);
+  assert.doesNotMatch(source, /label="Negative"/);
   assert.doesNotMatch(source, /label="Tests done"/);
   assert.doesNotMatch(source, /label="Screening records"/);
   assert.match(source, /public-info/);
@@ -53,7 +56,8 @@ test("public landing includes key metrics and testing figures", async () => {
   assert.doesNotMatch(source, /Points of entry/);
 
   assert.match(source, /label="Contacts listed"/);
-  assert.match(source, /value=\{fmt\(cases\.contactsListed\)\}/);
+  assert.match(source, /value=\{cases\.contactsListed\}/);
+  assert.match(source, /delta=\{cases\.newContacts24h\}/);
   assert.doesNotMatch(source, /contactsFollowedUp/);
   assert.doesNotMatch(source, /contact_registration_key|source_contact_name|source_contact_identifier/);
   assert.doesNotMatch(source, /\/linelist/);
@@ -62,12 +66,38 @@ test("public landing includes key metrics and testing figures", async () => {
   assert.doesNotMatch(source, /operational\/linelist/);
 });
 
-test("the screening trend shows its figure on hover and on keyboard focus", async () => {
+test("public landing shows cases, people tested, deaths, contacts listed, then screening", async () => {
+  const source = await readFile(new URL("../components/PublicLanding.js", import.meta.url), "utf8");
+  const titles = [...source.matchAll(/<MetricCard tone="\w+" icon="\w+" title="([^"]+)"/g)].map((match) => match[1]);
+
+  assert.deepEqual(titles, ["Cases", "People Tested", "Deaths", "Contacts Listed", "Screening"]);
+  assert.match(source, /delta=\{cases\.newDeaths24h\}/);
+  assert.match(source, /delta=\{labs\.newPatientsTested24h\}/);
+});
+
+test("every card shows a 14-day daily trend with weekday and date ticks", async () => {
+  const source = await readFile(new URL("../components/PublicLanding.js", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(source, /const TREND_DAYS = 14;/);
+  assert.equal([...source.matchAll(/<DailyTrend/g)].length, 5);
+  assert.match(source, /dailyTrendPoints\(labs\.daily, today, \(point\) => \(\{ value: point\.people/);
+  assert.match(source, /dailyTrendPoints\(poe\.trend,/);
+  assert.match(source, /values\.get\(key\) \|\| \{ value: 0, extra: 0 \}/);
+  assert.match(source, /No new \{noun\} in the last 14 days\./);
+  assert.match(source, /metric-trend__tick-date/);
+  assert.doesNotMatch(source, /weeklyTrendPoints|WeeklyTrend|ScreeningTrend/);
+  for (const tone of ["deaths", "cases", "tests", "contacts"]) {
+    assert.match(css, new RegExp(`\\.metric-trend--${tone}\\s*\\{`), `no .metric-trend--${tone} rule`);
+  }
+});
+
+test("trend bars show their figure on hover and on keyboard focus", async () => {
   const source = await readFile(new URL("../components/PublicLanding.js", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
   assert.match(source, /indicator-tooltip__bubble--chart/);
-  assert.match(source, /\{fmt\(point\.screened\)\}<\/strong> screened/);
+  assert.match(source, /\{fmt\(point\.value\)\}<\/strong> \{noun\}/);
   assert.match(source, /tabIndex=\{0\}/);
   assert.doesNotMatch(source, /title=\{`\$\{point\.label\}/);
 

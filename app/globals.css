@@ -1439,6 +1439,14 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   background: rgba(20, 87, 26, 0.1);
   color: #14571a;
 }
+.metric-card__icon--deaths {
+  background: rgba(43, 54, 72, 0.1);
+  color: var(--color-deaths);
+}
+.metric-card__icon--contacts {
+  background: rgba(53, 69, 156, 0.1);
+  color: var(--color-dha-cyan);
+}
 
 .metric-banner {
   --banner-bg: var(--color-dha-cyan);
@@ -1453,6 +1461,8 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .metric-banner--cases { --banner-bg: #d60c13; }
 .metric-banner--tests { --banner-bg: #11698a; }
 .metric-banner--screening { --banner-bg: #14571a; }
+.metric-banner--deaths { --banner-bg: var(--color-deaths); }
+.metric-banner--contacts { --banner-bg: var(--color-dha-cyan); }
 .metric-banner__label {
   font-size: 0.8rem;
   font-weight: 800;
@@ -1509,8 +1519,36 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .metric-stat__value--warning { color: var(--color-warning); }
 
 .metric-trend {
+  --trend-bar: #5aa363;
+  --trend-bar-hover: #3f8c4c;
+  --trend-bar-latest: #1c6b2a;
+  --trend-bar-latest-hover: #145021;
   margin: 0;
   padding-top: 4px;
+}
+.metric-trend--cases {
+  --trend-bar: #ec8a8d;
+  --trend-bar-hover: #e05358;
+  --trend-bar-latest: #d60c13;
+  --trend-bar-latest-hover: #a8090f;
+}
+.metric-trend--tests {
+  --trend-bar: #7fb4c8;
+  --trend-bar-hover: #4a93b0;
+  --trend-bar-latest: #11698a;
+  --trend-bar-latest-hover: #0c4f68;
+}
+.metric-trend--deaths {
+  --trend-bar: #8a93a3;
+  --trend-bar-hover: #5d6779;
+  --trend-bar-latest: #2b3648;
+  --trend-bar-latest-hover: #1b2331;
+}
+.metric-trend--contacts {
+  --trend-bar: #959fd3;
+  --trend-bar-hover: #6672bb;
+  --trend-bar-latest: #35459c;
+  --trend-bar-latest-hover: #283579;
 }
 .metric-trend figcaption {
   margin-bottom: 12px;
@@ -1538,14 +1576,15 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .metric-trend__bar {
   width: 100%;
   border-radius: 4px 4px 0 0;
-  background: #5aa363;
+  background: var(--trend-bar);
   transition: background 0.14s ease;
 }
-.metric-trend__bar--latest { background: #1c6b2a; }
+.metric-trend__bar--latest { background: var(--trend-bar-latest); }
 .metric-trend__slot:hover .metric-trend__bar,
-.metric-trend__slot:focus-visible .metric-trend__bar { background: #3f8c4c; }
+.metric-trend__slot:focus-visible .metric-trend__bar { background: var(--trend-bar-hover); }
 .metric-trend__slot:hover .metric-trend__bar--latest,
-.metric-trend__slot:focus-visible .metric-trend__bar--latest { background: #145021; }
+.metric-trend__slot:focus-visible .metric-trend__bar--latest { background: var(--trend-bar-latest-hover); }
+.metric-trend__track { border-bottom: 1px solid var(--border); }
 .metric-trend__bubble-date {
   display: block;
   margin-top: 2px;
@@ -1561,6 +1600,33 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.metric-trend__tick-date {
+  display: block;
+  color: var(--color-ink);
+  font-weight: 700;
+}
+.metric-card > .metric-trend { margin-top: auto; }
+.metric-trend figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.metric-trend__range {
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.metric-trend__empty {
+  display: grid;
+  place-items: center;
+  height: 142px;
+  margin: 0;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 .public-nav {

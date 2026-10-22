@@ -28,6 +28,19 @@ function MetricIcon({ name }) {
         <path d="M15.5 15.5 21 21" />
       </svg>
     ),
+    deaths: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <path d="M8.5 2h7l4 5.5L16 22H8L4.5 7.5Z" strokeLinejoin="round" />
+      </svg>
+    ),
+    contacts: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <circle cx="9" cy="8" r="3.2" />
+        <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+        <circle cx="17" cy="9" r="2.4" />
+        <path d="M15.5 14.2A4.5 4.5 0 0 1 21 18.5" />
+      </svg>
+    ),
   };
 
   return paths[name] || null;
@@ -96,57 +109,106 @@ function formatRate(value) {
   return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
 }
 
-function ScreeningTrend({ points }) {
+const TREND_DAYS = 14;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEKDAY = { weekday: "short", timeZone: "UTC" };
+const DAY_NUMBER = { day: "numeric", timeZone: "UTC" };
+const FULL_DAY = { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" };
+const SHORT_DAY = { day: "numeric", month: "short", timeZone: "UTC" };
+
+function parseDay(value) {
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function dayKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+// The last 14 calendar days ending on `endDate`, one point per day. Days the
+// series does not report are zero, so a quiet source shows as quiet.
+function dailyTrendPoints(series, endDate, pick) {
+  const end = endDate ? parseDay(endDate) : null;
+  if (!end) return [];
+
+  const values = new Map();
+  for (const point of series || []) {
+    if (!point?.date) continue;
+    const picked = pick(point);
+    values.set(point.date, {
+      value: Number.isFinite(picked.value) ? picked.value : 0,
+      extra: Number.isFinite(picked.extra) ? picked.extra : 0,
+    });
+  }
+
+  const points = [];
+  for (let offset = TREND_DAYS - 1; offset >= 0; offset -= 1) {
+    const day = new Date(end.getTime() - offset * DAY_MS);
+    const key = dayKey(day);
+    const entry = values.get(key) || { value: 0, extra: 0 };
+    points.push({
+      date: key,
+      value: entry.value,
+      extra: entry.extra,
+      weekday: day.toLocaleDateString("en-KE", WEEKDAY),
+      dayNumber: day.toLocaleDateString("en-KE", DAY_NUMBER),
+      full: day.toLocaleDateString("en-KE", FULL_DAY),
+    });
+  }
+  return points;
+}
+
+function rangeLabel(points) {
+  if (!points.length) return "";
+  const first = parseDay(points[0].date).toLocaleDateString("en-KE", SHORT_DAY);
+  const last = parseDay(points[points.length - 1].date).toLocaleDateString("en-KE", SHORT_DAY);
+  return `${first} – ${last}`;
+}
+
+function DailyTrend({ title, tone, points, noun, extraNoun }) {
   if (!points.length) return null;
-  const peak = Math.max(...points.map((point) => point.screened), 1);
+  const total = points.reduce((sum, point) => sum + point.value, 0);
+  const peak = Math.max(...points.map((point) => point.value), 1);
   const lastIndex = points.length - 1;
 
   return (
-    <figure className="metric-trend">
-      <figcaption>Daily Screening Trend</figcaption>
-      <div className="metric-trend__bars">
-        {points.map((point, index) => (
-          <div
-            className="metric-trend__slot indicator-tooltip-host"
-            key={point.date}
-            tabIndex={0}
-            aria-label={`${point.full}: ${fmt(point.screened)} screened`}
-          >
-            <span className="indicator-tooltip__bubble indicator-tooltip__bubble--chart" role="tooltip">
-              <strong>{fmt(point.screened)}</strong> screened
-              <span className="metric-trend__bubble-date">{point.full}</span>
-            </span>
-            <div className="metric-trend__track">
-              <div
-                className={`metric-trend__bar${index === lastIndex ? " metric-trend__bar--latest" : ""}`}
-                style={{ height: `${Math.max(8, Math.round((point.screened / peak) * 100))}%` }}
-              />
+    <figure className={`metric-trend metric-trend--${tone}`}>
+      <figcaption>
+        {title} · Last 14 days
+        <span className="metric-trend__range">{rangeLabel(points)}</span>
+      </figcaption>
+      {total === 0 ? (
+        <p className="metric-trend__empty">No new {noun} in the last 14 days.</p>
+      ) : (
+        <div className="metric-trend__bars">
+          {points.map((point, index) => (
+            <div
+              className="metric-trend__slot indicator-tooltip-host"
+              key={point.date}
+              tabIndex={0}
+              aria-label={`${point.full}: ${fmt(point.value)} ${noun}`}
+            >
+              <span className="indicator-tooltip__bubble indicator-tooltip__bubble--chart" role="tooltip">
+                <strong>{fmt(point.value)}</strong> {noun}
+                {extraNoun ? ` · ${fmt(point.extra)} ${extraNoun}` : null}
+                <span className="metric-trend__bubble-date">{point.full}</span>
+              </span>
+              <div className="metric-trend__track">
+                <div
+                  className={`metric-trend__bar${index === lastIndex ? " metric-trend__bar--latest" : ""}`}
+                  style={{ height: point.value > 0 ? `${Math.max(4, Math.round((point.value / peak) * 100))}%` : 0 }}
+                />
+              </div>
+              <span className="metric-trend__tick">
+                {point.weekday}
+                <span className="metric-trend__tick-date">{point.dayNumber}</span>
+              </span>
             </div>
-            <span className="metric-trend__tick">{point.label}</span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </figure>
   );
-}
-
-const WEEKDAY = { weekday: "short" };
-const FULL_DAY = { weekday: "short", day: "numeric", month: "short" };
-
-function screeningTrendPoints(poe) {
-  return (poe.trend || [])
-    .filter((point) => point && point.date)
-    .slice(-14)
-    .map((point) => {
-      const parsed = new Date(`${point.date}T00:00:00`);
-      const valid = !Number.isNaN(parsed.getTime());
-      return {
-        date: point.date,
-        screened: Number.isFinite(point.screened) ? point.screened : 0,
-        label: valid ? parsed.toLocaleDateString("en-KE", WEEKDAY) : point.date,
-        full: valid ? parsed.toLocaleDateString("en-KE", FULL_DAY) : point.date,
-      };
-    });
 }
 
 function PublicKeyMetrics({ data }) {
@@ -159,6 +221,18 @@ function PublicKeyMetrics({ data }) {
   const cfr = confirmed > 0 ? (deaths / confirmed) * 100 : 0;
   const screeningPoints = Number.isFinite(poe.screeningPoints) ? poe.screeningPoints : (poe.byPoe || []).filter((point) => !point.unknown).length;
 
+  // The backend's daily series ends today in Nairobi; anchor every chart there.
+  const daily = cases.daily || [];
+  const screeningDays = (poe.trend || []).filter((point) => point?.date);
+  const today = daily.length
+    ? daily[daily.length - 1].date
+    : screeningDays.length ? screeningDays[screeningDays.length - 1].date : null;
+  const caseTrend = dailyTrendPoints(daily, today, (point) => ({ value: point.cases, extra: point.confirmed }));
+  const peopleTrend = dailyTrendPoints(labs.daily, today, (point) => ({ value: point.people, extra: point.peoplePositive }));
+  const deathTrend = dailyTrendPoints(daily, today, (point) => ({ value: point.deaths }));
+  const contactTrend = dailyTrendPoints(daily, today, (point) => ({ value: point.contacts }));
+  const screeningTrend = dailyTrendPoints(poe.trend, today, (point) => ({ value: point.screened }));
+
   return (
     <div className="public-key-grid">
       <MetricCard tone="cases" icon="cases" title="Cases">
@@ -168,19 +242,48 @@ function PublicKeyMetrics({ data }) {
           value={confirmed}
           delta={cases.newConfirmed24h}
         />
+        <DailyTrend
+          title="Daily Cases Reported"
+          tone="cases"
+          points={caseTrend}
+          noun="cases"
+          extraNoun="confirmed"
+        />
+      </MetricCard>
+
+      <MetricCard tone="tests" icon="tests" title="People Tested">
+        <MetricBanner
+          tone="tests"
+          label="People Tested"
+          value={labs.patientsTested}
+          delta={labs.newPatientsTested24h}
+        />
         <dl className="metric-card__stats">
           <MetricStat
-            label="Recoveries"
-            value={fmt(cases.recoveries)}
-            tone="positive"
-            description={INDICATOR_TOOLTIPS.recoveries}
-          />
-          <MetricStat
-            label="Deaths"
-            value={fmt(deaths)}
+            label="Positive"
+            value={fmt(labs.patientsPositive)}
             tone="negative"
-            description={INDICATOR_TOOLTIPS.deaths}
+            description={INDICATOR_TOOLTIPS.positivePeople}
+            wide
           />
+        </dl>
+        <DailyTrend
+          title="Daily People Tested"
+          tone="tests"
+          points={peopleTrend}
+          noun="people tested"
+          extraNoun="positive"
+        />
+      </MetricCard>
+
+      <MetricCard tone="deaths" icon="deaths" title="Deaths">
+        <MetricBanner
+          tone="deaths"
+          label="Deaths"
+          value={deaths}
+          delta={cases.newDeaths24h}
+        />
+        <dl className="metric-card__stats">
           <MetricStat
             label="Case Fatality Rate"
             value={formatRate(cfr)}
@@ -189,29 +292,17 @@ function PublicKeyMetrics({ data }) {
             wide
           />
         </dl>
+        <DailyTrend title="Daily Deaths" tone="deaths" points={deathTrend} noun="deaths" />
       </MetricCard>
 
-      <MetricCard tone="tests" icon="tests" title="Samples Tested">
+      <MetricCard tone="contacts" icon="contacts" title="Contacts Listed">
         <MetricBanner
-          tone="tests"
-          label="Total Tested"
-          value={labs.testsDone}
-          delta={labs.newTested24h}
+          tone="contacts"
+          label="Contacts listed"
+          value={cases.contactsListed}
+          delta={cases.newContacts24h}
         />
-        <dl className="metric-card__stats">
-          <MetricStat
-            label="Positive"
-            value={fmt(labs.positive)}
-            tone="negative"
-            description={INDICATOR_TOOLTIPS.positiveTests}
-          />
-          <MetricStat
-            label="Negative"
-            value={fmt(labs.negative)}
-            tone="positive"
-            description={INDICATOR_TOOLTIPS.negativeTests}
-          />
-        </dl>
+        <DailyTrend title="Daily Contacts Listed" tone="contacts" points={contactTrend} noun="contacts" />
       </MetricCard>
 
       <MetricCard tone="screening" icon="screening" title="Screening" wide>
@@ -227,13 +318,8 @@ function PublicKeyMetrics({ data }) {
             value={fmt(screeningPoints)}
             description={INDICATOR_TOOLTIPS.screeningRecords}
           />
-          <MetricStat
-            label="Contacts listed"
-            value={fmt(cases.contactsListed)}
-            description={INDICATOR_TOOLTIPS.contactsListed}
-          />
         </dl>
-        <ScreeningTrend points={screeningTrendPoints(poe)} />
+        <DailyTrend title="Daily Screening" tone="screening" points={screeningTrend} noun="screened" />
       </MetricCard>
     </div>
   );
@@ -350,7 +436,7 @@ export default function PublicLanding() {
       <section className="public-key-metrics" aria-label="Key public metrics">
         <div className="public-section-head">
           <h2>Key metrics</h2>
-          <p>Headline cases, laboratory samples tested, and point-of-entry screening from the current national update.</p>
+          <p>Headline cases, people tested, deaths, contacts listed, and point-of-entry screening from the current national update.</p>
         </div>
         {status === "ready" ? (
           <PublicKeyMetrics data={data} />
