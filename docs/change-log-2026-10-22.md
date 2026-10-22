@@ -88,7 +88,14 @@ one definition. It is kept in `git stash` in EVD-Dashboard-Backend
 lab-test-level repeat flag is wanted later. The better home for that flag
 would be a column on `gold.report_lab_result`.
 
-## 3. EVD-Warehouse-ETL (local checkout on `feat/nphiis`, pulled to `fa2e17e`)
+## 3. EVD-Warehouse-ETL
+
+The two fixes below are pushed as branch
+**`fix/dbt-pin-and-mdharura-community-unit`**, based on `main` so it does
+not depend on `feat/nphiis`. Full write-up for the ETL team:
+`docs/fresh-environment-fixes.md` in that repo, linked from its README.
+Locally, `feat/nphiis` (now at `eaa8327`) carries the same two changes
+uncommitted so the local warehouse keeps building.
 
 | File | Change |
 |---|---|
