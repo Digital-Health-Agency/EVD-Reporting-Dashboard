@@ -89,7 +89,10 @@ export const CARD_LINELIST_MAP = Object.freeze({
   },
   "summary.confirmedCases": {
     dataset: "cases",
-    predicate: { classification: "CONFIRMED" },
+    // The cases the card counts (confirmed_case_flag = 1): one per LIMS case
+    // with a positive EVD result. Classification alone also lists
+    // source-reported confirmations with no linked positive.
+    predicate: { confirmedCase: "true" },
     listLabel: "Confirmed cases",
     noun: "cases",
   },
