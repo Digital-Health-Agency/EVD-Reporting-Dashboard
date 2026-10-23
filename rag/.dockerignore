@@ -1,0 +1,9 @@
+.venv/
+store/
+__pycache__/
+*.pyc
+.git/
+*.docx
+.~lock.*
+eval.py
+*.log
