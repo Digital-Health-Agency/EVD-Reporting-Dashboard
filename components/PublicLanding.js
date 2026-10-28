@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_DISEASE, DISEASES, diseaseByKey } from "@/lib/diseases";
-import { fmt, formatAsOfNow } from "@/lib/format";
+import { fmt, formatAsOfToday } from "@/lib/format";
 import { INDICATOR_TOOLTIPS } from "@/lib/indicator-tooltips";
 
 function MetricIcon({ name }) {
@@ -364,11 +364,14 @@ export default function PublicLanding() {
 
   useEffect(() => {
     setNow(new Date());
-    const timer = setInterval(() => setNow(new Date()), 30_000);
+    const timer = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(timer);
   }, []);
 
-  const updated = useMemo(() => (now ? formatAsOfNow(now) : null), [now]);
+  const updated = useMemo(() => {
+    if (!now || !data?.meta?.lastUpdated) return null;
+    return formatAsOfToday(now);
+  }, [now, data?.meta?.lastUpdated]);
 
   return (
     <main className="public-page">
