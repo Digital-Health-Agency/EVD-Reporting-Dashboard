@@ -72,3 +72,9 @@
 ## 4.4.0 (2026-08-05)
 - Refresh public and operational UI: full-bleed heroes, remove executive surface, add public health event selector, multi-disease branding, and re-enable production deploy webhook.
 
+## 4.9.0 (2026-10-07)
+- Compare official and warehouse figures at `/reconciliation`, add dated updates, and view or edit records with the reconciliation role.
+- Control national operational headline overrides with a per-record toggle that starts off; public headlines continue to use official figures independently.
+- See actual Field / Before / After values in each record's audit trail, with actor and EAT timestamps. Record history stays separate from general audit views and remains available after clearing.
+- Inspect retained filter values in both `/audit` and the operational Audit tab, with redacted free text and clear labels for unavailable historical values.
+- Preserve edits when a concurrent change causes HTTP 409, then reload the latest record before retrying. Improve reconciliation and audit table readability on desktop and smaller screens.

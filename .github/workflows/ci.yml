@@ -57,4 +57,4 @@ jobs:
 
       - name: Deploy to production
         run: |
-          curl --request POST '${{ secrets.DEPLOYMENT_WEBHOOK }}' --header 'Authorization: Bearer ${{ secrets.DEPLOYMENT_API_TOKEN }}' --header 'Content-Type: application/json' --data '{"message": "Dashboard deployed successfully"}'
+          curl --fail-with-body --silent --show-error --request POST '${{ secrets.DEPLOYMENT_WEBHOOK }}' --header 'Authorization: Bearer ${{ secrets.DEPLOYMENT_API_TOKEN }}' --header 'Content-Type: application/json' --data '{"message": "Dashboard deployed successfully"}'

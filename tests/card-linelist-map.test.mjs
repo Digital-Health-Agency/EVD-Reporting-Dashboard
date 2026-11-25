@@ -208,3 +208,8 @@ test("an unmapped card does not expose a linelist", () => {
     null,
   );
 });
+
+test("the summary Confirmed cases card lists exactly the cases it counts", () => {
+  assert.deepEqual(CARD_LINELIST_MAP["summary.confirmedCases"].dataset, "cases");
+  assert.deepEqual(CARD_LINELIST_MAP["summary.confirmedCases"].predicate, { confirmedCase: "true" });
+});

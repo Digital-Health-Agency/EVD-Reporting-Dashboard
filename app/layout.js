@@ -1,5 +1,6 @@
 import "./globals.css";
 import SiteFooter from "@/components/SiteFooter";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 export const metadata = {
   title: "Kenya Public Health Surveillance",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <SiteFooter />
+        <ChatWidget />
       </body>
     </html>
   );

@@ -15,7 +15,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { fmt } from "@/lib/format";
+import { fmt, formatAsOfToday } from "@/lib/format";
 import { api } from "@/lib/api-client";
 import { useAuth } from "@/hooks/use-auth";
 import LinelistModal from "@/components/operational/LinelistModal";
@@ -33,16 +33,6 @@ const EM_DASH = "—";
 const BREAKDOWN_PAGE_SIZE = 10;
 
 const DISPLAY_TIME_ZONE = "Africa/Nairobi";
-
-const LAST_UPDATED_FORMAT = new Intl.DateTimeFormat("en-GB", {
-  timeZone: DISPLAY_TIME_ZONE,
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
 
 function latestDataTimestamp(payload) {
   if (!payload) return null;
@@ -67,7 +57,7 @@ function latestDataTimestamp(payload) {
 function formatDataAge(payload) {
   const latest = latestDataTimestamp(payload);
   if (!latest) return `Data last updated ${EM_DASH} not reported`;
-  return `Data last updated ${LAST_UPDATED_FORMAT.format(latest)}`;
+  return `Data last updated ${formatAsOfToday()}`;
 }
 
 const TAB_ENDPOINTS = {

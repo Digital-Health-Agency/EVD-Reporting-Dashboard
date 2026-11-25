@@ -18,6 +18,7 @@ export function useAuth() {
     role,
     isAdmin: hasRole(role, "admin"),
     isSurveillance: hasRole(role, "surveillance"),
+    isReconciliation: hasRole(role, "reconciliation"),
     login: (email, password) => signIn.email({ email, password }),
     logout: () => signOut(),
     refetch: session.refetch,

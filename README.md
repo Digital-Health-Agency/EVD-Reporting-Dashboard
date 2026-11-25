@@ -168,6 +168,32 @@ backend-owned analytics integration:
   still name retired `gold` tables, so it is not the live data contract. Treat
   the backend analytics payload as authoritative.
 
+## Reconciliation and Audit History
+
+Open `/reconciliation` to compare warehouse totals with official headline records,
+then use **Add date** or **View / edit** to enter a dated update. Access requires
+the explicit `reconciliation` role, granted through admin user management. An
+administrator without that grant cannot use reconciliation.
+
+The **Operational override** toggle is off by default on every record. When enabled
+on the latest applicable record, it supplies national operational Summary confirmed
+cases, recoveries and deaths, with CFR recalculated. Geography-filtered summaries
+keep their warehouse figures. Public headlines use official figures independently
+of this toggle.
+
+Each record detail page includes paginated audit history with the actor, action,
+time in EAT, and a nested **Field / Before / After** table showing actual changes.
+This history remains accessible after clearing a record. Reconciliation events are
+excluded from `/audit` and the operational Audit tab. Both general audit views show
+retained request filter values; free text is redacted and unavailable historical
+values are marked **Value not retained**.
+
+Saving and clearing send the opened record's revision and identity to the backend.
+If another user updates, clears or replaces that record, a stale request returns
+HTTP 409. The form preserves entered values and offers **Reload latest figures**
+before retrying. Tables keep values readable through wrapping and horizontal
+scrolling on smaller screens.
+
 ## API Proxy Configuration
 
 The dashboard keeps browser requests same-origin by proxying `/api/*` and
@@ -194,10 +220,12 @@ Sections without a backing gold indicator are surfaced as
 preview/awaiting-data sections and should not be filled with fake operational
 values.
 
-Some headline values in the current executive UI are interim hardcoded values
-while the corresponding marts/contracts are completed. Keep those visible as
-interim implementation details and replace them with sourced fields as soon as
-the data contract is available.
+Public headline values can use official dated reconciliation records supplied by
+the backend. Cumulative blanks carry forward the latest earlier nonblank official
+value, then fall back to the warehouse. An explicit zero is retained. The 24-hour
+figures use the latest situation date only and fall back to the warehouse when
+blank. Screening-point capacity also uses the latest date only and falls back to
+the warehouse when blank.
 
 ---
 
@@ -226,6 +254,8 @@ app/
 |   |   `-- page.js          # Name and photo update
 |   `-- change-password/
 |       `-- page.js          # Password update
+|-- reconciliation/          # Role-gated headline list, create and record detail
+|-- audit/                   # General audit history
 |-- users/
 |   |-- page.js              # Admin user management
 |   |-- new/
@@ -351,7 +381,8 @@ The analytics API must preserve these behaviors:
 - Return a stable shape even when a mart is unavailable.
 - Mark unavailable sections as `pending` or `na` through provenance.
 - Keep SQL isolated in `EVD-Dashboard-Backend/src/modules/analytics`.
-- Query only the restored analytics `gold` schema for dashboard metrics.
+- Read warehouse metrics from the restored analytics `gold` schema, with official
+  headline reconciliation owned by the backend auth metadata database.
 
 ---
 

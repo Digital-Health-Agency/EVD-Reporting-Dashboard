@@ -34,6 +34,7 @@ const SCOPE_LABELS = Object.freeze({
   communitySource: "Source",
   classification: "Classification",
   resultStatus: "Result",
+  confirmedCase: "Lab-confirmed",
   treatmentOutcome: "Outcome",
 });
 
@@ -54,7 +55,9 @@ export function scopeChips(entry, tabParams) {
     if (!label) return;
     const text = key === "period"
       ? (PERIOD_TEXT[value] || String(value))
-      : statusLabel(value);
+      : value === "true"
+        ? "Yes"
+        : statusLabel(value);
     chips.push({ id: `${source}-${key}`, label, text });
   }
 
