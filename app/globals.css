@@ -4093,3 +4093,248 @@ a:focus-visible, button:focus-visible, select:focus-visible {
 .chat-bubble__text p { margin: 0 0 6px; }
 .chat-bubble__text p:last-child { margin-bottom: 0; }
 .chat-fab--hidden { display: none; }
+
+/* ── POE screening map (POE tab) — OpenStreetMap, pins ported from Uhai ── */
+.poe-map {
+  position: relative;
+  /* Leaflet panes use z-index 400–1000; keep them inside the map so the
+     linelist popup (z-index 50) and other overlays sit above it. */
+  isolation: isolate;
+  z-index: 0;
+  height: 480px;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #f4f6f9;
+}
+.poe-map__canvas {
+  width: 100%;
+  height: 100%;
+  background: #f4f6f9;
+}
+/* OSM credit must stay visible (tile usage policy); keep it small. */
+.poe-map .leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.85);
+}
+.poe-map__legend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 500;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(15, 31, 53, 0.92);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.78);
+}
+.poe-map__legend-title {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.poe-map__legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11px;
+}
+.poe-map__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.poe-map__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.poe-map__note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.poe-map-tip {
+  padding: 8px 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+  background: rgba(15, 31, 53, 0.92) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+.poe-map-tip__hint {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 11px;
+}
+.leaflet-tooltip-top.poe-map-tip::before {
+  border-top-color: rgba(15, 31, 53, 0.92) !important;
+}
+.poe-pushpin-wrap {
+  background: none;
+  border: 0;
+}
+.poe-pushpin {
+  position: relative;
+  width: 28px;
+  height: 40px;
+  transform: rotate(14deg);
+  transform-origin: 50% 100%;
+}
+.poe-pushpin__head {
+  width: 22px;
+  height: 22px;
+  margin: 0 auto;
+  border-radius: 50%;
+  box-shadow:
+    inset -2px -2px 5px rgba(0, 0, 0, 0.28),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.poe-pushpin__needle {
+  width: 3px;
+  height: 16px;
+  margin: -1px auto 0;
+  border-radius: 0 0 1px 1px;
+  background: linear-gradient(90deg, #8d8d8d 0%, #f5f5f5 45%, #616161 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.poe-pushpin--air .poe-pushpin__head {
+  background: radial-gradient(circle at 32% 28%, #cbd5e1 0%, #64748b 45%, #334155 100%);
+}
+.poe-pushpin--sea .poe-pushpin__head {
+  background: radial-gradient(circle at 32% 28%, #93c5fd 0%, #2563eb 45%, #1e3a8a 100%);
+}
+.poe-pushpin--land .poe-pushpin__head {
+  background: radial-gradient(circle at 32% 28%, #fcd34d 0%, #d97706 45%, #92400e 100%);
+}
+@media (max-width: 720px) {
+  .poe-map {
+    height: 360px;
+  }
+}
+
+/* ── Summary county map ── */
+.county-panel {
+  margin-bottom: var(--card-grid-gap);
+}
+.county-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.county-panel__switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg, #f6f7f9);
+}
+.county-panel__option {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.county-panel__option:hover {
+  color: var(--ink);
+}
+.county-panel__option--active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(15, 31, 53, 0.16);
+}
+.county-panel__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 18px;
+  margin-top: 14px;
+}
+.county-panel__list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: 480px;
+}
+.county-panel__summary {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.county-panel__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.county-panel__list ol {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.county-panel__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+}
+button.county-panel__row {
+  cursor: pointer;
+}
+button.county-panel__row:hover,
+button.county-panel__row:focus-visible {
+  background: rgba(255, 122, 26, 0.1);
+}
+.county-panel__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.county-panel__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.county-map__swatch {
+  flex: none;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.county-map__legend ul {
+  gap: 4px 10px;
+}
+@media (max-width: 900px) {
+  .county-panel__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .county-panel__list {
+    max-height: 320px;
+  }
+}

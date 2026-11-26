@@ -36,6 +36,7 @@ const SCOPE_LABELS = Object.freeze({
   resultStatus: "Result",
   confirmedCase: "Lab-confirmed",
   treatmentOutcome: "Outcome",
+  county: "County",
 });
 
 const PERIOD_TEXT = Object.freeze({
