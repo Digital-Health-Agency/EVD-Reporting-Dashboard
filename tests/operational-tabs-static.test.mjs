@@ -50,7 +50,9 @@ test("only the Health Facilities facility geography control is rendered", async 
   assert.match(src, /^ {2}facility: \{/m);
   assert.match(src, /hf: \["period", "facility"\]/);
   assert.doesNotMatch(src, /^ {2}(county|subcounty|ward):/m);
-  assert.doesNotMatch(src, /"(county|subcounty|ward)"/);
+  // No county/subcounty/ward filter: not in a tab's filter list, not as a
+  // filter key. (The Summary county map is a chart, not a filter control.)
+  assert.doesNotMatch(src, /(\[[^\]\n]*|key:\s*)"(county|subcounty|ward)"/);
 });
 
 test("no synthetic seed, multiplier or generated row survives", async () => {

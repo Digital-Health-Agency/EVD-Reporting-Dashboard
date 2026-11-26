@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ResponsiveContainer,
   BarChart,
@@ -25,10 +26,41 @@ import {
   rowLinelistEntry,
 } from "@/components/operational/card-linelist-map";
 import { Skeleton } from "@/components/ui/skeleton";
+import { buildPoeMarkers } from "@/lib/poe-locations";
+import {
+  countyClasses,
+  countyColor,
+  countyKey,
+  joinCountyRows,
+  useKenyaCounties,
+} from "@/lib/kenya-counties";
 import UsersManagement from "@/components/users/UsersManagement";
 import AuditEvents from "@/components/audit/AuditEvents";
 
 const EM_DASH = "—";
+
+const POE_MAP_HEIGHT = 480;
+
+// Leaflet needs `window`, so the map is client-only.
+const PoeScreeningMap = dynamic(
+  () => import("@/components/operational/PoeScreeningMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <Skeleton className="ops-skeleton ops-skeleton--chart" style={{ height: POE_MAP_HEIGHT }} />
+    ),
+  },
+);
+
+const CountyChoroplethMap = dynamic(
+  () => import("@/components/operational/CountyChoroplethMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <Skeleton className="ops-skeleton ops-skeleton--chart" style={{ height: POE_MAP_HEIGHT }} />
+    ),
+  },
+);
 
 const BREAKDOWN_PAGE_SIZE = 10;
 
@@ -744,6 +776,186 @@ function useOperationalTab(tabKey, filters, customRange) {
   };
 }
 
+/**
+ * POE tab map: one pin per point of entry in the tab's own breakdown, so the
+ * map follows the same period and POE filters as the table beside it. A pin
+ * opens the same linelist as its table row.
+ */
+function PoeMapPanel({ payload, onViewLinelist }) {
+  const breakdown = payload.breakdown;
+  const { markers, unmapped } = useMemo(() => {
+    const built = buildPoeMarkers(breakdown?.rows);
+    return {
+      ...built,
+      markers: built.markers.map((marker) => ({
+        ...marker,
+        // Several warehouse names on one pin cannot share one linelist filter.
+        linelist: marker.rows.length === 1 ? rowLinelistEntry(breakdown, marker.rows[0]) : null,
+      })),
+    };
+  }, [breakdown]);
+  const total = Number(payload.cards?.find((card) => card.key === "travellersScreened")?.value) || 0;
+
+  return (
+    <div className="ops-panel ops-service-detail-grid__full">
+      <div className="ops-panel__head">
+        <h2>Points of entry map</h2>
+        <span>
+          {fmt(total)} screened · {markers.length} POE{markers.length === 1 ? "" : "s"} mapped
+        </span>
+      </div>
+      <PoeScreeningMap markers={markers} onSelect={onViewLinelist} />
+      {unmapped.length > 0 ? (
+        <p className="poe-map__note">
+          Not on map (no location):{" "}
+          {unmapped.map((row) => `${row.name} (${fmt(row.screened)})`).join(", ")}
+        </p>
+      ) : null}
+      {breakdown && breakdown.shown < breakdown.total ? (
+        <p className="poe-map__note">
+          Showing the top {fmt(breakdown.shown)} of {fmt(breakdown.total)} POEs.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Summary county map: the summary indicators per county, one at a time.
+ * Clicking a county (on the map or in the list) opens the indicator card's
+ * linelist narrowed to that county.
+ */
+function CountyMapPanel({ payload, onViewLinelist }) {
+  const geography = payload.geography;
+  const geo = useKenyaCounties();
+  const indicators = geography?.indicators ?? [];
+  const [indicatorKey, setIndicatorKey] = useState(indicators[0]?.key);
+  const [hovered, setHovered] = useState(null);
+  const indicator = indicators.find((entry) => entry.key === indicatorKey) || indicators[0];
+
+  const { byCounty, unmatched } = useMemo(
+    () => joinCountyRows(geo?.features, geography?.rows),
+    [geo, geography],
+  );
+
+  if (!geography || !indicator) return null;
+
+  const card = payload.cards.find((entry) => entry.key === indicator.key);
+  const cardEntry = card ? linelistFor("summary", card) : null;
+  const linelistForRow = (row) =>
+    cardEntry && row.filterValues?.length === 1
+      ? {
+          ...cardEntry,
+          predicate: { ...cardEntry.predicate, county: row.filterValues[0] },
+          listLabel: `${cardEntry.listLabel} — ${row.name}`,
+        }
+      : null;
+
+  const ranked = [...byCounty.entries()]
+    .map(([key, row]) => ({ key, row, value: Number(row[indicator.key]) || 0 }))
+    .filter((entry) => entry.value > 0)
+    .sort((a, b) => b.value - a.value || a.row.name.localeCompare(b.row.name));
+  const classes = countyClasses(ranked[0]?.value ?? 0);
+  const mappedTotal = ranked.reduce((sum, entry) => sum + entry.value, 0);
+  const offMap = unmatched
+    .map((row) => ({ name: row.name, value: Number(row[indicator.key]) || 0 }))
+    .filter((row) => row.value > 0);
+
+  return (
+    <div className="ops-panel county-panel">
+      <div className="ops-panel__head county-panel__head">
+        <h2>{geography.title}</h2>
+        <div className="county-panel__switch" role="radiogroup" aria-label="Map indicator">
+          {indicators.map((entry) => (
+            <button
+              key={entry.key}
+              type="button"
+              role="radio"
+              aria-checked={entry.key === indicator.key}
+              className={`county-panel__option${
+                entry.key === indicator.key ? " county-panel__option--active" : ""
+              }`}
+              onClick={() => setIndicatorKey(entry.key)}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="county-panel__body">
+        {geo ? (
+          <CountyChoroplethMap
+            geo={geo}
+            byCounty={byCounty}
+            indicator={indicator}
+            classes={classes}
+            linelistFor={linelistForRow}
+            onSelect={onViewLinelist}
+            highlight={hovered}
+          />
+        ) : (
+          <Skeleton className="ops-skeleton ops-skeleton--chart" style={{ height: POE_MAP_HEIGHT }} />
+        )}
+
+        <div className="county-panel__list">
+          <p className="county-panel__summary">
+            {fmt(mappedTotal)} {indicator.label.toLowerCase()} in {ranked.length}{" "}
+            {ranked.length === 1 ? "county" : "counties"}
+          </p>
+          {ranked.length === 0 ? (
+            <p className="county-panel__empty">None in this period.</p>
+          ) : (
+            <ol>
+              {ranked.map(({ key, row, value }) => {
+                const entry = linelistForRow(row);
+                const content = (
+                  <>
+                    <span
+                      className="county-map__swatch"
+                      style={{ background: countyColor(value, classes) }}
+                    />
+                    <span className="county-panel__name">{row.name}</span>
+                    <span className="county-panel__value">{fmt(value)}</span>
+                  </>
+                );
+                return (
+                  <li
+                    key={key}
+                    onMouseEnter={() => setHovered(key)}
+                    onMouseLeave={() => setHovered(null)}
+                  >
+                    {entry ? (
+                      <button
+                        type="button"
+                        className="county-panel__row"
+                        onClick={() => onViewLinelist(entry)}
+                        onFocus={() => setHovered(key)}
+                        onBlur={() => setHovered(null)}
+                        title={`View ${entry.listLabel} linelist`}
+                      >
+                        {content}
+                      </button>
+                    ) : (
+                      <span className="county-panel__row">{content}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+          {offMap.length > 0 ? (
+            <p className="poe-map__note">
+              Not on map (no matching county):{" "}
+              {offMap.map((row) => `${row.name} (${fmt(row.value)})`).join(", ")}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function isUnsourcedIndicator(card) {
   return card.provenance?.source === "pending";
 }
@@ -1322,6 +1534,8 @@ function SummaryTab({ activeTab, payload, onViewLinelist }) {
         </section>
       ) : null}
 
+      <CountyMapPanel payload={payload} onViewLinelist={onViewLinelist} />
+
       <section className="ops-main-grid">
         {payload.charts.map((chart) => (
           <ChartPanel key={chart.key} chart={chart} emptyNoun={activeTab.emptyNoun} />
@@ -1371,6 +1585,10 @@ function ServiceDetailTab({ activeTab, payload, onViewLinelist }) {
       </section>
 
       <div className="ops-service-detail-grid">
+        {activeTab.key === "poe" ? (
+          <PoeMapPanel payload={payload} onViewLinelist={onViewLinelist} />
+        ) : null}
+
         {payload.charts
           .filter((chart) => !chart.fullWidth)
           .map((chart) => (
